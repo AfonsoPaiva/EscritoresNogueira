@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pagamento - Escritores Nogueira</title>
+    <meta name="description" content="Finalize sua compra de forma segura">
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:wght@400;500;600;700;800&family=Questrial&display=swap" rel="stylesheet">
+    
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Swiper CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css">
+    
+    <!-- AOS CSS -->
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    
+    <!-- Main CSS -->
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="page-pagamento">
+    
+    <!-- Header -->
+    <header class="header" id="header">
+        <div class="container">
+            <nav class="navbar">
+                <a href="index.html" class="logo">
+                    <span class="logo-text">Escritores Nogueira</span>
+                </a>
+                <ul class="nav-menu" id="navMenu">
+                    <li><a href="index.html" class="nav-link">Início</a></li>
+                    <li><a href="livros.html" class="nav-link">Livros</a></li>
+                    <li><a href="sobre.html" class="nav-link">Sobre</a></li>
+                    <li><a href="blog.html" class="nav-link">Blog</a></li>
+                    <li><a href="apoio.html" class="nav-link">Apoio</a></li>
+                </ul>
+                <div class="nav-actions">
+                    <button class="icon-btn" id="searchBtn" aria-label="Pesquisar">
+                        <i class="fas fa-search"></i>
+                    </button>
+                    <button class="icon-btn" id="cartBtn" aria-label="Carrinho">
+                        <i class="fas fa-shopping-cart"></i>
+                        <span class="cart-count" id="cartCount">0</span>
+                    </button>
+                    <button class="icon-btn" id="userBtn" aria-label="Conta">
+                        <i class="fas fa-user"></i>
+                    </button>
+                    <button class="hamburger" id="hamburger" aria-label="Menu">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </button>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Search Overlay -->
+    <div class="search-overlay" id="searchOverlay">
+        <div class="search-container">
+            <input type="text" id="searchInput" placeholder="Procurar livros..." class="search-input">
+            <button class="search-close" id="searchClose">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- Cart Sidebar -->
+    <div class="cart-sidebar" id="cartSidebar">
+        <div class="cart-header">
+            <h3>Carrinho</h3>
+            <button class="close-btn" id="closeCart">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="cart-items" id="cartItems"></div>
+        <div class="cart-footer">
+            <div class="cart-total">Total: <span id="cartTotal">0.00€</span></div>
+            <button class="btn btn-primary btn-checkout">Finalizar Compra</button>
+        </div>
+    </div>
+
+    <!-- User Sidebar -->
+    <div class="user-sidebar" id="userSidebar">
+        <div class="user-header">
+            <h3>Minha Conta</h3>
+            <button class="close-btn" id="closeUser">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="user-content" id="userContent">
+            <!-- Login Form -->
+            <div class="user-form" id="loginForm">
+                <h4>Entrar</h4>
+                <form id="loginFormElement">
+                    <div class="form-group">
+                        <input type="email" placeholder="E-mail" required>
+                    </div>
+                    <div class="form-group">
+                        <input type="password" placeholder="Palavra-passe" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-block">Entrar</button>
+                </form>
+                <p class="form-toggle">
+                    Não tem conta? <a href="#" id="showRegister">Registar</a>
+                </p>
+            </div>
+
+            <!-- Register Form -->
+            <div class="user-form hidden" id="registerForm">
+                <h4>Registar</h4>
+                <form id="registerFormElement">
+                    <div class="form-group">
+                        <input type="text" placeholder="Nome completo" required>
+                    </div>
+                    <div class="form-group">
+                        <input type="email" placeholder="E-mail" required>
+                    </div>
+                    <div class="form-group">
+                        <input type="password" placeholder="Palavra-passe" required>
+                    </div>
+                    <div class="form-group">
+                        <input type="password" placeholder="Confirmar palavra-passe" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-block">Registar</button>
+                </form>
+                <p class="form-toggle">
+                    Já tem conta? <a href="#" id="showLogin">Entrar</a>
+                </p>
+            </div>
+
+            <!-- User Info (when logged in) -->
+            <div class="user-info hidden" id="userInfo">
+                <div class="user-avatar">
+                    <i class="fas fa-user-circle"></i>
+                </div>
+                <p class="user-name" id="userName"></p>
+                <p class="user-email" id="userEmail"></p>
+                <a href="conta.html" class="btn btn-secondary btn-block">Minha Conta</a>
+                <button class="btn btn-outline btn-block" id="logoutBtn">Sair</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <main>
+        <div class="container">
+            <!-- Page Header -->
+            <div class="page-header" data-aos="fade-up">
+                <h1>Finalizar Compra</h1>
+                <p>Complete seus dados para finalizar o pedido</p>
+            </div>
+
+            <!-- Checkout Progress -->
+            <div class="checkout-progress" data-aos="fade-up">
+                <div class="progress-step active">
+                    <div class="step-number">1</div>
+                    <div class="step-label">Envio</div>
+                </div>
+                <div class="progress-line"></div>
+                <div class="progress-step">
+                    <div class="step-number">2</div>
+                    <div class="step-label">Pagamento</div>
+                </div>
+                <div class="progress-line"></div>
+                <div class="progress-step">
+                    <div class="step-number">3</div>
+                    <div class="step-label">Confirmação</div>
+                </div>
+            </div>
+
+            <!-- Checkout Content -->
+            <div class="checkout-container">
+                <!-- Checkout Form -->
+                <div class="checkout-form">
+                    <!-- Step 1: Shipping Information -->
+                    <div class="checkout-step active" id="step1">
+                        <h2 data-aos="fade-up">Informações de Envio</h2>
+                        
+                        <form id="shippingForm">
+                            <div class="form-row" data-aos="fade-up">
+                                <div class="form-group">
+                                    <label for="firstName">Nome *</label>
+                                    <input type="text" id="firstName" name="firstName" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="lastName">Apelido *</label>
+                                    <input type="text" id="lastName" name="lastName" required>
+                                </div>
+                            </div>
+
+                            <div class="form-group" data-aos="fade-up">
+                                <label for="email">E-mail *</label>
+                                <input type="email" id="email" name="email" required>
+                            </div>
+
+                            <div class="form-group" data-aos="fade-up">
+                                <label for="phone">Telefone *</label>
+                                <input type="tel" id="phone" name="phone" required>
+                            </div>
+
+                            <div class="form-group" data-aos="fade-up">
+                                <label for="address">Morada *</label>
+                                <input type="text" id="address" name="address" required>
+                            </div>
+
+                            <div class="form-row" data-aos="fade-up">
+                                <div class="form-group">
+                                    <label for="city">Cidade *</label>
+                                    <input type="text" id="city" name="city" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="postalCode">Código Postal *</label>
+                                    <input type="text" id="postalCode" name="postalCode" placeholder="0000-000" required>
+                                </div>
+                            </div>
+
+                            <div class="form-group" data-aos="fade-up">
+                                <label for="country">País *</label>
+                                <select id="country" name="country" required>
+                                    <option value="">Selecione um país</option>
+                                    <option value="PT" selected>Portugal</option>
+                                    <option value="ES">Espanha</option>
+                                    <option value="FR">França</option>
+                                    <option value="DE">Alemanha</option>
+                                    <option value="IT">Itália</option>
+                                    <option value="UK">Reino Unido</option>
+                                    <option value="BR">Brasil</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group" data-aos="fade-up">
+                                <label for="notes">Notas do Pedido (Opcional)</label>
+                                <textarea id="notes" name="notes" rows="4" placeholder="Alguma observação sobre a entrega?"></textarea>
+                            </div>
+
+                            <div class="form-actions" data-aos="fade-up">
+                                <button type="button" class="btn btn-secondary" onclick="window.location.href='livros.html'">
+                                    <i class="fas fa-arrow-left"></i> Continuar Comprando
+                                </button>
+                                <button type="button" class="btn btn-primary" onclick="nextStep(2)">
+                                    Continuar para Pagamento <i class="fas fa-arrow-right"></i>
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Step 2: Payment Information -->
+                    <div class="checkout-step" id="step2">
+                        <h2 data-aos="fade-up">Método de Pagamento</h2>
+
+                        <div class="payment-methods" data-aos="fade-up">
+                            <div class="payment-method active" data-method="card">
+                                <input type="radio" name="paymentMethod" id="cardPayment" value="card" checked>
+                                <label for="cardPayment">
+                                    <i class="fas fa-credit-card"></i>
+                                    <span>Cartão de Crédito/Débito</span>
+                                </label>
+                            </div>
+
+                            <div class="payment-method" data-method="mbway">
+                                <input type="radio" name="paymentMethod" id="mbwayPayment" value="mbway">
+                                <label for="mbwayPayment">
+                                    <i class="fas fa-mobile-alt"></i>
+                                    <span>MB WAY</span>
+                                </label>
+                            </div>
+
+                            <div class="payment-method" data-method="transfer">
+                                <input type="radio" name="paymentMethod" id="transferPayment" value="transfer">
+                                <label for="transferPayment">
+                                    <i class="fas fa-university"></i>
+                                    <span>Transferência Bancária</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Card Payment Form -->
+                        <form id="cardPaymentForm" class="payment-form active">
+                            <div class="form-group" data-aos="fade-up">
+                                <label for="cardNumber">Número do Cartão *</label>
+                                <input type="text" id="cardNumber" placeholder="0000 0000 0000 0000" maxlength="19" required>
+                                <div class="card-icons">
+                                    <i class="fab fa-cc-visa"></i>
+                                    <i class="fab fa-cc-mastercard"></i>
+                                    <i class="fab fa-cc-amex"></i>
+                                </div>
+                            </div>
+
+                            <div class="form-group" data-aos="fade-up">
+                                <label for="cardName">Nome no Cartão *</label>
+                                <input type="text" id="cardName" placeholder="NOME APELIDO" required>
+                            </div>
+
+                            <div class="form-row" data-aos="fade-up">
+                                <div class="form-group">
+                                    <label for="cardExpiry">Validade *</label>
+                                    <input type="text" id="cardExpiry" placeholder="MM/AA" maxlength="5" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="cardCvv">CVV *</label>
+                                    <input type="text" id="cardCvv" placeholder="000" maxlength="3" required>
+                                </div>
+                            </div>
+                        </form>
+
+                        <!-- MB WAY Payment Form -->
+                        <form id="mbwayPaymentForm" class="payment-form">
+                            <div class="form-group" data-aos="fade-up">
+                                <label for="mbwayPhone">Número de Telefone *</label>
+                                <input type="tel" id="mbwayPhone" placeholder="900 000 000" maxlength="9" required>
+                                <small>Irá receber uma notificação no seu telemóvel para confirmar o pagamento</small>
+                            </div>
+                        </form>
+
+                        <!-- Transfer Payment Info -->
+                        <div id="transferPaymentInfo" class="payment-form">
+                            <div class="transfer-info" data-aos="fade-up">
+                                <p><strong>Dados para Transferência:</strong></p>
+                                <div class="bank-details">
+                                    <p><strong>IBAN:</strong> PT50 0000 0000 0000 0000 0000 0</p>
+                                    <p><strong>Titular:</strong> Escritores Nogueira, Lda</p>
+                                    <p><strong>Banco:</strong> Banco Exemplo</p>
+                                    <p><strong>Referência:</strong> <span id="transferReference">EN-00000</span></p>
+                                </div>
+                                <div class="alert alert-info">
+                                    <i class="fas fa-info-circle"></i>
+                                    <span>Após realizar a transferência, o pedido será processado em até 48 horas úteis.</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-actions" data-aos="fade-up">
+                            <button type="button" class="btn btn-secondary" onclick="prevStep(1)">
+                                <i class="fas fa-arrow-left"></i> Voltar
+                            </button>
+                            <button type="button" class="btn btn-primary" onclick="processPayment()">
+                                Finalizar Pedido <i class="fas fa-check"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Step 3: Confirmation -->
+                    <div class="checkout-step" id="step3">
+                        <div class="confirmation-message" data-aos="zoom-in">
+                            <div class="success-icon">
+                                <i class="fas fa-check-circle"></i>
+                            </div>
+                            <h2>Pedido Confirmado!</h2>
+                            <p>Obrigado pela sua compra. O seu pedido foi recebido com sucesso.</p>
+                            
+                            <div class="order-details">
+                                <div class="order-number">
+                                    <strong>Número do Pedido:</strong>
+                                    <span id="orderNumber">#00000</span>
+                                </div>
+                                <div class="order-email">
+                                    <p>Enviámos um e-mail de confirmação para <strong id="confirmationEmail"></strong></p>
+                                </div>
+                            </div>
+
+                            <div class="confirmation-actions">
+                                <a href="conta.html" class="btn btn-primary">Ver Meus Pedidos</a>
+                                <a href="livros.html" class="btn btn-secondary">Continuar Comprando</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Order Summary -->
+                <div class="order-summary" data-aos="fade-up">
+                    <h3>Resumo do Pedido</h3>
+                    
+                    <div class="summary-items" id="summaryItems">
+                        <!-- Items will be loaded here by JavaScript -->
+                    </div>
+
+                    <div class="summary-totals">
+                        <div class="summary-row">
+                            <span>Subtotal:</span>
+                            <span id="summarySubtotal">0.00€</span>
+                        </div>
+                        <div class="summary-row">
+                            <span>Envio:</span>
+                            <span id="summaryShipping">0.00€</span>
+                        </div>
+                        <div class="summary-row summary-total">
+                            <span>Total:</span>
+                            <span id="summaryTotal">0.00€</span>
+                        </div>
+                    </div>
+
+                    <div class="secure-checkout">
+                        <i class="fas fa-lock"></i>
+                        <span>Pagamento 100% Seguro</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h4>Escritores Nogueira</h4>
+                    <p>A sua livraria online de confiança, com uma seleção única de obras literárias.</p>
+                </div>
+                <div class="footer-section">
+                    <h4>Links Rápidos</h4>
+                    <ul>
+                        <li><a href="index.html">Início</a></li>
+                        <li><a href="livros.html">Livros</a></li>
+                        <li><a href="sobre.html">Sobre Nós</a></li>
+                        <li><a href="blog.html">Blog</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Apoio</h4>
+                    <ul>
+                        <li><a href="apoio.html">Centro de Ajuda</a></li>
+                        <li><a href="apoio.html#faq">FAQ</a></li>
+                        <li><a href="apoio.html#shipping">Envios</a></li>
+                        <li><a href="apoio.html#returns">Devoluções</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Contacto</h4>
+                    <ul>
+                        <li><i class="fas fa-envelope"></i> info@escritoresnogueira.pt</li>
+                        <li><i class="fas fa-phone"></i> +351 123 456 789</li>
+                        <li><i class="fas fa-map-marker-alt"></i> Lisboa, Portugal</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2025 Escritores Nogueira. Todos os direitos reservados.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Overlay -->
+    <div class="overlay" id="overlay"></div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+    <script src="js/data.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/cart.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/main.js"></script>
+    <script src="js/pagamento.js"></script>
+</body>
+</html>

@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Apoio ao Cliente - Escritores Nogueira</title>
+    <meta name="description" content="Apoio ao cliente, perguntas frequentes, envios, devoluções, termos e condições">
+
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:wght@400;500;600;700;800&family=Questrial&display=swap" rel="stylesheet">
+
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Swiper CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css">
+
+    <!-- AOS CSS -->
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+
+    <!-- Main CSS -->
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="page-apoio">
+
+    <!-- Header -->
+    <header class="header" id="header">
+        <div class="container">
+            <nav class="navbar">
+                <a href="index.html" class="logo">
+                    <span class="logo-text">Escritores Nogueira</span>
+                </a>
+
+                <ul class="nav-menu" id="navMenu">
+                    <li><a href="index.html" class="nav-link">Início</a></li>
+                    <li><a href="livros.html" class="nav-link">Livros</a></li>
+                    <li><a href="sobre.html" class="nav-link">Sobre</a></li>
+                    <li><a href="blog.html" class="nav-link">Blog</a></li>
+                    <li><a href="apoio.html" class="nav-link active">Apoio</a></li>
+                </ul>
+
+                <div class="nav-actions">
+                    <button class="icon-btn search-btn" id="searchBtn">
+                        <i class="fas fa-search"></i>
+                    </button>
+                    <button class="icon-btn cart-btn" id="cartBtn">
+                        <i class="fas fa-shopping-cart"></i>
+                        <span class="cart-count" id="cartCount">0</span>
+                    </button>
+                    <button class="icon-btn user-btn" id="userBtn">
+                        <i class="fas fa-user"></i>
+                    </button>
+                    <button class="hamburger" id="hamburger">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </button>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Search Overlay -->
+    <div class="search-overlay" id="searchOverlay">
+        <div class="search-container">
+            <button class="close-search" id="closeSearch">
+                <i class="fas fa-times"></i>
+            </button>
+            <input type="text" placeholder="Pesquisar livros..." id="searchInput">
+            <div class="search-results" id="searchResults"></div>
+        </div>
+    </div>
+
+    <!-- Cart Sidebar -->
+    <div class="cart-sidebar" id="cartSidebar">
+        <div class="cart-header">
+            <h3>Carrinho de Compras</h3>
+            <button class="close-cart" id="closeCart">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="cart-items" id="cartItems"></div>
+        <div class="cart-footer">
+            <div class="cart-total">
+                <span>Total: <strong id="cartTotal">0.00€</strong></span>
+            </div>
+            <button class="btn btn-primary btn-checkout">Finalizar Compra</button>
+        </div>
+    </div>
+
+    <!-- User Sidebar -->
+    <div class="user-sidebar" id="userSidebar">
+        <div class="user-header">
+            <h3>Conta</h3>
+            <button class="close-user" id="closeUser">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="user-content" id="userContent">
+            <!-- Login Form -->
+            <div class="auth-form" id="loginForm">
+                <h4>Iniciar Sessão</h4>
+                <form id="loginFormElement">
+                    <div class="form-group">
+                        <input type="email" placeholder="Email" required>
+                    </div>
+                    <div class="form-group">
+                        <input type="password" placeholder="Password" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Entrar</button>
+                </form>
+                <p class="auth-toggle">Não tem conta? <a href="#" id="showRegister">Criar conta</a></p>
+            </div>
+
+            <!-- Register Form -->
+            <div class="auth-form hidden" id="registerForm">
+                <h4>Criar Conta</h4>
+                <form id="registerFormElement">
+                    <div class="form-group">
+                        <input type="text" placeholder="Nome" required>
+                    </div>
+                    <div class="form-group">
+                        <input type="email" placeholder="Email" required>
+                    </div>
+                    <div class="form-group">
+                        <input type="password" placeholder="Password" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Registar</button>
+                </form>
+                <p class="auth-toggle">Já tem conta? <a href="#" id="showLogin">Iniciar sessão</a></p>
+            </div>
+
+            <!-- User Profile -->
+            <div class="user-profile hidden" id="userProfile">
+                <div class="profile-info">
+                    <div class="profile-avatar">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <h4 id="userName"></h4>
+                    <p id="userEmail"></p>
+                </div>
+                <div class="profile-actions">
+                    <a href="conta.html" class="btn btn-outline">Ver Minha Conta</a>
+                    <button class="btn btn-secondary" id="logoutBtn">Terminar Sessão</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <main>
+        <div class="container">
+            <!-- Page Header -->
+            <section class="section page-header-full">
+                <div class="container-small">
+                    <h1 class="page-title" data-aos="fade-up">Apoio ao Cliente</h1>
+                    <p class="page-subtitle" data-aos="fade-up" data-aos-delay="100">
+                        Encontre respostas para suas dúvidas e informações importantes sobre nossos serviços
+                    </p>
+                </div>
+            </section>
+
+            <!-- Support Navigation -->
+            <section class="section support-nav">
+                <div class="support-tabs" data-aos="fade-up">
+                    <button class="support-tab active" data-tab="faq">
+                        <i class="fas fa-question-circle"></i>
+                        Perguntas Frequentes
+                    </button>
+                    <button class="support-tab" data-tab="shipping">
+                        <i class="fas fa-truck"></i>
+                        Envios e Devoluções
+                    </button>
+                    <button class="support-tab" data-tab="terms">
+                        <i class="fas fa-file-contract"></i>
+                        Termos e Condições
+                    </button>
+                    <button class="support-tab" data-tab="privacy">
+                        <i class="fas fa-shield-alt"></i>
+                        Política de Privacidade
+                    </button>
+                </div>
+            </section>
+
+            <!-- FAQ Section -->
+            <section class="section support-content active" id="faq" data-aos="fade-up">
+                <div class="support-header">
+                    <h2 class="section-title">Perguntas Frequentes</h2>
+                    <p class="section-subtitle">Respostas para as dúvidas mais comuns</p>
+                </div>
+
+                <div class="faq-list">
+                    <div class="faq-item">
+                        <div class="faq-question">
+                            <h3>Como posso fazer um pedido?</h3>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="faq-answer">
+                            <p>Para fazer um pedido, navegue pelo nosso catálogo de livros, adicione os itens desejados ao carrinho e proceda para o checkout. Você pode pagar com cartão de crédito, débito ou PayPal.</p>
+                        </div>
+                    </div>
+
+                    <div class="faq-item">
+                        <div class="faq-question">
+                            <h3>Quanto tempo leva para receber meu pedido?</h3>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="faq-answer">
+                            <p>Os pedidos são processados em 1-2 dias úteis. O tempo de entrega varia entre 3-7 dias úteis para Portugal Continental e 5-10 dias úteis para as ilhas.</p>
+                        </div>
+                    </div>
+
+                    <div class="faq-item">
+                        <div class="faq-question">
+                            <h3>Posso devolver um livro?</h3>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="faq-answer">
+                            <p>Sim, aceitamos devoluções dentro de 14 dias após a receção do pedido, desde que o livro esteja em perfeitas condições. Entre em contacto connosco para iniciar o processo de devolução.</p>
+                        </div>
+                    </div>
+
+                    <div class="faq-item">
+                        <div class="faq-question">
+                            <h3>Como posso acompanhar meu pedido?</h3>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="faq-answer">
+                            <p>Após a expedição do seu pedido, receberá um email com o número de rastreamento. Pode acompanhar o estado da entrega através do site dos CTT ou contactando-nos diretamente.</p>
+                        </div>
+                    </div>
+
+                    <div class="faq-item">
+                        <div class="faq-question">
+                            <h3>Oferecem desconto para estudantes?</h3>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="faq-answer">
+                            <p>Sim! Oferecemos 10% de desconto para estudantes com cartão válido. Apresente o seu cartão de estudante no momento da compra ou mencione no checkout.</p>
+                        </div>
+                    </div>
+
+                    <div class="faq-item">
+                        <div class="faq-question">
+                            <h3>Como posso alterar ou cancelar meu pedido?</h3>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="faq-answer">
+                            <p>Para alterar ou cancelar um pedido, contacte-nos imediatamente através do email ou telefone. Só podemos processar alterações enquanto o pedido não tiver sido expedido.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Shipping Section -->
+            <section class="section support-content" id="shipping" data-aos="fade-up">
+                <div class="support-header">
+                    <h2 class="section-title">Envios e Devoluções</h2>
+                    <p class="section-subtitle">Informações sobre entregas e política de devoluções</p>
+                </div>
+
+                <div class="shipping-content">
+                    <div class="shipping-section">
+                        <h3><i class="fas fa-truck"></i> Envios</h3>
+                        <div class="shipping-info">
+                            <div class="info-item">
+                                <h4>Portugal Continental</h4>
+                                <p>Entrega em 3-5 dias úteis</p>
+                                <p class="price">Grátis para compras acima de 25€</p>
+                                <p class="price">4.99€ para compras abaixo de 25€</p>
+                            </div>
+
+                            <div class="info-item">
+                                <h4>Ilhas (Madeira e Açores)</h4>
+                                <p>Entrega em 5-7 dias úteis</p>
+                                <p class="price">Grátis para compras acima de 35€</p>
+                                <p class="price">7.99€ para compras abaixo de 35€</p>
+                            </div>
+
+                            <div class="info-item">
+                                <h4>Entrega Express</h4>
+                                <p>Entrega em 1-2 dias úteis</p>
+                                <p class="price">9.99€ (apenas Portugal Continental)</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="shipping-section">
+                        <h3><i class="fas fa-undo"></i> Devoluções</h3>
+                        <div class="returns-info">
+                            <p><strong>Prazo:</strong> 14 dias após receção do pedido</p>
+                            <p><strong>Condições:</strong> Produto em perfeitas condições, sem uso e com embalagem original</p>
+                            <p><strong>Processo:</strong> Contacte-nos para obter instruções de devolução</p>
+                            <p><strong>Reembolso:</strong> Processado em 5-7 dias úteis após receção do produto</p>
+                            <p><strong>Custos:</strong> Devoluções gratuitas para defeitos. Cliente paga portes para outros casos</p>
+                        </div>
+                    </div>
+
+                    <div class="shipping-section">
+                        <h3><i class="fas fa-info-circle"></i> Informações Importantes</h3>
+                        <ul class="info-list">
+                            <li>Todos os envios são rastreados</li>
+                            <li>Receberá atualizações por email sobre o estado da entrega</li>
+                            <li>Em caso de ausência, os CTT deixam aviso para levantamento</li>
+                            <li>Produtos digitais não são elegíveis para devolução física</li>
+                            <li>Para livros danificados, fotografias são obrigatórias</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Terms Section -->
+            <section class="section support-content" id="terms" data-aos="fade-up">
+                <div class="support-header">
+                    <h2 class="section-title">Termos e Condições</h2>
+                    <p class="section-subtitle">Condições gerais de utilização do nosso serviço</p>
+                </div>
+
+                <div class="terms-content">
+                    <div class="terms-section">
+                        <h3>1. Aceitação dos Termos</h3>
+                        <p>Ao aceder e utilizar o website da Escritores Nogueira, concorda em cumprir estes Termos e Condições. Se não concordar com estes termos, não utilize este website.</p>
+                    </div>
+
+                    <div class="terms-section">
+                        <h3>2. Produtos e Preços</h3>
+                        <p>Todos os preços incluem IVA à taxa legal em vigor. Reservamo-nos o direito de alterar preços sem aviso prévio. Os preços apresentados no website são válidos apenas para compras online.</p>
+                    </div>
+
+                    <div class="terms-section">
+                        <h3>3. Encomendas e Pagamento</h3>
+                        <p>As encomendas estão sujeitas a disponibilidade. Aceitamos pagamentos por cartão de crédito, débito e PayPal. Todas as transações são processadas de forma segura.</p>
+                    </div>
+
+                    <div class="terms-section">
+                        <h3>4. Entregas</h3>
+                        <p>As entregas são realizadas pelos CTT. Os prazos de entrega são indicativos e podem variar. Não nos responsabilizamos por atrasos causados por terceiros.</p>
+                    </div>
+
+                    <div class="terms-section">
+                        <h3>5. Devoluções e Trocas</h3>
+                        <p>Aceitamos devoluções no prazo de 14 dias, conforme previsto na legislação em vigor. Os produtos devem estar em perfeitas condições. Consulte a nossa política de devoluções para mais detalhes.</p>
+                    </div>
+
+                    <div class="terms-section">
+                        <h3>6. Propriedade Intelectual</h3>
+                        <p>Todo o conteúdo do website, incluindo textos, imagens e design, é propriedade da Escritores Nogueira ou dos seus licenciadores. É proibida a reprodução sem autorização prévia.</p>
+                    </div>
+
+                    <div class="terms-section">
+                        <h3>7. Responsabilidade</h3>
+                        <p>A Escritores Nogueira não se responsabiliza por danos indiretos ou consequenciais. A nossa responsabilidade está limitada ao valor da encomenda.</p>
+                    </div>
+
+                    <div class="terms-section">
+                        <h3>8. Lei Aplicável</h3>
+                        <p>Estes termos são regidos pela lei portuguesa. Qualquer litígio será submetido aos tribunais portugueses.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Privacy Section -->
+            <section class="section support-content" id="privacy" data-aos="fade-up">
+                <div class="support-header">
+                    <h2 class="section-title">Política de Privacidade</h2>
+                    <p class="section-subtitle">Como protegemos e utilizamos as suas informações pessoais</p>
+                </div>
+
+                <div class="privacy-content">
+                    <div class="privacy-section">
+                        <h3>1. Informações que Recolhemos</h3>
+                        <p>Recolhemos informações que nos fornece diretamente (nome, email, morada) e informações técnicas sobre a sua utilização do website (cookies, endereço IP).</p>
+                    </div>
+
+                    <div class="privacy-section">
+                        <h3>2. Como Utilizamos as Informações</h3>
+                        <p>Utilizamos as suas informações para processar encomendas, melhorar os nossos serviços, enviar comunicações de marketing (com o seu consentimento) e cumprir obrigações legais.</p>
+                    </div>
+
+                    <div class="privacy-section">
+                        <h3>3. Partilha de Informações</h3>
+                        <p>Só partilhamos as suas informações com terceiros quando necessário para processar encomendas (transportadoras) ou quando exigido por lei. Não vendemos dados pessoais a terceiros.</p>
+                    </div>
+
+                    <div class="privacy-section">
+                        <h3>4. Cookies</h3>
+                        <p>Utilizamos cookies para melhorar a sua experiência no website. Pode gerir as suas preferências de cookies nas definições do seu navegador.</p>
+                    </div>
+
+                    <div class="privacy-section">
+                        <h3>5. Segurança</h3>
+                        <p>Implementamos medidas de segurança técnicas e organizacionais para proteger as suas informações pessoais contra acesso não autorizado, alteração ou divulgação.</p>
+                    </div>
+
+                    <div class="privacy-section">
+                        <h3>6. Seus Direitos</h3>
+                        <p>Tem o direito de aceder, retificar, eliminar ou limitar o tratamento dos seus dados pessoais. Para exercer estes direitos, contacte-nos através dos nossos canais de apoio.</p>
+                    </div>
+
+                    <div class="privacy-section">
+                        <h3>7. Contacto</h3>
+                        <p>Para questões sobre privacidade, contacte-nos através do email: privacidade@escritoresnogueira.pt</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Contact Section -->
+            <section class="section contact-support" data-aos="fade-up">
+                <div class="support-header">
+                    <h2 class="section-title">Ainda tem dúvidas?</h2>
+                    <p class="section-subtitle">Entre em contacto connosco</p>
+                </div>
+
+                <div class="contact-options">
+                    <div class="contact-item">
+                        <i class="fas fa-envelope"></i>
+                        <h4>Email</h4>
+                        <p>apoio@escritoresnogueira.pt</p>
+                        <p>Respondemos em 24h</p>
+                    </div>
+
+                    <div class="contact-item">
+                        <i class="fas fa-phone"></i>
+                        <h4>Telefone</h4>
+                        <p>+351 123 456 789</p>
+                        <p>Seg-Sex: 9h-18h</p>
+                    </div>
+
+                    <div class="contact-item">
+                        <i class="fas fa-comments"></i>
+                        <h4>Chat Online</h4>
+                        <p>Disponível no website</p>
+                        <p>Atendimento imediato</p>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h4>Escritores Nogueira</h4>
+                    <p>A sua livraria online de referência em Portugal. Descubra milhares de títulos e autores portugueses e internacionais.</p>
+                    <div class="social-links">
+                        <a href="#" class="social-link"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#" class="social-link"><i class="fab fa-instagram"></i></a>
+                        <a href="#" class="social-link"><i class="fab fa-twitter"></i></a>
+                    </div>
+                </div>
+
+                <div class="footer-section">
+                    <h4>Links Úteis</h4>
+                    <ul>
+                        <li><a href="sobre.html">Sobre Nós</a></li>
+                        <li><a href="apoio.html">Apoio ao Cliente</a></li>
+                        <li><a href="blog.html">Blog</a></li>
+                        <li><a href="livros.html">Catálogo</a></li>
+                    </ul>
+                </div>
+
+                <div class="footer-section">
+                    <h4>Apoio ao Cliente</h4>
+                    <ul>
+                        <li><a href="apoio.html#faq">Perguntas Frequentes</a></li>
+                        <li><a href="apoio.html#shipping">Envios e Devoluções</a></li>
+                        <li><a href="apoio.html#terms">Termos e Condições</a></li>
+                        <li><a href="apoio.html#privacy">Política de Privacidade</a></li>
+                    </ul>
+                </div>
+
+                <div class="footer-section">
+                    <h4>Contactos</h4>
+                    <ul>
+                        <li><i class="fas fa-envelope"></i> apoio@escritoresnogueira.pt</li>
+                        <li><i class="fas fa-phone"></i> +351 123 456 789</li>
+                        <li><i class="fas fa-map-marker-alt"></i> Portugal</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="footer-bottom">
+                <p>&copy; 2024 Escritores Nogueira. Todos os direitos reservados.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Overlay -->
+    <div class="overlay" id="overlay"></div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+    <script src="js/data.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/cart.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/main.js"></script>
+    <script src="js/apoio.js"></script>
+</body>
+</html>

@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Minha Conta - Escritores Nogueira</title>
+    <meta name="description" content="Gerencie sua conta, visualize seus pedidos e informações pessoais">
+
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:wght@400;500;600;700;800&family=Questrial&display=swap" rel="stylesheet">
+
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Swiper CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css">
+
+    <!-- AOS CSS -->
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+
+    <!-- Main CSS -->
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="page-conta">
+
+    <!-- Header -->
+    <header class="header" id="header">
+        <div class="container">
+            <nav class="navbar">
+                <a href="index.html" class="logo">
+                    <span class="logo-text">Escritores Nogueira</span>
+                </a>
+
+                <ul class="nav-menu" id="navMenu">
+                    <li><a href="index.html" class="nav-link">Início</a></li>
+                    <li><a href="livros.html" class="nav-link">Livros</a></li>
+                    <li><a href="sobre.html" class="nav-link">Sobre</a></li>
+                    <li><a href="blog.html" class="nav-link">Blog</a></li>
+                    <li><a href="apoio.html" class="nav-link">Apoio</a></li>
+                </ul>
+
+                <div class="nav-actions">
+                    <button class="icon-btn search-btn" id="searchBtn">
+                        <i class="fas fa-search"></i>
+                    </button>
+                    <button class="icon-btn cart-btn" id="cartBtn">
+                        <i class="fas fa-shopping-cart"></i>
+                        <span class="cart-count" id="cartCount">0</span>
+                    </button>
+                    <button class="icon-btn user-btn" id="userBtn">
+                        <i class="fas fa-user"></i>
+                    </button>
+                    <button class="hamburger" id="hamburger">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </button>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Search Overlay -->
+    <div class="search-overlay" id="searchOverlay">
+        <div class="search-container">
+            <button class="close-search" id="closeSearch">
+                <i class="fas fa-times"></i>
+            </button>
+            <input type="text" placeholder="Pesquisar livros..." id="searchInput">
+            <div class="search-results" id="searchResults"></div>
+        </div>
+    </div>
+
+    <!-- Cart Sidebar -->
+    <div class="cart-sidebar" id="cartSidebar">
+        <div class="cart-header">
+            <h3>Carrinho de Compras</h3>
+            <button class="close-cart" id="closeCart">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="cart-items" id="cartItems"></div>
+        <div class="cart-footer">
+            <div class="cart-total">
+                <span>Total: <strong id="cartTotal">0.00€</strong></span>
+            </div>
+            <button class="btn btn-primary btn-checkout">Finalizar Compra</button>
+        </div>
+    </div>
+
+    <!-- User Sidebar -->
+    <div class="user-sidebar" id="userSidebar">
+        <div class="user-header">
+            <h3>Conta</h3>
+            <button class="close-user" id="closeUser">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="user-content" id="userContent">
+            <!-- Login Form -->
+            <div class="auth-form" id="loginForm">
+                <h4>Iniciar Sessão</h4>
+                <form id="loginFormElement">
+                    <div class="form-group">
+                        <input type="email" placeholder="Email" required>
+                    </div>
+                    <div class="form-group">
+                        <input type="password" placeholder="Password" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Entrar</button>
+                </form>
+                <p class="auth-toggle">Não tem conta? <a href="#" id="showRegister">Criar conta</a></p>
+            </div>
+
+            <!-- Register Form -->
+            <div class="auth-form hidden" id="registerForm">
+                <h4>Criar Conta</h4>
+                <form id="registerFormElement">
+                    <div class="form-group">
+                        <input type="text" placeholder="Nome" required>
+                    </div>
+                    <div class="form-group">
+                        <input type="email" placeholder="Email" required>
+                    </div>
+                    <div class="form-group">
+                        <input type="password" placeholder="Password" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Registar</button>
+                </form>
+                <p class="auth-toggle">Já tem conta? <a href="#" id="showLogin">Iniciar sessão</a></p>
+            </div>
+
+            <!-- User Profile -->
+            <div class="user-profile hidden" id="userProfile">
+                <div class="profile-info">
+                    <div class="profile-avatar">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <h4 id="userName"></h4>
+                    <p id="userEmail"></p>
+                </div>
+                <button class="btn btn-secondary" id="logoutBtn">Terminar Sessão</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <main>
+        <div class="container">
+            <!-- Page Header -->
+            <section class="section page-header-full">
+                <div class="container-small">
+                    <h1 class="page-title" data-aos="fade-up">Minha Conta</h1>
+                    <p class="page-subtitle" data-aos="fade-up" data-aos-delay="100">
+                        Gerencie suas informações pessoais e visualize seu histórico de pedidos
+                    </p>
+                </div>
+            </section>
+
+            <!-- Account Navigation -->
+            <section class="section account-nav">
+                <div class="account-tabs" data-aos="fade-up">
+                    <button class="account-tab active" data-tab="profile">
+                        <i class="fas fa-user"></i>
+                        Perfil
+                    </button>
+                    <button class="account-tab" data-tab="orders">
+                        <i class="fas fa-shopping-bag"></i>
+                        Meus Pedidos
+                    </button>
+                    <button class="account-tab" data-tab="settings">
+                        <i class="fas fa-cog"></i>
+                        Configurações
+                    </button>
+                </div>
+            </section>
+
+            <!-- Profile Section -->
+            <section class="section account-content active" id="profile" data-aos="fade-up">
+                <div class="account-header">
+                    <h2 class="section-title">Informações Pessoais</h2>
+                    <p class="section-subtitle">Atualize suas informações de contato e preferências</p>
+                </div>
+
+                <div class="profile-card">
+                    <div class="profile-avatar-large">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <div class="profile-details">
+                        <h3 id="profileName"></h3>
+                        <p id="profileEmail"></p>
+                        <p class="member-since">Membro desde: <span id="memberSince"></span></p>
+                    </div>
+                </div>
+
+                <div class="profile-form">
+                    <form id="profileForm">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="firstName">Nome</label>
+                                <input type="text" id="firstName" name="firstName" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="lastName">Apelido</label>
+                                <input type="text" id="lastName" name="lastName">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="email">Email</label>
+                            <input type="email" id="email" name="email" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="phone">Telefone</label>
+                            <input type="tel" id="phone" name="phone">
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="address">Morada</label>
+                                <input type="text" id="address" name="address">
+                            </div>
+                            <div class="form-group">
+                                <label for="postalCode">Código Postal</label>
+                                <input type="text" id="postalCode" name="postalCode">
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="city">Cidade</label>
+                                <input type="text" id="city" name="city">
+                            </div>
+                            <div class="form-group">
+                                <label for="country">País</label>
+                                <select id="country" name="country">
+                                    <option value="Portugal">Portugal</option>
+                                    <option value="Espanha">Espanha</option>
+                                    <option value="França">França</option>
+                                </select>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Atualizar Perfil</button>
+                    </form>
+                </div>
+            </section>
+
+            <!-- Orders Section -->
+            <section class="section account-content" id="orders" data-aos="fade-up">
+                <div class="account-header">
+                    <h2 class="section-title">Meus Pedidos</h2>
+                    <p class="section-subtitle">Histórico completo dos seus pedidos</p>
+                </div>
+
+                <div class="orders-list" id="ordersList">
+                    <!-- Orders will be loaded dynamically -->
+                    <div class="no-orders">
+                        <i class="fas fa-shopping-bag"></i>
+                        <h3>Ainda não fez nenhum pedido</h3>
+                        <p>Explore nosso catálogo e faça sua primeira compra!</p>
+                        <a href="livros.html" class="btn btn-primary">Ver Livros</a>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Settings Section -->
+            <section class="section account-content" id="settings" data-aos="fade-up">
+                <div class="account-header">
+                    <h2 class="section-title">Configurações da Conta</h2>
+                    <p class="section-subtitle">Gerencie suas preferências e configurações de segurança</p>
+                </div>
+
+                <div class="settings-section">
+                    <h3><i class="fas fa-lock"></i> Alterar Password</h3>
+                    <p class="settings-description">Recomendamos alterar sua password regularmente para manter sua conta segura.</p>
+                    <form id="passwordForm">
+                        <div class="form-group">
+                            <label for="currentPassword">Password Atual</label>
+                            <input type="password" id="currentPassword" name="currentPassword" required placeholder="Digite sua password atual">
+                        </div>
+                        <div class="form-group">
+                            <label for="newPassword">Nova Password</label>
+                            <input type="password" id="newPassword" name="newPassword" required placeholder="Mínimo 8 caracteres">
+                            <small class="form-hint">Use uma combinação de letras, números e símbolos</small>
+                        </div>
+                        <div class="form-group">
+                            <label for="confirmPassword">Confirmar Nova Password</label>
+                            <input type="password" id="confirmPassword" name="confirmPassword" required placeholder="Repita a nova password">
+                        </div>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-key"></i> Alterar Password
+                        </button>
+                    </form>
+                </div>
+
+                <div class="settings-section danger-zone">
+                    <h3><i class="fas fa-exclamation-triangle"></i> Zona de Perigo</h3>
+                    <p>Ações irreversíveis que afetam permanentemente sua conta.</p>
+                    <div class="danger-actions">
+                        <button class="btn btn-outline-danger" id="deactivateAccount">
+                            <i class="fas fa-pause-circle"></i> Desativar Conta Temporariamente
+                        </button>
+                        <button class="btn btn-danger" id="deleteAccount">
+                            <i class="fas fa-trash-alt"></i> Eliminar Conta Permanentemente
+                        </button>
+                    </div>
+                    <small class="danger-warning">
+                        <i class="fas fa-info-circle"></i> Ao eliminar sua conta, todos os seus dados, pedidos e preferências serão permanentemente removidos.
+                    </small>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h4>Escritores Nogueira</h4>
+                    <p>A sua livraria online de referência em Portugal. Descubra milhares de títulos e autores portugueses e internacionais.</p>
+                    <div class="social-links">
+                        <a href="#" class="social-link"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#" class="social-link"><i class="fab fa-instagram"></i></a>
+                        <a href="#" class="social-link"><i class="fab fa-twitter"></i></a>
+                    </div>
+                </div>
+
+                <div class="footer-section">
+                    <h4>Links Úteis</h4>
+                    <ul>
+                        <li><a href="sobre.html">Sobre Nós</a></li>
+                        <li><a href="apoio.html">Apoio ao Cliente</a></li>
+                        <li><a href="blog.html">Blog</a></li>
+                        <li><a href="livros.html">Catálogo</a></li>
+                    </ul>
+                </div>
+
+                <div class="footer-section">
+                    <h4>Apoio ao Cliente</h4>
+                    <ul>
+                        <li><a href="apoio.html#faq">Perguntas Frequentes</a></li>
+                        <li><a href="apoio.html#shipping">Envios e Devoluções</a></li>
+                        <li><a href="apoio.html#terms">Termos e Condições</a></li>
+                        <li><a href="apoio.html#privacy">Política de Privacidade</a></li>
+                    </ul>
+                </div>
+
+                <div class="footer-section">
+                    <h4>Contactos</h4>
+                    <ul>
+                        <li><i class="fas fa-envelope"></i> apoio@escritoresnogueira.pt</li>
+                        <li><i class="fas fa-phone"></i> +351 123 456 789</li>
+                        <li><i class="fas fa-map-marker-alt"></i> Portugal</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="footer-bottom">
+                <p>&copy; 2024 Escritores Nogueira. Todos os direitos reservados.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Overlay -->
+    <div class="overlay" id="overlay"></div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+    <script src="js/data.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/cart.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/main.js"></script>
+    <script src="js/conta.js"></script>
+</body>
+</html>

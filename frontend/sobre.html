@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sobre Nós - Escritores Nogueira</title>
+    <meta name="description" content="Conheça a história e os autores por trás da Escritores Nogueira">
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:wght@400;500;600;700;800&family=Questrial&display=swap" rel="stylesheet">
+    
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Swiper CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css">
+    
+    <!-- AOS CSS -->
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    
+    <!-- Main CSS -->
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="page-sobre">
+    
+    <!-- Header -->
+    <header class="header" id="header">
+        <div class="container">
+            <nav class="navbar">
+                <a href="index.html" class="logo">
+                    <span class="logo-text">Escritores Nogueira</span>
+                </a>
+                
+                <ul class="nav-menu" id="navMenu">
+                    <li><a href="index.html" class="nav-link">Início</a></li>
+                    <li><a href="livros.html" class="nav-link">Livros</a></li>
+                    <li><a href="sobre.html" class="nav-link active">Sobre</a></li>
+                    <li><a href="blog.html" class="nav-link">Blog</a></li>
+                    <li><a href="apoio.html" class="nav-link">Apoio</a></li>
+                </ul>
+                
+                <div class="nav-actions">
+                    <button class="icon-btn search-btn" id="searchBtn">
+                        <i class="fas fa-search"></i>
+                    </button>
+                    <button class="icon-btn cart-btn" id="cartBtn">
+                        <i class="fas fa-shopping-cart"></i>
+                        <span class="cart-count" id="cartCount">0</span>
+                    </button>
+                    <button class="icon-btn user-btn" id="userBtn">
+                        <i class="fas fa-user"></i>
+                    </button>
+                    <button class="hamburger" id="hamburger">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </button>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Search Overlay -->
+    <div class="search-overlay" id="searchOverlay">
+        <div class="search-container">
+            <button class="close-search" id="closeSearch">
+                <i class="fas fa-times"></i>
+            </button>
+            <input type="text" class="search-input" placeholder="Pesquisar livros..." id="searchInput">
+            <div class="search-results" id="searchResults"></div>
+        </div>
+    </div>
+
+    <!-- Cart Sidebar -->
+    <div class="cart-sidebar" id="cartSidebar">
+        <div class="cart-header">
+            <h3>Carrinho de Compras</h3>
+            <button class="close-cart" id="closeCart">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="cart-items" id="cartItems"></div>
+        <div class="cart-footer">
+            <div class="cart-total">
+                <span>Total:</span>
+                <span id="cartTotal">0,00€</span>
+            </div>
+            <button class="btn btn-primary btn-checkout">Finalizar Compra</button>
+        </div>
+    </div>
+
+    <!-- User Sidebar -->
+    <div class="user-sidebar" id="userSidebar">
+        <div class="user-header">
+            <h3>Conta</h3>
+            <button class="close-user" id="closeUser">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="user-content" id="userContent">
+            <div class="auth-form" id="loginForm">
+                <h4>Iniciar Sessão</h4>
+                <form id="loginFormElement">
+                    <div class="form-group">
+                        <input type="email" placeholder="Email" required>
+                    </div>
+                    <div class="form-group">
+                        <input type="password" placeholder="Password" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Entrar</button>
+                </form>
+                <p class="auth-toggle">Não tem conta? <a href="#" id="showRegister">Criar conta</a></p>
+            </div>
+            <div class="auth-form hidden" id="registerForm">
+                <h4>Criar Conta</h4>
+                <form id="registerFormElement">
+                    <div class="form-group">
+                        <input type="text" placeholder="Nome" required>
+                    </div>
+                    <div class="form-group">
+                        <input type="email" placeholder="Email" required>
+                    </div>
+                    <div class="form-group">
+                        <input type="password" placeholder="Password" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Registar</button>
+                </form>
+                <p class="auth-toggle">Já tem conta? <a href="#" id="showLogin">Iniciar sessão</a></p>
+            </div>
+            <div class="user-profile hidden" id="userProfile">
+                <div class="profile-info">
+                    <div class="profile-avatar">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <h4 id="userName"></h4>
+                    <p id="userEmail"></p>
+                </div>
+                <div class="profile-actions">
+                    <a href="conta.html" class="btn btn-outline">Ver Minha Conta</a>
+                    <button class="btn btn-secondary" id="logoutBtn">Terminar Sessão</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div>
+        <div>
+            <main class="transition-fade">
+                
+                <!-- Page Header -->
+                <section class="page-header">
+            <div class="container">
+                <h1 class="page-title" data-aos="fade-up">Sobre Nós</h1>
+                <p class="page-subtitle" data-aos="fade-up" data-aos-delay="100">A nossa história e missão</p>
+            </div>
+        </section>
+
+        <!-- Mission Section -->
+        <section class="section about-mission">
+            <div class="container">
+                <div class="mission-content" data-aos="fade-up">
+                    <div class="mission-text">
+                        <h2>A Nossa Missão</h2>
+                        <p>A Escritores Nogueira nasceu da paixão pela literatura e do desejo de partilhar obras que tocam a alma e enriquecem o espírito. Somos mais do que uma livraria online – somos curadores de histórias, guardiões de palavras que atravessam gerações.</p>
+                        <p>Acreditamos que cada livro é uma porta para novos mundos, novas perspetivas e novas possibilidades. A nossa missão é tornar essas portas acessíveis a todos, oferecendo uma seleção cuidada de obras literárias de qualidade excecional.</p>
+                        <p>Valorizamos a tradição editorial, o cuidado na seleção de cada título e o compromisso com a excelência literária. Cada livro no nosso catálogo foi escolhido com dedicação e paixão.</p>
+                    </div>
+                    <div class="mission-image">
+                        <div class="image-placeholder">
+                            <i class="fas fa-book-open"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Values Section -->
+        <section class="section values-section">
+            <div class="container">
+                <div class="section-header" data-aos="fade-up">
+                    <h2 class="section-title">Os Nossos Valores</h2>
+                </div>
+
+                <div class="values-grid">
+                    <div class="value-card" data-aos="fade-up" data-aos-delay="0">
+                        <div class="value-icon">
+                            <i class="fas fa-star"></i>
+                        </div>
+                        <h3>Qualidade</h3>
+                        <p>Selecionamos apenas obras de excelência literária reconhecida.</p>
+                    </div>
+
+                    <div class="value-card" data-aos="fade-up" data-aos-delay="100">
+                        <div class="value-icon">
+                            <i class="fas fa-heart"></i>
+                        </div>
+                        <h3>Paixão</h3>
+                        <p>Cada livro é escolhido com amor e dedicação à literatura.</p>
+                    </div>
+
+                    <div class="value-card" data-aos="fade-up" data-aos-delay="200">
+                        <div class="value-icon">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <h3>Comunidade</h3>
+                        <p>Cultivamos uma comunidade de leitores apaixonados.</p>
+                    </div>
+
+                    <div class="value-card" data-aos="fade-up" data-aos-delay="300">
+                        <div class="value-icon">
+                            <i class="fas fa-lightbulb"></i>
+                        </div>
+                        <h3>Conhecimento</h3>
+                        <p>Promovemos a educação e o enriquecimento cultural.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Authors Section -->
+        <section class="section authors-section">
+            <div class="container">
+                <div class="section-header" data-aos="fade-up">
+                    <h2 class="section-title">Os Autores</h2>
+                    <p class="section-subtitle">As vozes por trás da curadoria</p>
+                </div>
+
+                <div class="authors-grid">
+                    <div class="author-card" data-aos="fade-up" data-aos-delay="0">
+                        <div class="author-image">
+                            <div class="image-placeholder">
+                                <i class="fas fa-user"></i>
+                            </div>
+                        </div>
+                        <div class="author-info">
+                            <h3>Maria Nogueira</h3>
+                            <p class="author-role">Fundadora e Curadora</p>
+                            <p class="author-bio">Com mais de 20 anos de experiência no mundo editorial, Maria dedica-se à descoberta e promoção de obras literárias de qualidade. A sua paixão pelos livros começou na infância e transformou-se numa missão de vida.</p>
+                        </div>
+                    </div>
+
+                    <div class="author-card" data-aos="fade-up" data-aos-delay="100">
+                        <div class="author-image">
+                            <div class="image-placeholder">
+                                <i class="fas fa-user"></i>
+                            </div>
+                        </div>
+                        <div class="author-info">
+                            <h3>João Nogueira</h3>
+                            <p class="author-role">Curador e Especialista Literário</p>
+                            <p class="author-bio">Formado em Literatura Comparada, João traz uma perspetiva única na seleção de obras. A sua expertise abrange diversos géneros e épocas, garantindo uma curadoria diversificada e enriquecedora.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Timeline Section -->
+        <section class="section timeline-section">
+            <div class="container">
+                <div class="section-header" data-aos="fade-up">
+                    <h2 class="section-title">A Nossa Jornada</h2>
+                </div>
+
+                <div class="timeline">
+                    <div class="timeline-item" data-aos="fade-right">
+                        <div class="timeline-marker"></div>
+                        <div class="timeline-content">
+                            <h4>2020</h4>
+                            <p>Fundação da Escritores Nogueira com uma pequena seleção de livros cuidadosamente escolhidos.</p>
+                        </div>
+                    </div>
+
+                    <div class="timeline-item" data-aos="fade-left">
+                        <div class="timeline-marker"></div>
+                        <div class="timeline-content">
+                            <h4>2021</h4>
+                            <p>Expansão do catálogo e lançamento do blog literário, criando uma comunidade de leitores.</p>
+                        </div>
+                    </div>
+
+                    <div class="timeline-item" data-aos="fade-right">
+                        <div class="timeline-marker"></div>
+                        <div class="timeline-content">
+                            <h4>2023</h4>
+                            <p>Reconhecimento nacional como referência em curadoria literária de qualidade.</p>
+                        </div>
+                    </div>
+
+                    <div class="timeline-item" data-aos="fade-left">
+                        <div class="timeline-marker"></div>
+                        <div class="timeline-content">
+                            <h4>2025</h4>
+                            <p>Continuamos a crescer, mantendo o compromisso com a excelência e a paixão pela literatura.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+            </main>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>Escritores Nogueira</h3>
+                    <p>A sua livraria online de referência para obras literárias de qualidade.</p>
+                    <div class="social-links">
+                        <a href="#" aria-label="Facebook"><i class="fab fa-facebook"></i></a>
+                        <a href="#" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+                        <a href="#" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
+                        <a href="#" aria-label="LinkedIn"><i class="fab fa-linkedin"></i></a>
+                    </div>
+                </div>
+
+                <div class="footer-section">
+                    <h4>Links Rápidos</h4>
+                    <ul>
+                        <li><a href="index.html">Início</a></li>
+                        <li><a href="livros.html">Livros</a></li>
+                        <li><a href="sobre.html">Sobre Nós</a></li>
+                        <li><a href="blog.html">Blog</a></li>
+                        <li><a href="apoio.html">Apoio ao Cliente</a></li>
+                    </ul>
+                </div>
+
+                <div class="footer-section">
+                    <h4>Apoio ao Cliente</h4>
+                    <ul>
+                        <li><a href="apoio.html#faq">Perguntas Frequentes</a></li>
+                        <li><a href="apoio.html#shipping">Envios e Devoluções</a></li>
+                        <li><a href="apoio.html#terms">Termos e Condições</a></li>
+                        <li><a href="apoio.html#privacy">Política de Privacidade</a></li>
+                    </ul>
+                </div>
+
+                <div class="footer-section">
+                    <h4>Contactos</h4>
+                    <ul class="contact-info">
+                        <li><i class="fas fa-envelope"></i> info@escritoresnogueira.pt</li>
+                        <li><i class="fas fa-phone"></i> +351 123 456 789</li>
+                        <li><i class="fas fa-map-marker-alt"></i> Lisboa, Portugal</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="footer-bottom">
+                <p>&copy; 2025 Escritores Nogueira. Todos os direitos reservados.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Overlay -->
+    <div class="overlay" id="overlay"></div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+    <script src="js/data.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/cart.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/main.js"></script>
+</body>
+
+</html>

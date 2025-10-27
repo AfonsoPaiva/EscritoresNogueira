@@ -1,0 +1,105 @@
+spring:
+  application:
+    name: escritores-nogueira-backend
+  
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE:test}
+
+
+  # Supabase PostgreSQL Configuration
+  datasource:
+    url: ${SUPABASE_DB_URL}
+    username: ${SUPABASE_DB_USERNAME}
+    password: ${SUPABASE_DB_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      connection-timeout: 30000
+      maximum-pool-size: 200
+      minimum-idle: 5
+  jpa:
+    hibernate:
+      ddl-auto: validate  # Evita alterações no banco real
+      show-sql: false
+      properties:
+        hibernate:
+          dialect: org.hibernate.dialect.PostgreSQLDialect
+          format_sql: true
+  
+
+
+# Logging (FORA do spring:)
+logging:
+  level:
+    root: ${LOG_LEVEL_ROOT:INFO}
+    com.escritoresnogueira: ${LOG_LEVEL_APP:INFO}
+    main.java.com.escritoresnogueira.backend: ${LOG_LEVEL_APP:INFO}
+    main.java.com.escritoresnogueira.backend.config.JwtAuthenticationFilter: ${LOG_LEVEL_APP:INFO}
+    org.springframework.security: ${LOG_LEVEL_SECURITY:DEBUG}
+    org.springframework.security.web.FilterChainProxy: ${LOG_LEVEL_SECURITY_TRACE:TRACE}
+    org.hibernate.SQL: ${LOG_LEVEL_SQL:DEBUG}
+    org.hibernate.type.descriptor.sql.BasicBinder: ${LOG_LEVEL_SQL_BINDER:TRACE}
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
+
+# Server Configuration
+server:
+  port: ${SERVER_PORT:8080}
+  servlet:
+    # Centraliza todas as APIs sob /api por padrão. Pode ser sobrescrito com a var de ambiente SERVER_CONTEXT_PATH
+    context-path: ${SERVER_CONTEXT_PATH:/api}
+  error:
+    include-message: always
+    include-binding-errors: always
+    include-stacktrace: on_param
+
+# Firebase Configuration
+firebase:
+  credentials-path: ${FIREBASE_CREDENTIALS_PATH}
+  project-id: ${FIREBASE_PROJECT_ID}
+
+# Stripe Configuration
+stripe:
+  api-key: ${STRIPE_API_KEY:test-key}
+  webhook-secret: ${STRIPE_WEBHOOK_SECRET:test-secret}
+  currency: ${STRIPE_CURRENCY:BRL}
+
+# reCAPTCHA Configuration
+recaptcha:
+  secret-key: ${RECAPTCHA_SECRET_KEY:test-secret}
+  site-key: ${RECAPTCHA_SITE_KEY:test-site}
+  verify-url: ${RECAPTCHA_VERIFY_URL:https://www.google.com/recaptcha/api/siteverify}
+
+# API Configuration
+api:
+  cors:
+    allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:3000}
+    allowed-methods: ${CORS_ALLOWED_METHODS:GET,POST,PUT,DELETE,OPTIONS}
+    allowed-headers: ${CORS_ALLOWED_HEADERS:*}
+    exposed-headers: ${CORS_EXPOSED_HEADERS:*}
+    allow-credentials: ${CORS_ALLOW_CREDENTIALS:true}
+    max-age: ${CORS_MAX_AGE:3600}
+
+  # Application settings
+  app:
+    # API key used to protect admin endpoints. Configure via environment variable APP_API_KEY in production.
+    api-key: ${APP_API_KEY}
+
+# Actuator Configuration
+management:
+  endpoints:
+    web:
+      exposure:
+        include: ${ACTUATOR_ENDPOINTS_INCLUDE:health,info}
+      base-path: ${ACTUATOR_BASE_PATH:/actuator}
+  endpoint:
+    health:
+      show-details: ${ACTUATOR_HEALTH_SHOW_DETAILS:always}
+      show-components: ${ACTUATOR_HEALTH_SHOW_COMPONENTS:always}
+  health:
+    defaults:
+      enabled: true
+    db:
+      enabled: true
+    diskspace:
+      enabled: true
+

@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detalhes do Livro - Escritores Nogueira</title>
+    <meta name="description" content="Detalhes do livro">
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:wght@400;500;600;700;800&family=Questrial&display=swap" rel="stylesheet">
+    
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Swiper CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css">
+    
+    <!-- AOS CSS -->
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    
+    <!-- Main CSS -->
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="page-livro">
+    
+    <!-- Header -->
+    <header class="header" id="header">
+        <div class="container">
+            <nav class="navbar">
+                <a href="index.html" class="logo">
+                    <span class="logo-text">Escritores Nogueira</span>
+                </a>
+                
+                <ul class="nav-menu" id="navMenu">
+                    <li><a href="index.html" class="nav-link">Início</a></li>
+                    <li><a href="livros.html" class="nav-link active">Livros</a></li>
+                    <li><a href="sobre.html" class="nav-link">Sobre</a></li>
+                    <li><a href="blog.html" class="nav-link">Blog</a></li>
+                    <li><a href="apoio.html" class="nav-link">Apoio</a></li>
+                </ul>
+                
+                <div class="nav-actions">
+                    <button class="icon-btn search-btn" id="searchBtn">
+                        <i class="fas fa-search"></i>
+                    </button>
+                    <button class="icon-btn cart-btn" id="cartBtn">
+                        <i class="fas fa-shopping-cart"></i>
+                        <span class="cart-count" id="cartCount">0</span>
+                    </button>
+                    <button class="icon-btn user-btn" id="userBtn">
+                        <i class="fas fa-user"></i>
+                    </button>
+                    <button class="hamburger" id="hamburger">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </button>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Search Overlay -->
+    <div class="search-overlay" id="searchOverlay">
+        <div class="search-container">
+            <button class="close-search" id="closeSearch">
+                <i class="fas fa-times"></i>
+            </button>
+            <input type="text" class="search-input" placeholder="Pesquisar livros..." id="searchInput">
+            <div class="search-results" id="searchResults"></div>
+        </div>
+    </div>
+
+    <!-- Cart Sidebar -->
+    <div class="cart-sidebar" id="cartSidebar">
+        <div class="cart-header">
+            <h3>Carrinho de Compras</h3>
+            <button class="close-cart" id="closeCart">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="cart-items" id="cartItems"></div>
+        <div class="cart-footer">
+            <div class="cart-total">
+                <span>Total:</span>
+                <span id="cartTotal">0,00€</span>
+            </div>
+            <button class="btn btn-primary btn-checkout">Finalizar Compra</button>
+        </div>
+    </div>
+
+    <!-- User Sidebar -->
+    <div class="user-sidebar" id="userSidebar">
+        <div class="user-header">
+            <h3>Conta</h3>
+            <button class="close-user" id="closeUser">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="user-content" id="userContent">
+            <div class="auth-form" id="loginForm">
+                <h4>Iniciar Sessão</h4>
+                <form id="loginFormElement">
+                    <div class="form-group">
+                        <input type="email" placeholder="Email" required>
+                    </div>
+                    <div class="form-group">
+                        <input type="password" placeholder="Password" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Entrar</button>
+                </form>
+                <p class="auth-toggle">Não tem conta? <a href="#" id="showRegister">Criar conta</a></p>
+            </div>
+            <div class="auth-form hidden" id="registerForm">
+                <h4>Criar Conta</h4>
+                <form id="registerFormElement">
+                    <div class="form-group">
+                        <input type="text" placeholder="Nome" required>
+                    </div>
+                    <div class="form-group">
+                        <input type="email" placeholder="Email" required>
+                    </div>
+                    <div class="form-group">
+                        <input type="password" placeholder="Password" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Registar</button>
+                </form>
+                <p class="auth-toggle">Já tem conta? <a href="#" id="showLogin">Iniciar sessão</a></p>
+            </div>
+            <div class="user-profile hidden" id="userProfile">
+                <div class="profile-info">
+                    <div class="profile-avatar">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <h4 id="userName"></h4>
+                    <p id="userEmail"></p>
+                </div>
+                <div class="profile-actions">
+                    <a href="conta.html" class="btn btn-outline">Ver Minha Conta</a>
+                    <button class="btn btn-secondary" id="logoutBtn">Terminar Sessão</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div>
+        <div>
+            <main class="transition-fade">
+                
+                <!-- Book Details Section -->
+                <section class="section book-details">
+            <div class="container">
+                <div class="book-detail-content" id="bookDetail">
+                    <!-- Book details will be loaded dynamically -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Reviews Section -->
+        <section class="section book-reviews">
+            <div class="container">
+                <div class="section-header" data-aos="fade-up">
+                    <h2 class="section-title">Avaliações dos Leitores</h2>
+                    <p class="section-subtitle">Veja o que outros leitores dizem sobre este livro</p>
+                </div>
+
+                <div class="reviews-summary" data-aos="fade-up" data-aos-delay="100">
+                    <div class="rating-overview">
+                        <div class="overall-rating">
+                            <div class="rating-number">4.8</div>
+                            <div class="rating-stars">
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star-half-alt"></i>
+                            </div>
+                            <div class="rating-count">124 avaliações</div>
+                        </div>
+
+                        <div class="rating-breakdown">
+                            <div class="rating-bar">
+                                <span class="rating-label">5 estrelas</span>
+                                <div class="rating-progress">
+                                    <div class="rating-fill" style="width: 75%"></div>
+                                </div>
+                                <span class="rating-percent">75%</span>
+                            </div>
+                            <div class="rating-bar">
+                                <span class="rating-label">4 estrelas</span>
+                                <div class="rating-progress">
+                                    <div class="rating-fill" style="width: 20%"></div>
+                                </div>
+                                <span class="rating-percent">20%</span>
+                            </div>
+                            <div class="rating-bar">
+                                <span class="rating-label">3 estrelas</span>
+                                <div class="rating-progress">
+                                    <div class="rating-fill" style="width: 3%"></div>
+                                </div>
+                                <span class="rating-percent">3%</span>
+                            </div>
+                            <div class="rating-bar">
+                                <span class="rating-label">2 estrelas</span>
+                                <div class="rating-progress">
+                                    <div class="rating-fill" style="width: 1%"></div>
+                                </div>
+                                <span class="rating-percent">1%</span>
+                            </div>
+                            <div class="rating-bar">
+                                <span class="rating-label">1 estrela</span>
+                                <div class="rating-progress">
+                                    <div class="rating-fill" style="width: 1%"></div>
+                                </div>
+                                <span class="rating-percent">1%</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="review-form">
+                        <h3>Escreva uma avaliação</h3>
+                        <form class="review-form-element">
+                            <div class="form-group">
+                                <label>Sua classificação:</label>
+                                <div class="star-rating-input">
+                                    <input type="radio" id="star5" name="rating" value="5">
+                                    <label for="star5"><i class="fas fa-star"></i></label>
+                                    <input type="radio" id="star4" name="rating" value="4">
+                                    <label for="star4"><i class="fas fa-star"></i></label>
+                                    <input type="radio" id="star3" name="rating" value="3">
+                                    <label for="star3"><i class="fas fa-star"></i></label>
+                                    <input type="radio" id="star2" name="rating" value="2">
+                                    <label for="star2"><i class="fas fa-star"></i></label>
+                                    <input type="radio" id="star1" name="rating" value="1">
+                                    <label for="star1"><i class="fas fa-star"></i></label>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="reviewTitle">Título da avaliação:</label>
+                                <input type="text" id="reviewTitle" placeholder="Dê um título à sua avaliação" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="reviewText">Sua avaliação:</label>
+                                <textarea id="reviewText" rows="4" placeholder="Conte-nos a sua opinião sobre este livro..." required></textarea>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Enviar Avaliação</button>
+                        </form>
+                    </div>
+                </div>
+
+                <div class="reviews-list" data-aos="fade-up" data-aos-delay="200">
+                    <div class="review-item">
+                        <div class="review-header">
+                            <div class="reviewer-info">
+                                <div class="reviewer-avatar">
+                                    <i class="fas fa-user"></i>
+                                </div>
+                                <div class="reviewer-details">
+                                    <h4 class="reviewer-name">Ana Silva</h4>
+                                    <div class="review-rating">
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star"></i>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="review-date">15 de Outubro, 2024</div>
+                        </div>
+                        <div class="review-content">
+                            <h5 class="review-title">Uma obra-prima da literatura portuguesa</h5>
+                            <p>Este livro superou todas as minhas expectativas. A narrativa é envolvente, os personagens são bem desenvolvidos e a mensagem transmitida é profunda e atual. Recomendo vivamente a todos os amantes da boa literatura.</p>
+                        </div>
+                        <div class="review-actions">
+                            <button class="helpful-btn">
+                                <i class="fas fa-thumbs-up"></i>
+                                Útil (12)
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="review-item">
+                        <div class="review-header">
+                            <div class="reviewer-info">
+                                <div class="reviewer-avatar">
+                                    <i class="fas fa-user"></i>
+                                </div>
+                                <div class="reviewer-details">
+                                    <h4 class="reviewer-name">Carlos Mendes</h4>
+                                    <div class="review-rating">
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star-half-alt"></i>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="review-date">8 de Outubro, 2024</div>
+                        </div>
+                        <div class="review-content">
+                            <h5 class="review-title">Excelente leitura</h5>
+                            <p>Muito bem escrito e com uma história cativante. O autor demonstra um domínio perfeito da linguagem e consegue transmitir emoções de forma intensa. Já estou ansioso pelo próximo livro desta coleção.</p>
+                        </div>
+                        <div class="review-actions">
+                            <button class="helpful-btn">
+                                <i class="fas fa-thumbs-up"></i>
+                                Útil (8)
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="review-item">
+                        <div class="review-header">
+                            <div class="reviewer-info">
+                                <div class="reviewer-avatar">
+                                    <i class="fas fa-user"></i>
+                                </div>
+                                <div class="reviewer-details">
+                                    <h4 class="reviewer-name">Maria Santos</h4>
+                                    <div class="review-rating">
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star"></i>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="review-date">2 de Outubro, 2024</div>
+                        </div>
+                        <div class="review-content">
+                            <h5 class="review-title">Obrigatório para qualquer biblioteca</h5>
+                            <p>Como professora de português, considero este livro uma referência obrigatória. Os temas abordados são relevantes e a qualidade literária é excepcional. Meus alunos adoraram a leitura.</p>
+                        </div>
+                        <div class="review-actions">
+                            <button class="helpful-btn">
+                                <i class="fas fa-thumbs-up"></i>
+                                Útil (15)
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="load-more-reviews" data-aos="fade-up">
+                    <button class="btn btn-outline">Ver Mais Avaliações</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Related Books Section -->
+        <section class="section related-books">
+            <div class="container">
+                <div class="section-header" data-aos="fade-up">
+                    <h2 class="section-title">Livros Relacionados</h2>
+                    <p class="section-subtitle">Também pode gostar</p>
+                </div>
+
+                <div class="swiper related-swiper" data-aos="fade-up" data-aos-delay="100">
+                    <div class="swiper-wrapper" id="relatedBooks">
+                        <!-- Related books will be loaded dynamically -->
+                    </div>
+                    <div class="swiper-pagination"></div>
+                    <div class="swiper-button-next"></div>
+                    <div class="swiper-button-prev"></div>
+                </div>
+            </div>
+        </section>
+
+            </main>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>Escritores Nogueira</h3>
+                    <p>A sua livraria online de referência para obras literárias de qualidade.</p>
+                    <div class="social-links">
+                        <a href="#" aria-label="Facebook"><i class="fab fa-facebook"></i></a>
+                        <a href="#" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+                        <a href="#" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
+                        <a href="#" aria-label="LinkedIn"><i class="fab fa-linkedin"></i></a>
+                    </div>
+                </div>
+
+                <div class="footer-section">
+                    <h4>Links Rápidos</h4>
+                    <ul>
+                        <li><a href="index.html">Início</a></li>
+                        <li><a href="livros.html">Livros</a></li>
+                        <li><a href="sobre.html">Sobre Nós</a></li>
+                        <li><a href="blog.html">Blog</a></li>
+                        <li><a href="apoio.html">Apoio ao Cliente</a></li>
+                    </ul>
+                </div>
+
+                <div class="footer-section">
+                    <h4>Apoio ao Cliente</h4>
+                    <ul>
+                        <li><a href="apoio.html#faq">Perguntas Frequentes</a></li>
+                        <li><a href="apoio.html#shipping">Envios e Devoluções</a></li>
+                        <li><a href="apoio.html#terms">Termos e Condições</a></li>
+                        <li><a href="apoio.html#privacy">Política de Privacidade</a></li>
+                    </ul>
+                </div>
+
+                <div class="footer-section">
+                    <h4>Contactos</h4>
+                    <ul class="contact-info">
+                        <li><i class="fas fa-envelope"></i> info@escritoresnogueira.pt</li>
+                        <li><i class="fas fa-phone"></i> +351 123 456 789</li>
+                        <li><i class="fas fa-map-marker-alt"></i> Lisboa, Portugal</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="footer-bottom">
+                <p>&copy; 2025 Escritores Nogueira. Todos os direitos reservados.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Book Preview Modal -->
+    <div class="book-preview-modal" id="bookPreviewModal">
+        <div class="book-preview-overlay" id="bookPreviewOverlay"></div>
+        <div class="book-preview-content">
+            <div class="book-preview-header">
+                <div class="book-preview-info">
+                    <h3 id="previewBookTitle"></h3>
+                    <p id="previewBookAuthor"></p>
+                </div>
+                <button class="book-preview-close" id="bookPreviewClose">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="book-preview-body">
+                <div class="book-pages-container">
+                    <button class="page-nav page-prev" id="prevPage">
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+                    <div class="book-page-viewer">
+                        <img id="currentPageImage" src="" alt="Página do livro" class="book-page-image">
+                        <div class="page-indicator">
+                            <span id="currentPageNumber">1</span> de <span id="totalPages">5</span>
+                        </div>
+                    </div>
+                    <button class="page-nav page-next" id="nextPage">
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
+                </div>
+                <div class="book-preview-footer">
+                    <div class="preview-notice">
+                        <i class="fas fa-info-circle"></i>
+                        <span>Esta é apenas uma prévia do livro. Para ler a obra completa, adquira o livro.</span>
+                    </div>
+                    <button class="btn btn-primary" onclick="addToCart()">
+                        <i class="fas fa-shopping-cart"></i>
+                        Comprar Agora
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Overlay -->
+    <div class="overlay" id="overlay"></div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+    <script src="js/data.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/cart.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/main.js"></script>
+    <script src="js/book-detail.js"></script>
+</body>
+</html>
