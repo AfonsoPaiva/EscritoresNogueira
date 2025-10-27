@@ -32,7 +32,15 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-            .csrf(AbstractHttpConfigurer::disable)
+            .csrf(csrf -> csrf
+            .ignoringRequestMatchers(
+                "/auth/**",      // Endpoints de autenticação
+                "/health/**",    // Health checks
+                "/books",        // Endpoint público de livros
+                "/blog/**",      // Endpoints públicos de blog
+                "/admin/**"      // Endpoints privados de admin
+            )
+)
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
