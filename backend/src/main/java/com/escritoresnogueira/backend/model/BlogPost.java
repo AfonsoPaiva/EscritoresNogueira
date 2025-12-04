@@ -33,10 +33,14 @@ public class BlogPost extends BaseEntity {
     @Column(name = "featured_image")
     private String featuredImage;
     
+    // Keep optional relation for legacy use, but add a standalone category name
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "category_id")
     @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     private BlogCategory category;
+
+    @Column(name = "category_name")
+    private String categoryName;
     
     private String author;
     

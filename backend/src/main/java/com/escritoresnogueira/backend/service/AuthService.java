@@ -36,7 +36,18 @@ public class AuthService {
             AuthProvider provider = detectProvider(decodedToken);
 
             User user = userRepository.findByAuthProviderId(firebaseUid)
-                .orElseGet(() -> createNewUser(firebaseUid, email, name, photoUrl, provider));
+                .orElseGet(() -> {
+                    // Se não encontrar pelo ID do Firebase, tenta pelo email
+                    return userRepository.findByEmail(email)
+                        .map(existingUser -> {
+                            // Atualiza o usuário existente com o ID do Firebase
+                            log.info("🔗 Vinculando conta existente ao Firebase: {}", email);
+                            existingUser.setAuthProviderId(firebaseUid);
+                            existingUser.setAuthProvider(provider);
+                            return userRepository.save(existingUser);
+                        })
+                        .orElseGet(() -> createNewUser(firebaseUid, email, name, photoUrl, provider));
+                });
             
             user.setName(name != null ? name : user.getName());
             user.setPhotoUrl(photoUrl != null ? photoUrl : user.getPhotoUrl());
@@ -142,5 +153,24 @@ public class AuthService {
         userRepository.save(user);
         
         log.info(" Usuário {} promovido a ADMIN", user.getEmail());
+    }
+
+    public void deleteUser(String firebaseUid) {
+        User user = userRepository.findByAuthProviderId(firebaseUid)
+            .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
+        
+        log.info("🗑️ Eliminando usuário e dados associados: {} ({})", user.getEmail(), firebaseUid);
+        
+        // 1. Delete from PostgreSQL
+        userRepository.delete(user);
+        log.info("✅ Usuário eliminado com sucesso do banco de dados");
+
+        // 2. Delete from Firebase Auth
+        try {
+            FirebaseAuth.getInstance().deleteUser(firebaseUid);
+            log.info("✅ Usuário eliminado com sucesso do Firebase Auth");
+        } catch (FirebaseAuthException e) {
+            log.error("⚠️ Erro ao eliminar usuário do Firebase Auth: {}", e.getMessage());
+        }
     }
 }

@@ -354,21 +354,17 @@ function initPage() {
     const path = window.location.pathname;
 
     if (path.includes('index.html') || path.endsWith('/') || path === '') {
-        loadFeaturedBooks();
+        // Call async function properly
+        loadFeaturedBooks().catch(err => console.error('Error in loadFeaturedBooks:', err));
     } else if (path.includes('livros.html')) {
         // Code from books.js
         loadBooks();
         attachFilters();
         applyURLFilters();
-    } else if (path.includes('livro.html')) {
-        // Code from book-detail.js
-        const urlParams = new URLSearchParams(window.location.search);
-        const bookId = parseInt(urlParams.get('id'));
-        if (bookId) {
-            loadBookDetail(bookId);
-        } else {
-            window.location.href = 'livros.html';
-        }
+    } else if (path.includes('livro.html') && !path.includes('livros.html')) {
+        // Book detail page - handled by book-detail.js
+        // Do NOT redirect here - let book-detail.js handle it
+        console.log('📖 Main.js: On livro.html page, book-detail.js will handle initialization');
     } else if (path.includes('blog.html')) {
         // Code from blog.js
         loadBlogPosts();
@@ -377,42 +373,117 @@ function initPage() {
         const urlParams = new URLSearchParams(window.location.search);
         const articleId = parseInt(urlParams.get('id'));
         if (articleId) {
-            loadArticle(articleId);
+            loadArticleFromAPI(articleId);
         } else {
             window.location.href = 'blog.html';
         }
     }
 }
 
-function loadFeaturedBooks() {
+async function loadFeaturedBooks() {
     const featuredBooksContainer = document.getElementById('featuredBooks');
     if (!featuredBooksContainer) return;
 
-    const featuredBooks = booksData.slice(0, 8);
-    featuredBooksContainer.innerHTML = featuredBooks.map(book => `
+    console.log('🔄 A carregar livros em destaque da API...');
+
+    // Show loading skeleton
+    featuredBooksContainer.innerHTML = Array(4).fill('').map(() => `
         <div class="swiper-slide">
-            <div class="book-card" onclick="window.location.href='livro.html?id=${book.id}'">
+            <div class="book-card skeleton">
+                <div class="book-image skeleton-image"></div>
+                <div class="book-info">
+                    <div class="skeleton-text" style="width: 60%; height: 14px; margin-bottom: 10px;"></div>
+                    <div class="skeleton-text" style="width: 80%; height: 20px; margin-bottom: 8px;"></div>
+                    <div class="skeleton-text" style="width: 50%; height: 14px;"></div>
+                </div>
+            </div>
+        </div>
+    `).join('');
+
+    try {
+        // Fetch books from API - same approach as books.js
+        const booksFromApi = await api.getBooks();
+        console.log('📦 Resposta da API:', booksFromApi);
+        
+        const allBooks = transformBooks(booksFromApi);
+        console.log('📚 Livros transformados:', allBooks.length);
+        
+        // Filter featured books, or take first 8 if none are featured
+        let featuredBooks = allBooks.filter(b => b.featured).slice(0, 8);
+        if (featuredBooks.length === 0) {
+            featuredBooks = allBooks.slice(0, 8);
+        }
+        
+        console.log('⭐ Livros em destaque:', featuredBooks.length);
+        
+        if (featuredBooks.length === 0) {
+            featuredBooksContainer.innerHTML = `
+                <div class="swiper-slide" style="width: 100%;">
+                    <div style="text-align: center; padding: 40px 20px; color: var(--text-gray);">
+                        <i class="fas fa-book" style="font-size: 2rem; margin-bottom: 10px;"></i>
+                        <p>Nenhum livro disponível no momento.</p>
+                    </div>
+                </div>
+            `;
+            return;
+        }
+        
+        displayFeaturedBooks(featuredBooks, featuredBooksContainer);
+        
+    } catch (error) {
+        console.error('❌ Erro ao carregar livros:', error);
+        featuredBooksContainer.innerHTML = `
+            <div class="swiper-slide" style="width: 100%; display: flex; justify-content: center; align-items: center;">
+                <div style="text-align: center; padding: 40px 20px; color: var(--text-gray);">
+                    <i class="fas fa-exclamation-circle" style="font-size: 2rem; margin-bottom: 10px; display: block;"></i>
+                    <p>Erro ao carregar livros. Verifique a sua conexão à internet.</p>
+                    <button onclick="loadFeaturedBooks()" class="btn btn-secondary" style="margin-top: 15px;">Tentar Novamente</button>
+                </div>
+            </div>
+        `;
+    }
+}
+
+function displayFeaturedBooks(books, container) {
+    const bookUrl = (book) => book.slug ? `livro.html?slug=${book.slug}` : `livro.html?id=${book.id}`;
+    
+    container.innerHTML = books.map(book => {
+        // Handle both API format (category as object) and static data format (category as string)
+        const categoryName = typeof book.category === 'object' ? (book.category?.name || 'Geral') : (book.category || 'Geral');
+        // Handle image field (API uses coverImage/coverUrl, static uses image)
+        const imageUrl = book.image || book.coverImage || book.coverUrl || null;
+        // FIXED: Only show promo badge if promo field is explicitly true
+        const isPromo = book.promo === true;
+        // FIXED: Only show oldPrice if promo is true AND oldPrice exists
+        const oldPrice = isPromo ? (book.oldPrice || book.originalPrice || null) : null;
+        
+        return `
+        <div class="swiper-slide">
+            <div class="book-card" data-href="${bookUrl(book)}" data-book-id="${book.id}">
                 <div class="book-image">
-                    ${book.image ? `<img src="${book.image}" alt="${book.title}">` : '<i class="fas fa-book"></i>'}
-                    ${book.promo ? '<div class="book-badge">Promoção</div>' : ''}
+                    ${imageUrl ? `<img src="${imageUrl}" alt="${book.title}">` : '<i class="fas fa-book"></i>'}
+                    ${isPromo ? '<div class="book-badge">Promoção</div>' : ''}
                 </div>
                 <div class="book-info">
-                    <div class="book-category">${book.category}</div>
+                    <div class="book-category">${categoryName}</div>
                     <h3 class="book-title">${book.title}</h3>
                     <p class="book-author">${book.author}</p>
                     <div class="book-footer">
                         <div class="book-price">
-                            ${book.price.toFixed(2)}€
-                            ${book.oldPrice ? `<span class="book-price-old">${book.oldPrice.toFixed(2)}€</span>` : ''}
+                            ${parseFloat(book.price).toFixed(2)}€
+                            ${oldPrice ? `<span class="book-price-old">${parseFloat(oldPrice).toFixed(2)}€</span>` : ''}
                         </div>
-                        <button class="add-to-cart" onclick="event.stopPropagation(); window.cart && window.cart.addItem(${JSON.stringify(book).replace(/"/g, '&quot;')})">>
+                        <button class="add-to-cart-btn" data-book='${JSON.stringify(book).replace(/'/g, "&#39;")}'>
                             <i class="fas fa-shopping-cart"></i>
                         </button>
                     </div>
                 </div>
             </div>
         </div>
-    `).join('');
+    `}).join('');
+
+    // Attach click events using event delegation
+    attachFeaturedBookEvents(container);
 
     if (typeof Swiper !== 'undefined') {
         // Small delay to ensure DOM is ready
@@ -447,6 +518,36 @@ function loadFeaturedBooks() {
     }
 
     console.log('✅ Livros em destaque carregados');
+}
+
+// Attach click events to featured book cards
+function attachFeaturedBookEvents(container) {
+    if (!container) return;
+    
+    container.addEventListener('click', function(e) {
+        // Check if clicked on add-to-cart button
+        const cartBtn = e.target.closest('.add-to-cart-btn');
+        if (cartBtn) {
+            e.preventDefault();
+            e.stopPropagation();
+            try {
+                const bookData = JSON.parse(cartBtn.dataset.book.replace(/&#39;/g, "'"));
+                if (window.cart) {
+                    window.cart.addItem(bookData);
+                }
+            } catch (err) {
+                console.error('Error adding to cart:', err);
+            }
+            return;
+        }
+        
+        // Check if clicked on book card
+        const bookCard = e.target.closest('.book-card');
+        if (bookCard && bookCard.dataset.href) {
+            e.preventDefault();
+            window.location.href = bookCard.dataset.href;
+        }
+    });
 }
 
 function updateActiveNavLink() {

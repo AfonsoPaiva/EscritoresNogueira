@@ -5,35 +5,44 @@
 /**
  * Render a book card template
  * @param {Object} book - Book object with id, title, author, price, etc.
- * @param {Object} options - Options: { wrapper: 'div', wrapperClass: '', onClick: '', dataAos: '' }
+ * @param {Object} options - Options: { wrapper: 'div', wrapperClass: '', dataAos: '' }
  * @returns {String} HTML template for book card
  */
 function renderBookCard(book, options = {}) {
     const {
         wrapper = 'div',
         wrapperClass = 'book-card',
-        onClick = `window.location.href='livro.html?id=${book.id}'`,
         dataAos = ''
     } = options;
 
     const aosAttr = dataAos ? ` data-aos="${dataAos}"` : '';
+    const bookUrl = book.slug ? `livro.html?slug=${book.slug}` : `livro.html?id=${book.id}`;
+    
+    // Handle both API format (category as object) and static data format (category as string)
+    const categoryName = typeof book.category === 'object' ? (book.category?.name || 'Geral') : (book.category || 'Geral');
+    // Handle image field (API uses coverImage/coverUrl, static uses image)
+    const imageUrl = book.image || book.coverImage || book.coverUrl || null;
+    // FIXED: Only show promo badge if promo field is explicitly true
+    const isPromo = book.promo === true;
+    // FIXED: Only show oldPrice if promo is true AND oldPrice exists
+    const oldPrice = isPromo ? (book.oldPrice || book.originalPrice || null) : null;
     
     return `
-        <${wrapper} class="${wrapperClass}" onclick="${onClick}"${aosAttr}>
+        <${wrapper} class="${wrapperClass}" data-href="${bookUrl}" data-book-id="${book.id}"${aosAttr}>
             <div class="book-image">
-                ${book.image ? `<img src="${book.image}" alt="${book.title}">` : '<i class="fas fa-book"></i>'}
-                ${book.promo ? '<div class="book-badge">Promoção</div>' : ''}
+                ${imageUrl ? `<img src="${imageUrl}" alt="${book.title}">` : '<i class="fas fa-book"></i>'}
+                ${isPromo ? '<div class="book-badge">Promoção</div>' : ''}
             </div>
             <div class="book-info">
-                <div class="book-category">${book.category}</div>
+                <div class="book-category">${categoryName}</div>
                 <h3 class="book-title">${book.title}</h3>
                 <p class="book-author">${book.author}</p>
                 <div class="book-footer">
                     <div class="book-price">
-                        ${book.price.toFixed(2)}€
-                        ${book.oldPrice ? `<span class="book-price-old">${book.oldPrice.toFixed(2)}€</span>` : ''}
+                        ${parseFloat(book.price).toFixed(2)}€
+                        ${oldPrice ? `<span class="book-price-old">${parseFloat(oldPrice).toFixed(2)}€</span>` : ''}
                     </div>
-                    <button class="add-to-cart" onclick="event.stopPropagation(); window.cart && window.cart.addItem(${JSON.stringify(book).replace(/"/g, '&quot;')})">>
+                    <button class="add-to-cart-btn" data-book='${JSON.stringify(book).replace(/'/g, "&#39;")}'>
                         <i class="fas fa-shopping-cart"></i>
                     </button>
                 </div>

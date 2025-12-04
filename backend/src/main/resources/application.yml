@@ -6,40 +6,57 @@ spring:
     active: ${SPRING_PROFILES_ACTIVE:test}
 
 
-  # Supabase PostgreSQL Configuration
+  # CockroachDB Configuration
   datasource:
-    url: ${SUPABASE_DB_URL}
-    username: ${SUPABASE_DB_USERNAME}
-    password: ${SUPABASE_DB_PASSWORD}
+    url: ${COCKROACH_DB_URL}
+    username: ${COCKROACH_DB_USERNAME}
+    password: ${COCKROACH_DB_PASSWORD}
     driver-class-name: org.postgresql.Driver
     hikari:
       connection-timeout: 30000
-      maximum-pool-size: 200
-      minimum-idle: 5
+      maximum-pool-size: 10
+      minimum-idle: 2
+      # CockroachDB specific settings
+      data-source-properties:
+        reWriteBatchedInserts: true
+        ApplicationName: escritores-nogueira
   jpa:
     hibernate:
-      ddl-auto: validate  # Evita alterações no banco real
+      ddl-auto: update
       show-sql: false
-      properties:
-        hibernate:
-          dialect: org.hibernate.dialect.PostgreSQLDialect
-          format_sql: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.CockroachDialect
+        format_sql: true
+        jdbc:
+          batch_size: 25
+        order_inserts: true
+        order_updates: true
   
 
 
-# Logging (FORA do spring:)
+# Logging Configuration
 logging:
   level:
     root: ${LOG_LEVEL_ROOT:INFO}
-    com.escritoresnogueira: ${LOG_LEVEL_APP:INFO}
-    main.java.com.escritoresnogueira.backend: ${LOG_LEVEL_APP:INFO}
-    main.java.com.escritoresnogueira.backend.config.JwtAuthenticationFilter: ${LOG_LEVEL_APP:INFO}
+    # Application logging
+    com.escritoresnogueira: ${LOG_LEVEL_APP:DEBUG}
+    main.java.com.escritoresnogueira: ${LOG_LEVEL_APP:DEBUG}
+    # Security debugging
     org.springframework.security: ${LOG_LEVEL_SECURITY:DEBUG}
     org.springframework.security.web.FilterChainProxy: ${LOG_LEVEL_SECURITY_TRACE:TRACE}
+    # Web/MVC debugging
+    org.springframework.web: ${LOG_LEVEL_WEB:DEBUG}
+    org.springframework.web.servlet.mvc.method.annotation: DEBUG
+    # Hibernate SQL (reduce in production)
     org.hibernate.SQL: ${LOG_LEVEL_SQL:DEBUG}
     org.hibernate.type.descriptor.sql.BasicBinder: ${LOG_LEVEL_SQL_BINDER:TRACE}
   pattern:
-    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+  file:
+    name: ${LOG_FILE_PATH:logs/application.log}
+    max-size: 10MB
+    max-history: 10
 
 # Server Configuration
 server:
@@ -56,6 +73,13 @@ server:
 firebase:
   credentials-path: ${FIREBASE_CREDENTIALS_PATH}
   project-id: ${FIREBASE_PROJECT_ID}
+  # Web SDK config (public - safe to expose to frontend)
+  web:
+    api-key: ${FIREBASE_WEB_API_KEY}
+    auth-domain: ${FIREBASE_AUTH_DOMAIN}
+    storage-bucket: ${FIREBASE_STORAGE_BUCKET:}
+    messaging-sender-id: ${FIREBASE_MESSAGING_SENDER_ID:}
+    app-id: ${FIREBASE_APP_ID}
 
 # Stripe Configuration
 stripe:
@@ -82,7 +106,7 @@ api:
   # Application settings
   app:
     # API key used to protect admin endpoints. Configure via environment variable APP_API_KEY in production.
-    api-key: ${APP_API_KEY}
+    api-key: ${APP_API_KEY:}
 
 # Actuator Configuration
 management:

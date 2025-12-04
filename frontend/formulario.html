@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Formulário de Publicação - Escritores Nogueira</title>
+    <meta name="description" content="Preencha o formulário para iniciar a publicação do seu livro na Amazon KDP">
+
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:wght@400;500;600;700;800&family=Questrial&display=swap" rel="stylesheet">
+
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Swiper CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css">
+
+    <!-- AOS CSS -->
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+
+    <!-- Main CSS -->
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="page-formulario">
+
+    <!-- Header -->
+    <header class="header" id="header">
+        <div class="container">
+            <nav class="navbar">
+                <a href="index.html" class="logo">
+                    <span class="logo-text">Escritores Nogueira</span>
+                </a>
+
+                <ul class="nav-menu" id="navMenu">
+                    <li><a href="index.html" class="nav-link">Início</a></li>
+                    <li><a href="livros.html" class="nav-link">Livros</a></li>
+                    <li><a href="servicos.html" class="nav-link active">Serviços</a></li>
+                    <li><a href="sobre.html" class="nav-link">Sobre</a></li>
+                    <li><a href="blog.html" class="nav-link">Blog</a></li>
+                    <li><a href="apoio.html" class="nav-link">Apoio</a></li>
+                </ul>
+
+                <div class="nav-actions">
+                    <button class="icon-btn search-btn" id="searchBtn">
+                        <i class="fas fa-search"></i>
+                    </button>
+                    <button class="icon-btn cart-btn" id="cartBtn">
+                        <i class="fas fa-shopping-cart"></i>
+                        <span class="cart-count" id="cartCount">0</span>
+                    </button>
+                    <button class="icon-btn user-btn" id="userBtn">
+                        <i class="fas fa-user"></i>
+                    </button>
+                    <button class="hamburger" id="hamburger">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </button>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Search Overlay -->
+    <div class="search-overlay" id="searchOverlay">
+        <div class="search-container">
+            <button class="close-search" id="closeSearch">
+                <i class="fas fa-times"></i>
+            </button>
+            <input type="text" class="search-input" placeholder="Pesquisar livros..." id="searchInput">
+            <div class="search-results" id="searchResults"></div>
+        </div>
+    </div>
+
+    <!-- Cart Sidebar -->
+    <div class="cart-sidebar" id="cartSidebar">
+        <div class="cart-header">
+            <h3>Carrinho de Compras</h3>
+            <button class="close-cart" id="closeCart">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="cart-items" id="cartItems"></div>
+        <div class="cart-footer">
+            <div class="cart-total">
+                <span>Total:</span>
+                <span id="cartTotal">0,00€</span>
+            </div>
+            <button class="btn btn-primary btn-checkout">Finalizar Compra</button>
+        </div>
+    </div>
+
+    <!-- User Sidebar -->
+    <div class="user-sidebar" id="userSidebar">
+        <div class="user-header">
+            <h3>Conta</h3>
+            <button class="close-user" id="closeUser">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="user-content" id="userContent">
+            <!-- Login Form -->
+            <div class="auth-form" id="loginForm">
+                <h4>Iniciar Sessão</h4>
+                <form id="loginFormElement">
+                    <div class="form-group">
+                        <input type="email" placeholder="Email" required>
+                    </div>
+                    <div class="form-group">
+                        <input type="password" placeholder="Password" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Entrar</button>
+                </form>
+                <div class="auth-divider">
+                    <span>ou</span>
+                </div>
+                <button type="button" class="btn btn-google" id="googleSignInBtn">
+                    <i class="fab fa-google"></i>
+                    Continuar com Google
+                </button>
+                <p class="auth-toggle">Não tem conta? <a href="#" id="showRegister">Criar conta</a></p>
+            </div>
+
+            <!-- Register Form -->
+            <div class="auth-form hidden" id="registerForm">
+                <h4>Criar Conta</h4>
+                <form id="registerFormElement">
+                    <div class="form-group">
+                        <input type="text" placeholder="Nome" required>
+                    </div>
+                    <div class="form-group">
+                        <input type="email" placeholder="Email" required>
+                    </div>
+                    <div class="form-group">
+                        <input type="password" placeholder="Password" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Registar</button>
+                </form>
+                <div class="auth-divider">
+                    <span>ou</span>
+                </div>
+                <button type="button" class="btn btn-google" id="googleSignUpBtn">
+                    <i class="fab fa-google"></i>
+                    Registar com Google
+                </button>
+                <p class="auth-toggle">Já tem conta? <a href="#" id="showLogin">Iniciar sessão</a></p>
+            </div>
+
+            <!-- User Profile -->
+            <div class="user-profile hidden" id="userProfile">
+                <div class="profile-info">
+                    <div class="profile-avatar">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <h4 id="userName"></h4>
+                    <p id="userEmail"></p>
+                </div>
+                <button class="btn btn-secondary" id="logoutBtn">Terminar Sessão</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <main>
+        <!-- Page Header -->
+        <section class="page-header formulario-header">
+            <div class="container">
+                <div class="page-header-content" data-aos="fade-up">
+                    <h1 class="page-title">Formulário de Publicação</h1>
+                    <p class="page-subtitle">Conte-nos sobre o seu projeto literário</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Form Section -->
+        <section class="section formulario-section">
+            <div class="container">
+                <div class="formulario-wrapper" data-aos="fade-up">
+                    <!-- Progress Steps -->
+                    <div class="form-progress">
+                        <div class="progress-step active" data-step="1">
+                            <div class="step-number">1</div>
+                            <span class="step-label">Plano</span>
+                        </div>
+                        <div class="progress-line"></div>
+                        <div class="progress-step" data-step="2">
+                            <div class="step-number">2</div>
+                            <span class="step-label">Livro</span>
+                        </div>
+                        <div class="progress-line"></div>
+                        <div class="progress-step" data-step="3">
+                            <div class="step-number">3</div>
+                            <span class="step-label">Contacto</span>
+                        </div>
+                    </div>
+
+                    <form id="publicationForm" class="publication-form">
+                        <!-- Step 1: Plan Selection -->
+                        <div class="form-step active" id="step1">
+                            <h2 class="step-title">Escolha o Seu Plano</h2>
+                            <p class="step-description">Selecione o plano que melhor se adapta às suas necessidades</p>
+
+                            <div class="plan-selection">
+                                <label class="plan-option">
+                                    <input type="radio" name="plan" value="essencial" required>
+                                    <div class="plan-option-content">
+                                        <div class="plan-option-header">
+                                            <h3>Essencial</h3>
+                                            <span class="plan-option-price">€199</span>
+                                        </div>
+                                        <ul>
+                                            <li><i class="fas fa-check"></i> Revisão ortográfica básica</li>
+                                            <li><i class="fas fa-check"></i> Formatação para Amazon KDP</li>
+                                            <li><i class="fas fa-check"></i> Design de capa simples</li>
+                                            <li><i class="fas fa-check"></i> Publicação em ebook</li>
+                                        </ul>
+                                    </div>
+                                </label>
+
+                                <label class="plan-option featured">
+                                    <span class="plan-popular-badge">Mais Popular</span>
+                                    <input type="radio" name="plan" value="profissional">
+                                    <div class="plan-option-content">
+                                        <div class="plan-option-header">
+                                            <h3>Profissional</h3>
+                                            <span class="plan-option-price">€399</span>
+                                        </div>
+                                        <ul>
+                                            <li><i class="fas fa-check"></i> Revisão completa do manuscrito</li>
+                                            <li><i class="fas fa-check"></i> Design de capa personalizado</li>
+                                            <li><i class="fas fa-check"></i> Ebook + Paperback</li>
+                                            <li><i class="fas fa-check"></i> Otimização de palavras-chave</li>
+                                        </ul>
+                                    </div>
+                                </label>
+
+                                <label class="plan-option">
+                                    <input type="radio" name="plan" value="premium">
+                                    <div class="plan-option-content">
+                                        <div class="plan-option-header">
+                                            <h3>Premium</h3>
+                                            <span class="plan-option-price">€699</span>
+                                        </div>
+                                        <ul>
+                                            <li><i class="fas fa-check"></i> Edição profissional completa</li>
+                                            <li><i class="fas fa-check"></i> Capa premium com ilustração</li>
+                                            <li><i class="fas fa-check"></i> Ebook + Paperback + Hardcover</li>
+                                            <li><i class="fas fa-check"></i> Estratégia de lançamento</li>
+                                        </ul>
+                                    </div>
+                                </label>
+                            </div>
+
+                            <div class="form-navigation">
+                                <a href="servicos.html" class="btn btn-outline">
+                                    <i class="fas fa-arrow-left"></i> Voltar aos Serviços
+                                </a>
+                                <button type="button" class="btn btn-primary" onclick="nextFormStep(2)">
+                                    Próximo <i class="fas fa-arrow-right"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Step 2: Book Details -->
+                        <div class="form-step" id="step2">
+                            <h2 class="step-title">Detalhes do Seu Livro</h2>
+                            <p class="step-description">Conte-nos sobre o seu manuscrito</p>
+
+                            <div class="form-grid">
+                                <div class="form-group">
+                                    <label for="bookTitle">Título do Livro *</label>
+                                    <input type="text" id="bookTitle" name="bookTitle" placeholder="O título da sua obra" required>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="bookGenre">Género Literário *</label>
+                                    <select id="bookGenre" name="bookGenre" required>
+                                        <option value="">Selecione o género</option>
+                                        <option value="romance">Romance</option>
+                                        <option value="ficcao">Ficção</option>
+                                        <option value="policial">Policial/Thriller</option>
+                                        <option value="fantasia">Fantasia</option>
+                                        <option value="ficcao-cientifica">Ficção Científica</option>
+                                        <option value="biografico">Biográfico/Memórias</option>
+                                        <option value="poesia">Poesia</option>
+                                        <option value="infantil">Infantil/Juvenil</option>
+                                        <option value="autoajuda">Autoajuda/Desenvolvimento</option>
+                                        <option value="negocios">Negócios/Empresarial</option>
+                                        <option value="academico">Académico/Técnico</option>
+                                        <option value="outro">Outro</option>
+                                    </select>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="wordCount">Número Aproximado de Palavras *</label>
+                                    <select id="wordCount" name="wordCount" required>
+                                        <option value="">Selecione</option>
+                                        <option value="menos-20k">Menos de 20.000 palavras</option>
+                                        <option value="20k-50k">20.000 - 50.000 palavras</option>
+                                        <option value="50k-80k">50.000 - 80.000 palavras</option>
+                                        <option value="80k-120k">80.000 - 120.000 palavras</option>
+                                        <option value="mais-120k">Mais de 120.000 palavras</option>
+                                    </select>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="manuscriptStatus">Estado do Manuscrito *</label>
+                                    <select id="manuscriptStatus" name="manuscriptStatus" required>
+                                        <option value="">Selecione</option>
+                                        <option value="concluido">Concluído e revisto por mim</option>
+                                        <option value="rascunho">Rascunho finalizado</option>
+                                        <option value="em-progresso">Em progresso (mais de 75%)</option>
+                                        <option value="inicio">Fase inicial (menos de 75%)</option>
+                                    </select>
+                                </div>
+
+                                <div class="form-group full-width">
+                                    <label for="bookSynopsis">Sinopse/Descrição do Livro *</label>
+                                    <textarea id="bookSynopsis" name="bookSynopsis" rows="4" placeholder="Descreva brevemente o seu livro (enredo, tema principal, público-alvo...)" required></textarea>
+                                </div>
+
+                                <div class="form-group full-width">
+                                    <label for="additionalInfo">Informações Adicionais</label>
+                                    <textarea id="additionalInfo" name="additionalInfo" rows="3" placeholder="Algo mais que gostaria de nos contar? (expectativas, dúvidas, preferências de design...)"></textarea>
+                                </div>
+                            </div>
+
+                            <div class="form-navigation">
+                                <button type="button" class="btn btn-outline" onclick="prevFormStep(1)">
+                                    <i class="fas fa-arrow-left"></i> Anterior
+                                </button>
+                                <button type="button" class="btn btn-primary" onclick="nextFormStep(3)">
+                                    Próximo <i class="fas fa-arrow-right"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Step 3: Contact Info -->
+                        <div class="form-step" id="step3">
+                            <h2 class="step-title">Os Seus Dados de Contacto</h2>
+                            <p class="step-description">Para que possamos entrar em contacto consigo</p>
+
+                            <div class="form-grid">
+                                <div class="form-group">
+                                    <label for="authorName">Nome Completo *</label>
+                                    <input type="text" id="authorName" name="authorName" placeholder="O seu nome" required>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="authorEmail">Email *</label>
+                                    <input type="email" id="authorEmail" name="authorEmail" placeholder="seuemail@exemplo.com" required>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="authorPhone">Telefone</label>
+                                    <input type="tel" id="authorPhone" name="authorPhone" placeholder="+351 912 345 678">
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="preferredContact">Método de Contacto Preferido *</label>
+                                    <select id="preferredContact" name="preferredContact" required>
+                                        <option value="">Selecione</option>
+                                        <option value="email">Email</option>
+                                        <option value="telefone">Telefone</option>
+                                        <option value="whatsapp">WhatsApp</option>
+                                    </select>
+                                </div>
+
+                                <div class="form-group full-width">
+                                    <label class="checkbox-label">
+                                        <input type="checkbox" id="privacyConsent" name="privacyConsent" required>
+                                        <span>Li e aceito a <a href="apoio.html#privacy" target="_blank">Política de Privacidade</a> e autorizo o tratamento dos meus dados para efeitos de contacto. *</span>
+                                    </label>
+                                </div>
+
+                                <div class="form-group full-width">
+                                    <label class="checkbox-label">
+                                        <input type="checkbox" id="newsletterConsent" name="newsletterConsent">
+                                        <span>Desejo receber novidades e dicas sobre publicação literária.</span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="form-navigation">
+                                <button type="button" class="btn btn-outline" onclick="prevFormStep(2)">
+                                    <i class="fas fa-arrow-left"></i> Anterior
+                                </button>
+                                <button type="submit" class="btn btn-primary btn-lg">
+                                    <i class="fas fa-paper-plane"></i> Enviar Pedido
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Success Message -->
+                        <div class="form-step" id="stepSuccess">
+                            <div class="success-message">
+                                <div class="success-icon">
+                                    <i class="fas fa-check-circle"></i>
+                                </div>
+                                <h2>Pedido Enviado com Sucesso!</h2>
+                                <p>Obrigado pelo seu interesse. Recebemos o seu pedido e entraremos em contacto consigo nas próximas 24 horas úteis.</p>
+                                <div class="success-summary" id="successSummary">
+                                    <!-- Summary will be populated by JS -->
+                                </div>
+                                <div class="success-actions">
+                                    <a href="servicos.html" class="btn btn-outline">Ver Serviços</a>
+                                    <a href="index.html" class="btn btn-primary">Voltar ao Início</a>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>Escritores Nogueira</h3>
+                    <p>A sua livraria online de referência para obras literárias de qualidade.</p>
+                    <div class="social-links">
+                        <a href="#" aria-label="Facebook"><i class="fab fa-facebook"></i></a>
+                        <a href="#" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+                        <a href="#" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
+                        <a href="#" aria-label="LinkedIn"><i class="fab fa-linkedin"></i></a>
+                    </div>
+                </div>
+
+                <div class="footer-section">
+                    <h4>Links Úteis</h4>
+                    <ul>
+                        <li><a href="index.html">Início</a></li>
+                        <li><a href="livros.html">Livros</a></li>
+                        <li><a href="sobre.html">Sobre</a></li>
+                        <li><a href="blog.html">Blog</a></li>
+                        <li><a href="apoio.html">Apoio</a></li>
+                    </ul>
+                </div>
+
+                <div class="footer-section">
+                    <h4>Serviços</h4>
+                    <ul>
+                        <li><a href="servicos.html">Publicação de Livros</a></li>
+                        <li><a href="formulario.html">Formulário de Pedido</a></li>
+                        <li><a href="apoio.html#shipping">Envios</a></li>
+                        <li><a href="apoio.html#terms">Termos e Condições</a></li>
+                    </ul>
+                </div>
+
+                <div class="footer-section">
+                    <h4>Contacto</h4>
+                    <ul>
+                        <li><i class="fas fa-envelope"></i> info@escritoresnogueira.pt</li>
+                        <li><i class="fas fa-phone"></i> +351 123 456 789</li>
+                        <li><i class="fas fa-map-marker-alt"></i> Portugal</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="footer-bottom">
+                <p>&copy; 2024 Escritores Nogueira. Todos os direitos reservados.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Overlay -->
+    <div class="overlay" id="overlay"></div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="js/firebase-config.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/data.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/cart.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/main.js"></script>
+    <script src="js/formulario.js"></script>
+</body>
+</html>

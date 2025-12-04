@@ -2,32 +2,126 @@
 // BOOK-DETAIL.JS - Book detail page functionality
 // ==================================
 
+// IMMEDIATE LOG - This runs as soon as the script loads
+console.log('📜 ====== BOOK-DETAIL.JS LOADED ======');
+console.log('📜 Current URL:', window.location.href);
+console.log('📜 Pathname:', window.location.pathname);
+console.log('📜 Search:', window.location.search);
+
 let currentBook = null;
+let allBooksCache = []; // Cache for related books
 let quantity = 1;
 
 // Initialize book detail page
-function initBookDetailPage() {
-    const urlParams = new URLSearchParams(window.location.search);
-    const bookId = parseInt(urlParams.get('id'));
+async function initBookDetailPage() {
+    console.log('🚀 ====== BOOK DETAIL PAGE INIT ======');
+    console.log('🔗 Full URL:', window.location.href);
+    console.log('🔗 Search params:', window.location.search);
     
-    if (bookId) {
-        loadBookDetail(bookId);
+    const urlParams = new URLSearchParams(window.location.search);
+    const bookIdParam = urlParams.get('id');
+    const bookSlug = urlParams.get('slug');
+    
+    // Parse ID only if it exists and is a valid number
+    const bookId = bookIdParam ? parseInt(bookIdParam) : null;
+    
+    console.log('📚 Parsed params - id:', bookIdParam, '(parsed:', bookId, ') slug:', bookSlug);
+    
+    if (bookSlug || (bookId && !isNaN(bookId))) {
+        console.log('✅ Valid params found, loading book...');
+        await loadBookDetail(bookId, bookSlug);
     } else {
-        window.location.href = 'livros.html';
+        console.log('❌ No valid book ID or slug found in URL');
+        // Show error instead of redirecting for debugging
+        const bookDetail = document.getElementById('bookDetail');
+        if (bookDetail) {
+            bookDetail.innerHTML = `
+                <div style="grid-column: 1/-1; text-align: center; padding: 60px 20px;">
+                    <i class="fas fa-exclamation-triangle" style="font-size: 4rem; color: var(--border-color); margin-bottom: 20px;"></i>
+                    <p style="color: var(--text-gray); font-size: 1.2rem;">Parâmetros inválidos na URL</p>
+                    <p style="color: var(--text-gray); font-size: 0.9rem; margin-top: 10px;">URL: ${window.location.href}</p>
+                    <a href="livros.html" class="btn btn-primary" style="margin-top: 20px;">Ver Todos os Livros</a>
+                </div>
+            `;
+        }
     }
 }
 
-// Load book details
-function loadBookDetail(bookId) {
-    currentBook = booksData.find(book => book.id === bookId);
+// Load book details from API
+async function loadBookDetail(bookId, bookSlug) {
+    const bookDetail = document.getElementById('bookDetail');
     
-    if (!currentBook) {
-        window.location.href = 'livros.html';
-        return;
+    console.log('🔍 Loading book - ID:', bookId, 'Slug:', bookSlug);
+    
+    // Show loading state
+    if (bookDetail) {
+        bookDetail.innerHTML = `
+            <div class="book-detail-loading" style="grid-column: 1/-1; text-align: center; padding: 60px 20px;">
+                <i class="fas fa-spinner fa-spin" style="font-size: 3rem; color: var(--primary);"></i>
+                <p style="margin-top: 20px; color: var(--text-gray);">A carregar livro...</p>
+            </div>
+        `;
     }
     
-    displayBookDetail();
-    loadRelatedBooks();
+    try {
+        // Try to fetch by slug first (cleaner URLs), then by ID
+        if (bookSlug) {
+            console.log('📚 Fetching book by slug:', bookSlug);
+            const bookFromApi = await api.getBookBySlug(bookSlug);
+            console.log('📖 API Response:', bookFromApi);
+            currentBook = transformBook(bookFromApi);
+        } else if (bookId && !isNaN(bookId)) {
+            console.log('📚 Fetching book by ID:', bookId);
+            const bookFromApi = await api.getBookById(bookId);
+            console.log('📖 API Response:', bookFromApi);
+            currentBook = transformBook(bookFromApi);
+        }
+        
+        if (!currentBook) {
+            throw new Error('Book not found');
+        }
+        
+        console.log('✅ Book loaded:', currentBook.title);
+        displayBookDetail();
+        await loadRelatedBooks();
+        
+    } catch (error) {
+        console.error('❌ Error loading book:', error);
+        
+        // Fallback to static data if API fails
+        if (typeof booksData !== 'undefined') {
+            console.log('⚠️ Falling back to static data');
+            
+            // Try to find by slug first, then by ID
+            if (bookSlug) {
+                currentBook = booksData.find(book => book.slug === bookSlug);
+            }
+            if (!currentBook && bookId && !isNaN(bookId)) {
+                currentBook = booksData.find(book => book.id === bookId);
+            }
+            
+            allBooksCache = [...booksData];
+            
+            if (currentBook) {
+                console.log('✅ Book found in static data:', currentBook.title);
+                displayBookDetail();
+                loadRelatedBooks();
+                return;
+            }
+        }
+        
+        // Show error message (don't redirect automatically)
+        if (bookDetail) {
+            bookDetail.innerHTML = `
+                <div style="grid-column: 1/-1; text-align: center; padding: 60px 20px;">
+                    <i class="fas fa-exclamation-triangle" style="font-size: 4rem; color: var(--border-color); margin-bottom: 20px;"></i>
+                    <p style="color: var(--text-gray); font-size: 1.2rem;">Livro não encontrado</p>
+                    <p style="color: var(--text-gray); font-size: 0.9rem; margin-top: 10px;">Slug: ${bookSlug || 'N/A'} | ID: ${bookId || 'N/A'}</p>
+                    <a href="livros.html" class="btn btn-primary" style="margin-top: 20px;">Ver Todos os Livros</a>
+                </div>
+            `;
+        }
+    }
 }
 
 // Display book details
@@ -35,10 +129,26 @@ function displayBookDetail() {
     const bookDetail = document.getElementById('bookDetail');
     if (!bookDetail) return;
     
+    // Handle both API format and static data format
+    const imageUrl = currentBook.image || currentBook.coverImage || currentBook.coverUrl || null;
+    const categoryName = typeof currentBook.category === 'object' 
+        ? (currentBook.category?.name || 'Geral') 
+        : (currentBook.category || 'Geral');
+    // FIXED: Only show promo/oldPrice if promo field is explicitly true
+    const isPromo = currentBook.promo === true;
+    const oldPrice = isPromo ? (currentBook.oldPrice || currentBook.originalPrice || null) : null;
+    const year = currentBook.year || currentBook.publishYear || 'N/D';
+    const pages = currentBook.pages || 'N/D';
+    const isbn = currentBook.isbn || 'N/D';
+    const publisher = currentBook.publisher || 'N/D';
+    const language = currentBook.language || 'Português';
+    const description = currentBook.description || 'Descrição não disponível.';
+    
     bookDetail.innerHTML = `
         <div class="book-detail-image" data-aos="fade-right">
             <div class="book-detail-image-wrapper">
-                ${currentBook.image ? `<img src="${currentBook.image}" alt="${currentBook.title}">` : '<i class="fas fa-book"></i>'}
+                ${imageUrl ? `<img src="${imageUrl}" alt="${currentBook.title}">` : '<i class="fas fa-book"></i>'}
+                ${isPromo ? '<div class="book-badge promo-badge">Promoção</div>' : ''}
             </div>
         </div>
         
@@ -49,30 +159,30 @@ function displayBookDetail() {
             <div class="book-detail-meta">
                 <div class="meta-item">
                     <span class="meta-label">Categoria</span>
-                    <span class="meta-value">${capitalizeFirst(currentBook.category)}</span>
+                    <span class="meta-value">${capitalizeFirst(categoryName)}</span>
                 </div>
                 <div class="meta-item">
                     <span class="meta-label">Páginas</span>
-                    <span class="meta-value">${currentBook.pages}</span>
+                    <span class="meta-value">${pages}</span>
                 </div>
                 <div class="meta-item">
                     <span class="meta-label">Ano</span>
-                    <span class="meta-value">${currentBook.year}</span>
+                    <span class="meta-value">${year}</span>
                 </div>
                 <div class="meta-item">
                     <span class="meta-label">Idioma</span>
-                    <span class="meta-value">${currentBook.language}</span>
+                    <span class="meta-value">${language}</span>
                 </div>
             </div>
             
             <div class="book-detail-price">
-                ${currentBook.price.toFixed(2)}€
-                ${currentBook.oldPrice ? `<span class="book-price-old" style="font-size: 1.5rem; margin-left: 15px;">${currentBook.oldPrice.toFixed(2)}€</span>` : ''}
+                ${parseFloat(currentBook.price).toFixed(2)}€
+                ${oldPrice ? `<span class="book-price-old" style="font-size: 1.5rem; margin-left: 15px;">${parseFloat(oldPrice).toFixed(2)}€</span>` : ''}
             </div>
             
             <div class="book-detail-description">
                 <h3>Sinopse</h3>
-                <p>${currentBook.description}</p>
+                <p>${description}</p>
             </div>
             
             <div class="book-detail-actions">
@@ -98,11 +208,11 @@ function displayBookDetail() {
                 <div class="feature-list">
                     <div class="feature-item">
                         <i class="fas fa-barcode"></i>
-                        <span>ISBN: ${currentBook.isbn}</span>
+                        <span>ISBN: ${isbn}</span>
                     </div>
                     <div class="feature-item">
                         <i class="fas fa-building"></i>
-                        <span>Editora: ${currentBook.publisher}</span>
+                        <span>Editora: ${publisher}</span>
                     </div>
                     <div class="feature-item">
                         <i class="fas fa-truck"></i>
@@ -144,43 +254,127 @@ function addToCart() {
 }
 
 // Load related books
-function loadRelatedBooks() {
+async function loadRelatedBooks() {
     const relatedBooksContainer = document.getElementById('relatedBooks');
     if (!relatedBooksContainer || !currentBook) return;
     
-    // Get books from the same category, excluding current book
-    const relatedBooks = booksData
-        .filter(book => book.category === currentBook.category && book.id !== currentBook.id)
-        .slice(0, 6);
-    
-    relatedBooksContainer.innerHTML = relatedBooks.map(book => `
+    try {
+        // Fetch all books if not cached
+        if (allBooksCache.length === 0) {
+            const booksFromApi = await api.getBooks();
+            allBooksCache = transformBooks(booksFromApi);
+        }
+        
+        // Get books from the same category, excluding current book
+        const relatedBooks = allBooksCache
+            .filter(book => 
+                (book.category === currentBook.category || book.categorySlug === currentBook.categorySlug) && 
+                book.id !== currentBook.id
+            )
+            .slice(0, 6);
+        
+        if (relatedBooks.length === 0) {
+            // If no books in same category, show random books
+            const otherBooks = allBooksCache
+                .filter(book => book.id !== currentBook.id)
+                .slice(0, 6);
+            
+            displayRelatedBooks(otherBooks, relatedBooksContainer);
+        } else {
+            displayRelatedBooks(relatedBooks, relatedBooksContainer);
+        }
+    } catch (error) {
+        console.error('Error loading related books:', error);
+        // Fallback to static data
+        if (typeof booksData !== 'undefined') {
+            const relatedBooks = booksData
+                .filter(book => book.category === currentBook.category && book.id !== currentBook.id)
+                .slice(0, 6);
+            displayRelatedBooks(relatedBooks, relatedBooksContainer);
+        }
+    }
+}
+
+// Display related books in swiper
+function displayRelatedBooks(books, container) {
+    container.innerHTML = books.map(book => {
+        // Handle both API format (category as object) and static data format (category as string)
+        const categoryName = typeof book.category === 'object' ? (book.category?.name || 'Geral') : (book.category || 'Geral');
+        // Handle image field (API uses coverImage/coverUrl, static uses image)
+        const imageUrl = book.image || book.coverImage || book.coverUrl || null;
+        // FIXED: Only show promo badge if promo field is explicitly true
+        const isPromo = book.promo === true;
+        // FIXED: Only show oldPrice if promo is true AND oldPrice exists
+        const oldPrice = isPromo ? (book.oldPrice || book.originalPrice || null) : null;
+        const bookUrl = book.slug ? `livro.html?slug=${book.slug}` : `livro.html?id=${book.id}`;
+        
+        return `
         <div class="swiper-slide">
-            <div class="book-card" onclick="window.location.href='livro.html?id=${book.id}'">
+            <div class="book-card" data-href="${bookUrl}" data-book-id="${book.id}">
                 <div class="book-image">
-                    ${book.image ? `<img src="${book.image}" alt="${book.title}">` : '<i class="fas fa-book"></i>'}
-                    ${book.promo ? '<div class="book-badge">Promoção</div>' : ''}
+                    ${imageUrl ? `<img src="${imageUrl}" alt="${book.title}">` : '<i class="fas fa-book"></i>'}
+                    ${isPromo ? '<div class="book-badge">Promoção</div>' : ''}
                 </div>
                 <div class="book-info">
-                    <div class="book-category">${book.category}</div>
+                    <div class="book-category">${categoryName}</div>
                     <h3 class="book-title">${book.title}</h3>
                     <p class="book-author">${book.author}</p>
                     <div class="book-footer">
                         <div class="book-price">
-                            ${book.price.toFixed(2)}€
-                            ${book.oldPrice ? `<span class="book-price-old">${book.oldPrice.toFixed(2)}€</span>` : ''}
+                            ${parseFloat(book.price).toFixed(2)}€
+                            ${oldPrice ? `<span class="book-price-old">${parseFloat(oldPrice).toFixed(2)}€</span>` : ''}
                         </div>
-                        <button class="add-to-cart" onclick="event.stopPropagation(); window.cart && window.cart.addItem(${JSON.stringify(book).replace(/"/g, '&quot;')})">>
+                        <button class="add-to-cart-btn" data-book='${JSON.stringify(book).replace(/'/g, "&#39;")}'>
                             <i class="fas fa-shopping-cart"></i>
                         </button>
                     </div>
                 </div>
             </div>
         </div>
-    `).join('');
+    `}).join('');
     
-    // Initialize Swiper with enhanced configuration
-    if (typeof Swiper !== 'undefined') {
-        setTimeout(() => {
+    // Attach click events
+    attachRelatedBookEvents(container);
+    
+    // Initialize Swiper
+    initRelatedSwiper();
+}
+
+// Attach click events to related book cards
+function attachRelatedBookEvents(container) {
+    if (!container) return;
+    
+    container.addEventListener('click', function(e) {
+        // Check if clicked on add-to-cart button
+        const cartBtn = e.target.closest('.add-to-cart-btn');
+        if (cartBtn) {
+            e.preventDefault();
+            e.stopPropagation();
+            try {
+                const bookData = JSON.parse(cartBtn.dataset.book.replace(/&#39;/g, "'"));
+                if (window.cart) {
+                    window.cart.addItem(bookData);
+                }
+            } catch (err) {
+                console.error('Error adding to cart:', err);
+            }
+            return;
+        }
+        
+        // Check if clicked on book card
+        const bookCard = e.target.closest('.book-card');
+        if (bookCard && bookCard.dataset.href) {
+            e.preventDefault();
+            window.location.href = bookCard.dataset.href;
+        }
+    });
+}
+
+// Initialize related books swiper
+function initRelatedSwiper() {
+    if (typeof Swiper === 'undefined') return;
+    
+    setTimeout(() => {
             // Destroy existing swiper if it exists
             const container = document.querySelector('.related-swiper');
             const existingSwiper = container?.swiper;
@@ -250,7 +444,7 @@ function loadRelatedBooks() {
             container.swiper = relatedSwiper;
         }, 100);
     }
-}
+
 
 // Utility function
 function capitalizeFirst(str) {
@@ -263,9 +457,19 @@ function capitalizeFirst(str) {
 
 // Initialize reviews functionality
 function initReviews() {
+    console.log('🔄 initReviews called, currentBook:', currentBook);
     initReviewForm();
     initStarRating();
-    initHelpfulButtons();
+    // Load comments using commentsModule
+    if (currentBook && currentBook.id) {
+        console.log('✅ Initializing commentsModule with book ID:', currentBook.id);
+        commentsModule.init(currentBook.id);
+    } else {
+        console.log('⚠️ No currentBook, initializing commentsModule with empty state');
+        // Still render the "no comments" state
+        commentsModule.comments = [];
+        commentsModule.render();
+    }
 }
 
 // Initialize review form submission
@@ -273,7 +477,7 @@ function initReviewForm() {
     const reviewForm = document.querySelector('.review-form-element');
     if (!reviewForm) return;
 
-    reviewForm.addEventListener('submit', (e) => {
+    reviewForm.addEventListener('submit', async (e) => {
         e.preventDefault();
 
         const rating = document.querySelector('input[name="rating"]:checked');
@@ -285,14 +489,70 @@ function initReviewForm() {
             return;
         }
 
-        // Simulate form submission
-        window.showNotification('Avaliação enviada com sucesso! Obrigado pela sua opinião.', 'success');
+        // Get form values
+        const nameInput = reviewForm.querySelector('#authorName');
+        const authorName = nameInput.value.trim();
 
-        // Reset form
-        reviewForm.reset();
-        resetStarRating();
+        // Validate name
+        if (!authorName) {
+            window.showNotification('Por favor, preencha seu nome.', 'error');
+            return;
+        }
+
+        // Validate book ID exists
+        if (!currentBook || !currentBook.id) {
+            console.error('❌ No currentBook.id available');
+            window.showNotification('Erro: Livro não identificado. Recarregue a página.', 'error');
+            return;
+        }
+
+        console.log('📝 Submitting comment:');
+        console.log('   - currentBook:', currentBook);
+        console.log('   - currentBook.id:', currentBook?.id);
+        console.log('   - authorName:', authorName);
+        console.log('   - rating:', rating.value);
+        console.log('   - title:', title);
+        console.log('   - content:', text);
+
+        // Disable submit button
+        const submitBtn = reviewForm.querySelector('button[type="submit"]');
+        const originalBtnText = submitBtn.textContent;
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enviando...';
+
+        try {
+            const response = await api.submitBookComment(currentBook.id, {
+                authorName: authorName,
+                rating: parseInt(rating.value),
+                title: title,
+                content: text
+            });
+
+            if (response.success) {
+                window.showNotification('Avaliação enviada com sucesso! Aguardando aprovação.', 'success');
+                reviewForm.reset();
+                resetStarRating();
+                // Reload comments using commentsModule (only if we have a valid book ID)
+                if (currentBook && currentBook.id && commentsModule.currentBookId) {
+                    await commentsModule.loadComments();
+                    commentsModule.render();
+                }
+            } else {
+                window.showNotification(response.message || 'Erro ao enviar avaliação.', 'error');
+            }
+        } catch (error) {
+            console.error('Erro ao submeter comentário:', error);
+            window.showNotification('Erro ao enviar avaliação. Tente novamente.', 'error');
+        } finally {
+            // Re-enable submit button
+            submitBtn.disabled = false;
+            submitBtn.textContent = originalBtnText;
+        }
     });
 }
+
+// Comments are now loaded and managed by commentsModule (see comments.js)
+// All comment rendering, rating calculation, and "no comments" handling is done there
 
 // Initialize star rating input
 function initStarRating() {
@@ -317,21 +577,15 @@ function resetStarRating() {
     labels.forEach(label => label.classList.remove('active'));
 }
 
-// Initialize helpful buttons
-function initHelpfulButtons() {
-    const helpfulButtons = document.querySelectorAll('.helpful-btn');
-
-    helpfulButtons.forEach(button => {
-        button.addEventListener('click', () => {
-            const currentText = button.textContent;
-            const isHelpful = currentText.includes('Útil');
-
-            if (isHelpful) {
-                button.innerHTML = '<i class="fas fa-thumbs-up"></i> Obrigado!';
-                button.classList.add('voted');
-            }
-        });
-    });
+// Escape HTML to prevent XSS
+function escapeHtml(unsafe) {
+    if (!unsafe) return '';
+    return unsafe
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
 }
 
 // ==================================
@@ -451,17 +705,51 @@ function handlePreviewKeydown(e) {
     }
 }
 
-// Initialize on page load
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => {
-        if (window.location.pathname.includes('livro.html')) {
-            initBookDetailPage();
-            initReviews();
-        }
-    });
-} else {
-    if (window.location.pathname.includes('livro.html')) {
-        initBookDetailPage();
-        initReviews();
-    }
+// Helper function to check if we're on the book detail page
+function isOnBookDetailPage() {
+    const pathname = window.location.pathname.toLowerCase();
+    const href = window.location.href.toLowerCase();
+    
+    console.log('🔎 Checking page - pathname:', pathname, 'href:', href);
+    
+    // Check if pathname contains 'livro.html' but NOT 'livros.html'
+    // Also check href in case pathname is different
+    const hasLivro = pathname.includes('livro.html') || href.includes('livro.html');
+    const hasLivros = pathname.includes('livros.html') || href.includes('livros.html');
+    
+    const result = hasLivro && !hasLivros;
+    console.log('🔎 Has livro:', hasLivro, 'Has livros:', hasLivros, 'Result:', result);
+    
+    return result;
 }
+
+// IMMEDIATE INITIALIZATION CHECK
+(function() {
+    console.log('⚡ Immediate self-executing function running...');
+    
+    const isBookPage = isOnBookDetailPage();
+    
+    if (!isBookPage) {
+        console.log('⚠️ Not on book detail page, skipping initialization');
+        return;
+    }
+    
+    console.log('✅ On book detail page, setting up initialization...');
+    
+    // Function to initialize the page - MUST be async to await book loading before reviews
+    async function doInit() {
+        console.log('🎬 doInit() called - Starting page initialization');
+        await initBookDetailPage(); // Wait for book to load first!
+        console.log('📖 Book loaded, now initializing reviews...');
+        initReviews(); // Now currentBook should be populated
+    }
+    
+    // Initialize based on document state
+    if (document.readyState === 'loading') {
+        console.log('📄 Document still loading, adding DOMContentLoaded listener');
+        document.addEventListener('DOMContentLoaded', doInit);
+    } else {
+        console.log('📄 Document already loaded, initializing immediately');
+        doInit();
+    }
+})();

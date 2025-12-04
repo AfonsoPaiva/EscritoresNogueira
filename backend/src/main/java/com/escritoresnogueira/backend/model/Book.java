@@ -1,11 +1,14 @@
 package main.java.com.escritoresnogueira.backend.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonAlias;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import lombok.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
 @Data
 @Builder
@@ -44,6 +47,7 @@ public class Book extends BaseEntity {
     private BigDecimal price;
     
     @Column(name = "cover_image", length = 255)
+    @JsonAlias({"image", "coverImage"})
     private String coverImage;
     
     @Column(unique = true, length = 255)
@@ -55,10 +59,13 @@ public class Book extends BaseEntity {
     @Column(length = 255)
     private String publisher;
     
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "category_id", nullable = false)
-    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
-    private Category category;
+    // Category as string (for display/API)
+    @Column(length = 100)
+    private String category;
+    
+    // Category ID for database foreign key constraint (nullable)
+    @Column(name = "category_id")
+    private Long categoryId;
     
     @Column(nullable = false)
     @Builder.Default
@@ -66,9 +73,8 @@ public class Book extends BaseEntity {
     
     @Column
     @Builder.Default
-    private Boolean featured = false;  // Ajustado para nullable como no banco
+    private Boolean featured = false;
     
-    // Novos campos do schema
     @Column(name = "cover_url", length = 255)
     private String coverUrl;
     
@@ -87,14 +93,34 @@ public class Book extends BaseEntity {
     @Column(name = "review_count")
     private Integer reviewCount;
     
-    //@ManyToOne(fetch = FetchType.LAZY)
-    //@JoinColumn(name = "author_id")
-    //@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
-    //private Author authorEntity;  // FK para authors (opcional)
-    
     @Column(name = "original_price", precision = 10, scale = 2)
+    @JsonAlias("oldPrice")
     private BigDecimal originalPrice;
     
-    @Column(name = "publish_year", length = 4)
-    private String publishYear;
+    @Column(name = "publish_year")
+    @JsonAlias("year")
+    private Integer publishYear;
+    
+    // Promo field - manually set, NOT calculated
+    @Column
+    @Builder.Default
+    private Boolean promo = false;
+    
+    // Sample pages for book preview (stored as JSON array string)
+    @Column(name = "sample_pages", length = 2000)
+    private String samplePages;
+    
+    // Helper method to get sample pages as list
+    @Transient
+    public List<String> getSamplePagesList() {
+        if (samplePages == null || samplePages.isEmpty()) {
+            return new ArrayList<>();
+        }
+        // Parse JSON array string like ["url1", "url2"]
+        String cleaned = samplePages.replace("[", "").replace("]", "").replace("\"", "");
+        if (cleaned.isEmpty()) {
+            return new ArrayList<>();
+        }
+        return List.of(cleaned.split(",\\s*"));
+    }
 }

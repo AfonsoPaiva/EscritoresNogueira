@@ -6,7 +6,8 @@
 const booksData = [
     {
         id: 1,
-        title: "O Retrato de Dorian Gray",
+        slug: "test",
+        title: "test",
         author: "Oscar Wilde",
         category: "ficcao",
         price: 15.90,
@@ -30,6 +31,7 @@ const booksData = [
     },
     {
         id: 2,
+        slug: "cem-anos-de-solidao",
         title: "Cem Anos de Solidão",
         author: "Gabriel García Márquez",
         category: "ficcao",
@@ -54,6 +56,7 @@ const booksData = [
     },
     {
         id: 3,
+        slug: "orgulho-e-preconceito",
         title: "Orgulho e Preconceito",
         author: "Jane Austen",
         category: "romance",
@@ -78,6 +81,7 @@ const booksData = [
     },
     {
         id: 4,
+        slug: "1984",
         title: "1984",
         author: "George Orwell",
         category: "ficcao",
@@ -102,6 +106,7 @@ const booksData = [
     },
     {
         id: 5,
+        slug: "o-pequeno-principe",
         title: "O Pequeno Príncipe",
         author: "Antoine de Saint-Exupéry",
         category: "infantil",
@@ -121,11 +126,12 @@ const booksData = [
             "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=600&h=800&fit=crop",
             "https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=600&h=800&fit=crop",
             "https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=600&h=800&fit=crop",
-            "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=600&h=800&fit=crop"
+            "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c&w=600&h=800&fit=crop"
         ]
     },
     {
         id: 6,
+        slug: "sapiens",
         title: "Sapiens",
         author: "Yuval Noah Harari",
         category: "historia",
@@ -150,6 +156,7 @@ const booksData = [
     },
     {
         id: 7,
+        slug: "a-metamorfose",
         title: "A Metamorfose",
         author: "Franz Kafka",
         category: "ficcao",
@@ -174,6 +181,7 @@ const booksData = [
     },
     {
         id: 8,
+        slug: "mensagem",
         title: "Mensagem",
         author: "Fernando Pessoa",
         category: "poesia",
@@ -198,6 +206,7 @@ const booksData = [
     },
     {
         id: 9,
+        slug: "steve-jobs",
         title: "Steve Jobs",
         author: "Walter Isaacson",
         category: "biografia",
@@ -222,6 +231,7 @@ const booksData = [
     },
     {
         id: 10,
+        slug: "crime-e-castigo",
         title: "Crime e Castigo",
         author: "Fiódor Dostoiévski",
         category: "ficcao",
@@ -246,6 +256,7 @@ const booksData = [
     },
     {
         id: 11,
+        slug: "a-revolucao-dos-bichos",
         title: "A Revolução dos Bichos",
         author: "George Orwell",
         category: "ficcao",
@@ -270,6 +281,7 @@ const booksData = [
     },
     {
         id: 12,
+        slug: "o-conde-de-monte-cristo",
         title: "O Conde de Monte Cristo",
         author: "Alexandre Dumas",
         category: "ficcao",

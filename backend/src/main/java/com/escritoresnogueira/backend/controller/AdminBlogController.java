@@ -4,6 +4,8 @@ import main.java.com.escritoresnogueira.backend.model.BlogPost;
 import main.java.com.escritoresnogueira.backend.model.BlogCategory;
 import main.java.com.escritoresnogueira.backend.repository.BlogPostRepository;
 import main.java.com.escritoresnogueira.backend.repository.BlogCategoryRepository;
+import main.java.com.escritoresnogueira.backend.dto.AdminBlogPostDTO;
+import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -21,23 +23,41 @@ public class AdminBlogController {
 
     
     @PostMapping("/posts")
-    public ResponseEntity<BlogPost> createPost(@RequestBody BlogPost post) {
+    public ResponseEntity<BlogPost> createPost(@RequestBody AdminBlogPostDTO dto) {
+        // Set category name as plain string (independent from category table)
+        BlogPost post = BlogPost.builder()
+                .title(dto.getTitle())
+                .slug(dto.getSlug())
+                .content(dto.getContent())
+                .excerpt(dto.getExcerpt())
+                .featuredImage(dto.getFeaturedImage())
+                .author(dto.getAuthor())
+                .featured(dto.getFeatured() != null ? dto.getFeatured() : false)
+                .published(dto.getPublished() != null ? dto.getPublished() : false)
+                .categoryName(dto.getCategory())
+                .build();
+
         BlogPost savedPost = blogPostRepository.save(post);
         return ResponseEntity.ok(savedPost);
     }
 
     @PutMapping("/posts/{id}")
-    public ResponseEntity<BlogPost> updatePost(@PathVariable Long id, @RequestBody BlogPost post) {
+    public ResponseEntity<BlogPost> updatePost(@PathVariable Long id, @RequestBody AdminBlogPostDTO dto) {
         return blogPostRepository.findById(id)
             .map(existingPost -> {
-                existingPost.setTitle(post.getTitle());
-                existingPost.setSlug(post.getSlug());
-                existingPost.setContent(post.getContent());
-                existingPost.setExcerpt(post.getExcerpt());
-                existingPost.setFeaturedImage(post.getFeaturedImage());
-                existingPost.setCategory(post.getCategory());
-                existingPost.setAuthor(post.getAuthor());
-                
+                existingPost.setTitle(dto.getTitle());
+                existingPost.setSlug(dto.getSlug());
+                existingPost.setContent(dto.getContent());
+                existingPost.setExcerpt(dto.getExcerpt());
+                existingPost.setFeaturedImage(dto.getFeaturedImage());
+                existingPost.setAuthor(dto.getAuthor());
+                existingPost.setFeatured(dto.getFeatured() != null ? dto.getFeatured() : existingPost.isFeatured());
+                existingPost.setPublished(dto.getPublished() != null ? dto.getPublished() : existingPost.isPublished());
+
+                if (dto.getCategory() != null && !dto.getCategory().trim().isEmpty()) {
+                    existingPost.setCategoryName(dto.getCategory().trim());
+                }
+
                 BlogPost updatedPost = blogPostRepository.save(existingPost);
                 return ResponseEntity.ok(updatedPost);
             })

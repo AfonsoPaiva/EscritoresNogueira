@@ -37,6 +37,7 @@
                 <ul class="nav-menu" id="navMenu">
                     <li><a href="index.html" class="nav-link active">Início</a></li>
                     <li><a href="livros.html" class="nav-link">Livros</a></li>
+                    <li><a href="servicos.html" class="nav-link">Serviços</a></li>
                     <li><a href="sobre.html" class="nav-link">Sobre</a></li>
                     <li><a href="blog.html" class="nav-link">Blog</a></li>
                     <li><a href="apoio.html" class="nav-link">Apoio</a></li>
@@ -111,8 +112,18 @@
                     <div class="form-group">
                         <input type="password" placeholder="Password" required>
                     </div>
+                    <div class="form-group" style="text-align: right; margin-bottom: 15px;">
+                        <a href="#" id="showForgotPassword" style="font-size: 0.9em; color: var(--primary-color);">Esqueceu-se da password?</a>
+                    </div>
                     <button type="submit" class="btn btn-primary">Entrar</button>
                 </form>
+                <div class="auth-divider">
+                    <span>ou</span>
+                </div>
+                <button type="button" class="btn btn-google" id="googleSignInBtn">
+                    <i class="fab fa-google"></i>
+                    Continuar com Google
+                </button>
                 <p class="auth-toggle">Não tem conta? <a href="#" id="showRegister">Criar conta</a></p>
             </div>
 
@@ -131,7 +142,27 @@
                     </div>
                     <button type="submit" class="btn btn-primary">Registar</button>
                 </form>
+                <div class="auth-divider">
+                    <span>ou</span>
+                </div>
+                <button type="button" class="btn btn-google" id="googleSignUpBtn">
+                    <i class="fab fa-google"></i>
+                    Registar com Google
+                </button>
                 <p class="auth-toggle">Já tem conta? <a href="#" id="showLogin">Iniciar sessão</a></p>
+            </div>
+
+            <!-- Forgot Password Form -->
+            <div class="auth-form hidden" id="forgotPasswordForm">
+                <h4>Recuperar Password</h4>
+                <p style="margin-bottom: 20px; font-size: 0.9em; color: #666;">Insira o seu email para receber um link de recuperação.</p>
+                <form id="forgotPasswordFormElement">
+                    <div class="form-group">
+                        <input type="email" placeholder="Email" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Enviar Email</button>
+                </form>
+                <p class="auth-toggle"><a href="#" id="backToLogin">Voltar ao Login</a></p>
             </div>
 
             <!-- User Profile -->
@@ -183,6 +214,20 @@
                     <div class="swiper-pagination"></div>
                     <div class="swiper-button-next"></div>
                     <div class="swiper-button-prev"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Create Book Section -->
+        <section class="section create-book-section">
+            <div class="container">
+                <div class="create-book-content" data-aos="fade-up">
+                    <div class="create-book-icon">
+                        <i class="fas fa-feather-alt"></i>
+                    </div>
+                    <h2 class="create-book-title">Deseja criar o seu livro?</h2>
+                    <p class="create-book-subtitle">Transforme as suas ideias em uma obra literária única. Somos especialistas em ajudar autores a darem vida aos seus sonhos.</p>
+                    <a href="servicos.html" class="btn btn-primary btn-large">Veja como</a>
                 </div>
             </div>
         </section>
@@ -269,17 +314,16 @@
         <div class="container">
             <div class="newsletter-content">
                 <div class="newsletter-text">
-                    <h2>Fique por dentro das novidades</h2>
-                    <p>Subscreva a nossa newsletter e receba em primeira mão novos lançamentos, promoções exclusivas e recomendações literárias.</p>
+                    <h3>Subscreva a Nossa Newsletter</h3>
+                    <p>Receba novidades sobre novos livros, promoções exclusivas e dicas de leitura diretamente no seu email.</p>
                 </div>
                 <form class="newsletter-form" id="newsletterForm">
                     <div class="newsletter-input-wrapper">
-                        <input type="email" id="newsletterEmail" placeholder="O seu email" required>
-                        <button type="submit" class="btn btn-dark">
-                            <i class="fas fa-envelope"></i> Subscrever
+                        <input type="email" placeholder="O seu email" required>
+                        <button type="submit" class="btn-newsletter">
+                            Subscrever <i class="fas fa-paper-plane"></i>
                         </button>
                     </div>
-                    <small class="newsletter-privacy">Prometemos não enviar spam. Os seus dados estão seguros connosco.</small>
                 </form>
             </div>
         </div>
@@ -345,6 +389,13 @@
     <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="js/firebase-config.js"></script>
+    
+    <script src="js/api.js"></script>
     <script src="js/data.js"></script>
     <script src="js/utils.js"></script>
     <script src="js/cart.js"></script>

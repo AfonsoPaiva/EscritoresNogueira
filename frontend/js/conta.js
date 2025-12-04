@@ -73,6 +73,16 @@ function loadUserProfile() {
         document.getElementById('profileName').textContent = user.name;
         document.getElementById('profileEmail').textContent = user.email;
 
+        // Update avatar
+        const avatarContainer = document.querySelector('.profile-avatar-large');
+        if (avatarContainer) {
+            if (user.photoUrl) {
+                avatarContainer.innerHTML = `<img src="${user.photoUrl}" alt="${user.name}" style="width: 100%; height: 100%; object-fit: cover;">`;
+            } else {
+                avatarContainer.innerHTML = '<i class="fas fa-user"></i>';
+            }
+        }
+
         // Load additional profile data from localStorage
         const profileData = getUserProfileData(user.email);
         if (profileData) {
@@ -235,7 +245,7 @@ function initPasswordForm() {
 }
 
 // Handle password change
-function handlePasswordChange(form) {
+async function handlePasswordChange(form) {
     const currentPassword = form.querySelector('#currentPassword').value;
     const newPassword = form.querySelector('#newPassword').value;
     const confirmPassword = form.querySelector('#confirmPassword').value;
@@ -256,96 +266,73 @@ function handlePasswordChange(form) {
         return;
     }
 
-    // Get all users to find and update the current user
-    const users = auth.getAllUsers();
-    const userIndex = users.findIndex(u => u.email === user.email);
-
-    if (userIndex !== -1) {
-        // Verify current password
-        if (users[userIndex].password !== currentPassword) {
-            auth.showNotification('Password atual incorreta', 'error');
-            return;
-        }
-
-        // Update password
-        users[userIndex].password = newPassword;
-        auth.saveAllUsers(users);
-
-        // Clear form
+    try {
+        // Note: Firebase requires re-authentication for sensitive operations like password change
+        // For simplicity, we'll try to update directly. If it fails with 'requires-recent-login',
+        // the auth.updatePassword method will handle the error message.
+        // Ideally, we should ask for re-authentication (login again) here.
+        
+        // Since we don't have the user's current password in plain text to re-authenticate automatically,
+        // we rely on the session being recent.
+        
+        await auth.updatePassword(newPassword);
         form.reset();
-
-        // Show success message
-        auth.showNotification('Password alterada com sucesso!', 'success');
+        
+    } catch (error) {
+        // Error is already handled/logged in auth.updatePassword
+        auth.showNotification(error.message, 'error');
     }
 }
 
 // Initialize settings
 function initSettings() {
-    // Deactivate account button
-    const deactivateBtn = document.getElementById('deactivateAccount');
-    if (deactivateBtn) {
-        deactivateBtn.addEventListener('click', () => {
-            if (confirm('Tem certeza que deseja desativar temporariamente sua conta?')) {
-                deactivateAccount();
-            }
-        });
-    }
-
     // Delete account button
     const deleteBtn = document.getElementById('deleteAccount');
-    if (deleteBtn) {
+    const modal = document.getElementById('deleteAccountModal');
+    const confirmBtn = document.getElementById('confirmDeleteBtn');
+    const cancelBtn = document.getElementById('cancelDeleteBtn');
+
+    if (deleteBtn && modal) {
         deleteBtn.addEventListener('click', () => {
-            if (confirm('⚠️ ATENÇÃO: Esta ação é PERMANENTE e IRREVERSÍVEL!\n\nAo eliminar sua conta:\n- Todos os seus dados serão apagados\n- Perderá acesso ao histórico de pedidos\n- Suas preferências serão removidas\n\nDeseja realmente continuar?')) {
-                deleteAccount();
+            modal.style.display = 'flex';
+        });
+
+        cancelBtn.addEventListener('click', () => {
+            modal.style.display = 'none';
+        });
+
+        confirmBtn.addEventListener('click', () => {
+            modal.style.display = 'none';
+            deleteAccount();
+        });
+
+        // Close modal if clicking outside content
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                modal.style.display = 'none';
             }
         });
     }
-}
-
-// Deactivate account
-function deactivateAccount() {
-    const auth = new AuthSystem();
-    const user = auth.getCurrentUser();
-
-    if (!user) return;
-
-    // Mark account as deactivated
-    const profileData = getUserProfileData(user.email);
-    profileData.accountStatus = 'deactivated';
-    profileData.deactivatedAt = new Date().toISOString();
-    saveUserProfileData(user.email, profileData);
-
-    auth.showNotification('Conta desativada temporariamente', 'info');
-    
-    // Logout user
-    setTimeout(() => {
-        auth.handleLogout();
-        window.location.href = 'index.html';
-    }, 1500);
 }
 
 // Delete account
-function deleteAccount() {
+async function deleteAccount() {
     const auth = new AuthSystem();
     const user = auth.getCurrentUser();
 
     if (!user) return;
 
-    // Remove user from users list
-    const users = auth.getAllUsers();
-    const updatedUsers = users.filter(u => u.email !== user.email);
-    auth.saveAllUsers(updatedUsers);
-
-    // Remove user profile data
-    localStorage.removeItem(`user_profile_${user.email}`);
-    localStorage.removeItem(`user_orders_${user.email}`);
-    localStorage.removeItem(`user_preferences_${user.email}`);
-
-    // Logout user
-    auth.handleLogout();
-
-    // Redirect to home
-    window.location.href = 'index.html';
+    try {
+        await auth.deleteAccount();
+        
+        // Clean up local data
+        localStorage.removeItem(`user_profile_${user.email}`);
+        localStorage.removeItem(`user_orders_${user.email}`);
+        localStorage.removeItem(`user_preferences_${user.email}`);
+        
+    } catch (error) {
+        auth.showNotification(error.message, 'error');
+    }
 }
 
 // Handle browser back/forward buttons

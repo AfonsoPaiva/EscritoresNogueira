@@ -20,6 +20,7 @@
         <firebase.version>9.3.0</firebase.version>
         <stripe.version>26.12.0</stripe.version>
         <mapstruct.version>1.5.5.Final</mapstruct.version>
+        <lombok.version>1.18.30</lombok.version>
     </properties>
     
     <dependencies>
@@ -45,7 +46,7 @@
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
 
-        <!-- PostgreSQL Driver (Supabase) -->
+        <!-- PostgreSQL Driver (CockroachDB compatible) -->
         <dependency>
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>

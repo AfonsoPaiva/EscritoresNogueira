@@ -21,9 +21,12 @@ import java.util.List;
 
 import static org.springframework.security.config.Customizer.withDefaults;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 @Configuration
 @EnableWebSecurity
-@EnableMethodSecurity
+@EnableMethodSecurity(prePostEnabled = true)
 @RequiredArgsConstructor
 public class SecurityConfig {
 
@@ -36,7 +39,7 @@ public class SecurityConfig {
             .ignoringRequestMatchers(
                 "/auth/**",      // Endpoints de autenticação
                 "/health/**",    // Health checks
-                "/books",        // Endpoint público de livros
+                "/books/**",     // Endpoints públicos de livros
                 "/blog/**",      // Endpoints públicos de blog
                 "/admin/**"      // Endpoints privados de admin
             )
@@ -48,6 +51,9 @@ public class SecurityConfig {
                 .requestMatchers(
                     "/auth/register",
                     "/auth/firebase",
+                    "/auth/firebase-config",
+                    "/auth/health",
+                    "/auth/user",    // Permitir endpoint de exclusão (verificação feita no controller)
                     "/auth/dev/**"
                 ).permitAll()
                 
@@ -57,8 +63,11 @@ public class SecurityConfig {
                     "/actuator/health"
                 ).permitAll()
                 
-                // PÚBLICO: Outros endpoints públicos
-                .requestMatchers("/books", "/blog/**").permitAll()
+                // PÚBLICO: Livros (todos os endpoints)
+                .requestMatchers("/books", "/books/**").permitAll()
+                
+                // PÚBLICO: Blog
+                .requestMatchers("/blog/**").permitAll()
                 
                 // ADMIN ONLY: Administração
                 .requestMatchers("/admin/**").hasRole("ADMIN")
@@ -80,6 +89,10 @@ public class SecurityConfig {
             "http://localhost:3000",
             "http://localhost:5173",
             "http://localhost:4200",
+            "http://localhost:5500",
+            "http://127.0.0.1:5500",
+            "http://localhost:5501",
+            "http://127.0.0.1:5501",
             "https://escritoresnogueira.com",
             "https://www.escritoresnogueira.com"
         ));

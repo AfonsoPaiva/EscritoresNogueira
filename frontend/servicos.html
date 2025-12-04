@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Os Nossos Serviços - Escritores Nogueira</title>
+    <meta name="description" content="Descubra como podemos ajudar a criar o seu livro. Serviços de publicação e edição literária.">
+
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:wght@400;500;600;700;800&family=Questrial&display=swap" rel="stylesheet">
+
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Swiper CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css">
+
+    <!-- AOS CSS -->
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+
+    <!-- Main CSS -->
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="page-servicos">
+
+    <!-- Header -->
+    <header class="header" id="header">
+        <div class="container">
+            <nav class="navbar">
+                <a href="index.html" class="logo">
+                    <span class="logo-text">Escritores Nogueira</span>
+                </a>
+
+                <ul class="nav-menu" id="navMenu">
+                    <li><a href="index.html" class="nav-link">Início</a></li>
+                    <li><a href="livros.html" class="nav-link">Livros</a></li>
+                    <li><a href="servicos.html" class="nav-link active">Serviços</a></li>
+                    <li><a href="sobre.html" class="nav-link">Sobre</a></li>
+                    <li><a href="blog.html" class="nav-link">Blog</a></li>
+                    <li><a href="apoio.html" class="nav-link">Apoio</a></li>
+                </ul>
+
+                <div class="nav-actions">
+                    <button class="icon-btn search-btn" id="searchBtn">
+                        <i class="fas fa-search"></i>
+                    </button>
+                    <button class="icon-btn cart-btn" id="cartBtn">
+                        <i class="fas fa-shopping-cart"></i>
+                        <span class="cart-count" id="cartCount">0</span>
+                    </button>
+                    <button class="icon-btn user-btn" id="userBtn">
+                        <i class="fas fa-user"></i>
+                    </button>
+                    <button class="hamburger" id="hamburger">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </button>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Search Overlay -->
+    <div class="search-overlay" id="searchOverlay">
+        <div class="search-container">
+            <button class="close-search" id="closeSearch">
+                <i class="fas fa-times"></i>
+            </button>
+            <input type="text" class="search-input" placeholder="Pesquisar livros..." id="searchInput">
+            <div class="search-results" id="searchResults"></div>
+        </div>
+    </div>
+
+    <!-- Cart Sidebar -->
+    <div class="cart-sidebar" id="cartSidebar">
+        <div class="cart-header">
+            <h3>Carrinho de Compras</h3>
+            <button class="close-cart" id="closeCart">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="cart-items" id="cartItems"></div>
+        <div class="cart-footer">
+            <div class="cart-total">
+                <span>Total:</span>
+                <span id="cartTotal">0,00€</span>
+            </div>
+            <button class="btn btn-primary btn-checkout">Finalizar Compra</button>
+        </div>
+    </div>
+
+    <!-- User Sidebar -->
+    <div class="user-sidebar" id="userSidebar">
+        <div class="user-header">
+            <h3>Conta</h3>
+            <button class="close-user" id="closeUser">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="user-content" id="userContent">
+            <!-- Login Form -->
+            <div class="auth-form" id="loginForm">
+                <h4>Iniciar Sessão</h4>
+                <form id="loginFormElement">
+                    <div class="form-group">
+                        <input type="email" placeholder="Email" required>
+                    </div>
+                    <div class="form-group">
+                        <input type="password" placeholder="Password" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Entrar</button>
+                </form>
+                <div class="auth-divider">
+                    <span>ou</span>
+                </div>
+                <button type="button" class="btn btn-google" id="googleSignInBtn">
+                    <i class="fab fa-google"></i>
+                    Continuar com Google
+                </button>
+                <p class="auth-toggle">Não tem conta? <a href="#" id="showRegister">Criar conta</a></p>
+            </div>
+
+            <!-- Register Form -->
+            <div class="auth-form hidden" id="registerForm">
+                <h4>Criar Conta</h4>
+                <form id="registerFormElement">
+                    <div class="form-group">
+                        <input type="text" placeholder="Nome" required>
+                    </div>
+                    <div class="form-group">
+                        <input type="email" placeholder="Email" required>
+                    </div>
+                    <div class="form-group">
+                        <input type="password" placeholder="Password" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Registar</button>
+                </form>
+                <div class="auth-divider">
+                    <span>ou</span>
+                </div>
+                <button type="button" class="btn btn-google" id="googleSignUpBtn">
+                    <i class="fab fa-google"></i>
+                    Registar com Google
+                </button>
+                <p class="auth-toggle">Já tem conta? <a href="#" id="showLogin">Iniciar sessão</a></p>
+            </div>
+
+            <!-- User Profile -->
+            <div class="user-profile hidden" id="userProfile">
+                <div class="profile-info">
+                    <div class="profile-avatar">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <h4 id="userName"></h4>
+                    <p id="userEmail"></p>
+                </div>
+                <button class="btn btn-secondary" id="logoutBtn">Terminar Sessão</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div>
+        <div>
+            <main class="transition-fade">
+
+                <!-- Page Header -->
+                <section class="page-header">
+                    <div class="container">
+                        <div class="page-header-content" data-aos="fade-up">
+                            <h1 class="page-title">Os Nossos Serviços</h1>
+                            <p class="page-subtitle">Transforme as suas ideias em livros extraordinários</p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- How We Create Books Section -->
+                <section class="section how-we-create">
+                    <div class="container">
+                        <div class="section-header" data-aos="fade-up">
+                            <h2 class="section-title">Como Publicamos o Seu Livro</h2>
+                            <p class="section-subtitle">Utilizamos a plataforma Amazon KDP para garantir qualidade profissional e distribuição mundial</p>
+                        </div>
+
+                        <div class="process-steps-horizontal" data-aos="fade-up" data-aos-delay="100">
+                            <div class="process-step-h">
+                                <div class="process-step-icon">
+                                    <i class="fas fa-lightbulb"></i>
+                                </div>
+                                <h3>Consulta Inicial</h3>
+                                <p>Analisamos o seu manuscrito</p>
+                            </div>
+                            <div class="process-step-arrow">
+                                <i class="fas fa-chevron-right"></i>
+                            </div>
+                            <div class="process-step-h">
+                                <div class="process-step-icon">
+                                    <i class="fas fa-edit"></i>
+                                </div>
+                                <h3>Edição e Revisão</h3>
+                                <p>Revisão profissional do texto</p>
+                            </div>
+                            <div class="process-step-arrow">
+                                <i class="fas fa-chevron-right"></i>
+                            </div>
+                            <div class="process-step-h">
+                                <div class="process-step-icon">
+                                    <i class="fas fa-palette"></i>
+                                </div>
+                                <h3>Design Profissional</h3>
+                                <p>Capa e formatação interior</p>
+                            </div>
+                            <div class="process-step-arrow">
+                                <i class="fas fa-chevron-right"></i>
+                            </div>
+                            <div class="process-step-h">
+                                <div class="process-step-icon">
+                                    <i class="fab fa-amazon"></i>
+                                </div>
+                                <h3>Publicação Amazon</h3>
+                                <p>Livro disponível para venda</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- KDP Info Section -->
+                <section class="section kdp-info-section">
+                    <div class="container">
+                        <div class="kdp-info-card" data-aos="fade-up">
+                            <div class="kdp-logo">
+                                <i class="fab fa-amazon"></i>
+                            </div>
+                            <div class="kdp-content">
+                                <h3>Porquê Amazon KDP?</h3>
+                                <p>O Kindle Direct Publishing (KDP) é a plataforma de autopublicação da Amazon, líder mundial no mercado editorial. Com o KDP, o seu livro fica disponível para milhões de leitores em todo o mundo, tanto em formato ebook como em capa mole (paperback).</p>
+                                <ul class="kdp-benefits">
+                                    <li><i class="fas fa-globe"></i> Distribuição global em mais de 13 países</li>
+                                    <li><i class="fas fa-book"></i> Impressão sob demanda - sem custos de stock</li>
+                                    <li><i class="fas fa-mobile-alt"></i> Versão ebook e física disponíveis</li>
+                                    <li><i class="fas fa-chart-line"></i> Royalties até 70% por venda</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Testimonials Section -->
+                <section class="section testimonials-section-new">
+                    <div class="container">
+                        <div class="section-header" data-aos="fade-up">
+                            <h2 class="section-title">O Que Dizem os Nossos Autores</h2>
+                            <p class="section-subtitle">Histórias de sucesso de quem já publicou connosco</p>
+                        </div>
+
+                        <div class="testimonials-carousel" data-aos="fade-up" data-aos-delay="100">
+                            <div class="testimonial-card-new">
+                                <div class="testimonial-quote">
+                                    <i class="fas fa-quote-left"></i>
+                                </div>
+                                <div class="testimonial-text">
+                                    <p>"A Escritores Nogueira transformou a minha ideia em um livro incrível. O processo foi profissional e o resultado superou as minhas expectativas."</p>
+                                </div>
+                                <div class="testimonial-author-new">
+                                    <div class="author-avatar-new">
+                                        <span>MS</span>
+                                    </div>
+                                    <div class="author-details">
+                                        <h4>Maria Silva</h4>
+                                        <span>Autora de "Sombras do Passado"</span>
+                                        <div class="author-rating">
+                                            <i class="fas fa-star"></i>
+                                            <i class="fas fa-star"></i>
+                                            <i class="fas fa-star"></i>
+                                            <i class="fas fa-star"></i>
+                                            <i class="fas fa-star"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="testimonial-card-new">
+                                <div class="testimonial-quote">
+                                    <i class="fas fa-quote-left"></i>
+                                </div>
+                                <div class="testimonial-text">
+                                    <p>"Excelente serviço! Desde a revisão até o design, tudo foi feito com dedicação. Meu livro está nas mãos de muitos leitores graças ao trabalho fantástico."</p>
+                                </div>
+                                <div class="testimonial-author-new">
+                                    <div class="author-avatar-new">
+                                        <span>JS</span>
+                                    </div>
+                                    <div class="author-details">
+                                        <h4>João Santos</h4>
+                                        <span>Autor de "Viagens no Tempo"</span>
+                                        <div class="author-rating">
+                                            <i class="fas fa-star"></i>
+                                            <i class="fas fa-star"></i>
+                                            <i class="fas fa-star"></i>
+                                            <i class="fas fa-star"></i>
+                                            <i class="fas fa-star"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="testimonial-card-new">
+                                <div class="testimonial-quote">
+                                    <i class="fas fa-quote-left"></i>
+                                </div>
+                                <div class="testimonial-text">
+                                    <p>"Profissionais competentes e apaixonados por literatura. Ajudaram-me a realizar o sonho de publicar meu primeiro romance."</p>
+                                </div>
+                                <div class="testimonial-author-new">
+                                    <div class="author-avatar-new">
+                                        <span>AC</span>
+                                    </div>
+                                    <div class="author-details">
+                                        <h4>Ana Costa</h4>
+                                        <span>Autora de "Corações Entrelaçados"</span>
+                                        <div class="author-rating">
+                                            <i class="fas fa-star"></i>
+                                            <i class="fas fa-star"></i>
+                                            <i class="fas fa-star"></i>
+                                            <i class="fas fa-star"></i>
+                                            <i class="fas fa-star"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- FAQ Section with Accordion -->
+                <section class="section faq-section-new">
+                    <div class="container">
+                        <div class="section-header" data-aos="fade-up">
+                            <h2 class="section-title">Perguntas Frequentes</h2>
+                            <p class="section-subtitle">Dúvidas comuns sobre publicação na Amazon KDP</p>
+                        </div>
+
+                        <div class="faq-accordion" data-aos="fade-up" data-aos-delay="100">
+                            <div class="faq-item-new">
+                                <button class="faq-question" onclick="toggleFaq(this)">
+                                    <div class="faq-icon">
+                                        <i class="fas fa-clock"></i>
+                                    </div>
+                                    <span>Quanto tempo demora até o meu livro ficar disponível na Amazon?</span>
+                                    <i class="fas fa-chevron-down faq-arrow"></i>
+                                </button>
+                                <div class="faq-answer">
+                                    <p>Após a conclusão do nosso trabalho, o livro fica normalmente disponível na Amazon em 24-72 horas. O prazo total depende do plano escolhido: Essencial (2-3 semanas), Profissional (4-6 semanas) ou Premium (6-8 semanas).</p>
+                                </div>
+                            </div>
+
+                            <div class="faq-item-new">
+                                <button class="faq-question" onclick="toggleFaq(this)">
+                                    <div class="faq-icon">
+                                        <i class="fas fa-copyright"></i>
+                                    </div>
+                                    <span>Quem detém os direitos do livro?</span>
+                                    <i class="fas fa-chevron-down faq-arrow"></i>
+                                </button>
+                                <div class="faq-answer">
+                                    <p>Você mantém 100% dos direitos autorais do seu livro. Nós apenas prestamos serviços de edição, design e publicação. O livro é publicado na sua conta Amazon KDP, sob o seu nome.</p>
+                                </div>
+                            </div>
+
+                            <div class="faq-item-new">
+                                <button class="faq-question" onclick="toggleFaq(this)">
+                                    <div class="faq-icon">
+                                        <i class="fas fa-barcode"></i>
+                                    </div>
+                                    <span>Preciso ter ISBN?</span>
+                                    <i class="fas fa-chevron-down faq-arrow"></i>
+                                </button>
+                                <div class="faq-answer">
+                                    <p>A Amazon KDP fornece gratuitamente um ISBN para a versão impressa. Também pode usar o seu próprio ISBN se preferir. Para ebooks, a Amazon usa o ASIN, que é atribuído automaticamente.</p>
+                                </div>
+                            </div>
+
+                            <div class="faq-item-new">
+                                <button class="faq-question" onclick="toggleFaq(this)">
+                                    <div class="faq-icon">
+                                        <i class="fas fa-coins"></i>
+                                    </div>
+                                    <span>Como funcionam os royalties?</span>
+                                    <i class="fas fa-chevron-down faq-arrow"></i>
+                                </button>
+                                <div class="faq-answer">
+                                    <p>Através da Amazon KDP, pode receber até 70% de royalties em ebooks e até 60% em livros impressos (dependendo do preço e mercado). Os pagamentos são feitos diretamente pela Amazon para a sua conta.</p>
+                                </div>
+                            </div>
+
+                            <div class="faq-item-new">
+                                <button class="faq-question" onclick="toggleFaq(this)">
+                                    <div class="faq-icon">
+                                        <i class="fas fa-tablet-alt"></i>
+                                    </div>
+                                    <span>Posso publicar apenas em ebook?</span>
+                                    <i class="fas fa-chevron-down faq-arrow"></i>
+                                </button>
+                                <div class="faq-answer">
+                                    <p>Sim! O plano Essencial foca no formato ebook. Se mais tarde desejar a versão impressa, pode fazer upgrade. Os outros planos incluem ambos os formatos.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Plans Section - Now at the end -->
+                <section class="section plans-section-final" id="planos">
+                    <div class="container">
+                        <div class="section-header" data-aos="fade-up">
+                            <h2 class="section-title">Escolha o Seu Plano</h2>
+                            <p class="section-subtitle">Comece hoje a publicar o seu livro na Amazon</p>
+                        </div>
+
+                        <div class="plans-grid-new" data-aos="fade-up" data-aos-delay="100">
+                            <div class="plan-card-new">
+                                <div class="plan-header-new">
+                                    <h3>Essencial</h3>
+                                    <div class="plan-price-new">
+                                        <span class="currency">€</span>
+                                        <span class="amount">199</span>
+                                    </div>
+                                    <span class="plan-period">pagamento único</span>
+                                </div>
+                                <ul class="plan-features-new">
+                                    <li><i class="fas fa-check-circle"></i> Revisão ortográfica básica</li>
+                                    <li><i class="fas fa-check-circle"></i> Formatação para Amazon KDP</li>
+                                    <li><i class="fas fa-check-circle"></i> Design de capa simples</li>
+                                    <li><i class="fas fa-check-circle"></i> Configuração da conta KDP</li>
+                                    <li><i class="fas fa-check-circle"></i> Publicação em ebook</li>
+                                    <li><i class="fas fa-check-circle"></i> Suporte por email (30 dias)</li>
+                                    <li class="not-included"><i class="fas fa-times-circle"></i> Versão paperback</li>
+                                    <li class="not-included"><i class="fas fa-times-circle"></i> Otimização de palavras-chave</li>
+                                    <li class="not-included"><i class="fas fa-times-circle"></i> Estratégia de lançamento</li>
+                                </ul>
+                                <div class="plan-footer">
+                                    <a href="formulario.html?plano=essencial" class="btn-plan">
+                                        Escolher Plano <i class="fas fa-arrow-right"></i>
+                                    </a>
+                                </div>
+                            </div>
+
+                            <div class="plan-card-new featured">
+                                <div class="plan-badge-new">Mais Popular</div>
+                                <div class="plan-header-new">
+                                    <h3>Profissional</h3>
+                                    <div class="plan-price-new">
+                                        <span class="currency">€</span>
+                                        <span class="amount">399</span>
+                                    </div>
+                                    <span class="plan-period">pagamento único</span>
+                                </div>
+                                <ul class="plan-features-new">
+                                    <li><i class="fas fa-check-circle"></i> Revisão completa do manuscrito</li>
+                                    <li><i class="fas fa-check-circle"></i> Formatação profissional KDP</li>
+                                    <li><i class="fas fa-check-circle"></i> Design de capa personalizado</li>
+                                    <li><i class="fas fa-check-circle"></i> Publicação ebook + paperback</li>
+                                    <li><i class="fas fa-check-circle"></i> Otimização de palavras-chave</li>
+                                    <li><i class="fas fa-check-circle"></i> Descrição profissional do livro</li>
+                                    <li><i class="fas fa-check-circle"></i> Suporte prioritário (60 dias)</li>
+                                    <li class="not-included"><i class="fas fa-times-circle"></i> Versão hardcover</li>
+                                    <li class="not-included"><i class="fas fa-times-circle"></i> Estratégia de lançamento</li>
+                                </ul>
+                                <div class="plan-footer">
+                                    <a href="formulario.html?plano=profissional" class="btn-plan btn-plan-featured">
+                                        Escolher Plano <i class="fas fa-arrow-right"></i>
+                                    </a>
+                                </div>
+                            </div>
+
+                            <div class="plan-card-new">
+                                <div class="plan-header-new">
+                                    <h3>Premium</h3>
+                                    <div class="plan-price-new">
+                                        <span class="currency">€</span>
+                                        <span class="amount">699</span>
+                                    </div>
+                                    <span class="plan-period">pagamento único</span>
+                                </div>
+                                <ul class="plan-features-new">
+                                    <li><i class="fas fa-check-circle"></i> Edição profissional completa</li>
+                                    <li><i class="fas fa-check-circle"></i> Formatação premium KDP</li>
+                                    <li><i class="fas fa-check-circle"></i> Capa premium com ilustração</li>
+                                    <li><i class="fas fa-check-circle"></i> Ebook + Paperback + Hardcover</li>
+                                    <li><i class="fas fa-check-circle"></i> Estratégia de lançamento</li>
+                                    <li><i class="fas fa-check-circle"></i> Material promocional digital</li>
+                                    <li><i class="fas fa-check-circle"></i> Página de autor Amazon</li>
+                                    <li><i class="fas fa-check-circle"></i> Otimização de palavras-chave</li>
+                                    <li><i class="fas fa-check-circle"></i> Suporte VIP (90 dias)</li>
+                                </ul>
+                                <div class="plan-footer">
+                                    <a href="formulario.html?plano=premium" class="btn-plan">
+                                        Escolher Plano <i class="fas fa-arrow-right"></i>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+            </main>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>Escritores Nogueira</h3>
+                    <p>A sua livraria online de referência para obras literárias de qualidade.</p>
+                    <div class="social-links">
+                        <a href="#" aria-label="Facebook"><i class="fab fa-facebook"></i></a>
+                        <a href="#" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+                        <a href="#" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
+                        <a href="#" aria-label="LinkedIn"><i class="fab fa-linkedin"></i></a>
+                    </div>
+                </div>
+
+                <div class="footer-section">
+                    <h4>Links Úteis</h4>
+                    <ul>
+                        <li><a href="index.html">Início</a></li>
+                        <li><a href="livros.html">Livros</a></li>
+                        <li><a href="sobre.html">Sobre</a></li>
+                        <li><a href="blog.html">Blog</a></li>
+                        <li><a href="apoio.html">Apoio</a></li>
+                    </ul>
+                </div>
+
+                <div class="footer-section">
+                    <h4>Serviços</h4>
+                    <ul>
+                        <li><a href="servicos.html">Publicação de Livros</a></li>
+                        <li><a href="formulario.html">Formulário de Pedido</a></li>
+                        <li><a href="apoio.html#shipping">Envios</a></li>
+                        <li><a href="apoio.html#terms">Termos e Condições</a></li>
+                    </ul>
+                </div>
+
+                <div class="footer-section">
+                    <h4>Contacto</h4>
+                    <ul>
+                        <li><i class="fas fa-envelope"></i> info@escritoresnogueira.pt</li>
+                        <li><i class="fas fa-phone"></i> +351 123 456 789</li>
+                        <li><i class="fas fa-map-marker-alt"></i> Portugal</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="footer-bottom">
+                <p>&copy; 2024 Escritores Nogueira. Todos os direitos reservados.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Overlay -->
+    <div class="overlay" id="overlay"></div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="js/firebase-config.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/data.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/cart.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/main.js"></script>
+    <script src="js/servicos.js"></script>
+    
+    <!-- FAQ Toggle Script -->
+    <script>
+        function toggleFaq(button) {
+            const faqItem = button.closest('.faq-item-new');
+            const isActive = faqItem.classList.contains('active');
+            
+            // Close all FAQ items
+            document.querySelectorAll('.faq-item-new').forEach(item => {
+                item.classList.remove('active');
+            });
+            
+            // Open clicked item if it wasn't already open
+            if (!isActive) {
+                faqItem.classList.add('active');
+            }
+        }
+    </script>
+</body>
+</html>
