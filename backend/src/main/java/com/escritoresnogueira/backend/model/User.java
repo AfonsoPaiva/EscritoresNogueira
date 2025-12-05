@@ -31,6 +31,29 @@ public class User extends BaseEntity implements UserDetails {
     @Column(name = "photo_url")
     private String photoUrl;
     
+    // Extended profile fields
+    @Column(name = "first_name")
+    private String firstName;
+    
+    @Column(name = "last_name")
+    private String lastName;
+    
+    @Column(name = "phone")
+    private String phone;
+    
+    @Column(name = "address")
+    private String address;
+    
+    @Column(name = "postal_code")
+    private String postalCode;
+    
+    @Column(name = "city")
+    private String city;
+    
+    @Column(name = "country")
+    @Builder.Default
+    private String country = "Portugal";
+    
     @Enumerated(EnumType.STRING)
     @Column(name = "auth_provider")
     @Builder.Default
@@ -44,7 +67,7 @@ public class User extends BaseEntity implements UserDetails {
 
     @Builder.Default
     @Column(nullable = false)
-    private Boolean active = true;  // ← ADICIONAR @Builder.Default
+    private Boolean active = true;
 
     @Builder.Default
     @Column(nullable = false)

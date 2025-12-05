@@ -5,26 +5,52 @@
 // API Configuration
 const AUTH_API_URL = 'http://localhost:8080/api';
 
+// Session token header name
+const SESSION_HEADER = 'X-Session-Token';
+
+// Secure storage key (only stores session token, not user data)
+const SESSION_TOKEN_KEY = 'escritores_session_token';
+
 // Declare global auth variable
 window.auth = window.auth || null;
 
 class AuthSystem {
     constructor() {
-        this.currentUser = this.loadUser();
+        this.currentUser = null;
+        this.sessionToken = this.loadSessionToken();
         this.notificationQueue = [];
         this.isNotificationShowing = false;
         this.notificationDisplayTime = 2000;
         this.notificationAnimationTime = 2000;
         this.isLoading = false;
         this.firebaseReady = false;
+        this.sessionLoaded = false;
+        this.sessionLoadPromise = null;
         this.init();
     }
 
     init() {
         console.log('👤 AuthSystem inicializado');
-        this.updateUI();
+        // Load session from backend if token exists
+        this.sessionLoadPromise = this.loadSessionFromBackend();
         this.attachEventListeners();
         this.waitForFirebase();
+        
+        // Clean up any legacy localStorage data
+        localStorage.removeItem('escritores_user');
+    }
+
+    /**
+     * Wait for session to be loaded from backend
+     * Use this in pages that need to check auth state
+     */
+    async waitForSession() {
+        if (this.sessionLoaded) {
+            return;
+        }
+        if (this.sessionLoadPromise) {
+            await this.sessionLoadPromise;
+        }
     }
 
     waitForFirebase() {
@@ -52,25 +78,41 @@ class AuthSystem {
     setupFirebaseAuthListener() {
         // Listen for Firebase auth state changes
         if (window.firebaseAuth) {
+            let initialCheck = true;
+            
             window.firebaseAuth.onAuthStateChanged(async (user) => {
                 if (user) {
                     console.log('🔥 Firebase user detected:', user.email);
-                    // User is signed in - sync with backend if not already done
-                    if (!this.currentUser || this.currentUser.email !== user.email) {
+                    initialCheck = false;
+                    
+                    // Firebase detected a user - check if we have a valid session
+                    if (!this.sessionToken) {
                         try {
                             await this.syncUserWithBackend(user);
-                            this.updateUI();
                         } catch (error) {
                             console.error('Error syncing user:', error);
                         }
                     }
+                    // Always update UI when Firebase detects user (to show email)
+                    this.updateUI();
                 } else {
                     console.log('🔥 No Firebase user');
-                    // User is signed out
-                    if (this.currentUser) {
-                        this.removeUser();
-                        this.updateUI();
+                    
+                    // On initial load, Firebase might fire null before restoring persisted user
+                    // Only clear session if this is not the initial check AND we don't have a valid backend session
+                    if (initialCheck && this.sessionToken && this.currentUser) {
+                        console.log('🔥 Skipping session clear on initial Firebase check - have valid backend session');
+                        initialCheck = false;
+                        return;
                     }
+                    
+                    initialCheck = false;
+                    
+                    // User is signed out - clear session
+                    if (this.sessionToken) {
+                        this.clearSession();
+                    }
+                    this.updateUI();
                 }
             });
         } else {
@@ -206,51 +248,98 @@ class AuthSystem {
         });
     }
 
-        loadUser() {
+    // ========================================
+    // SECURE SESSION TOKEN MANAGEMENT
+    // Only the session token is stored locally
+    // All user data is fetched from the backend
+    // ========================================
+
+    loadSessionToken() {
         try {
-            const userData = localStorage.getItem('escritores_user');
-            if (!userData) return null;
-            const parsed = JSON.parse(userData);
-
-            // Only load non-sensitive fields (display name + avatar).
-            const user = {
-                name: parsed.name || null,
-                photoUrl: parsed.photoUrl || null
-            };
-
-            // Migrate legacy stored sensitive fields by resaving minimal view.
-            if (parsed.email || parsed.uid) {
-                localStorage.setItem('escritores_user', JSON.stringify(user));
-            }
-
-            return user;
+            // Use localStorage to persist session across hard refreshes
+            // The session token is opaque and validated server-side
+            return localStorage.getItem(SESSION_TOKEN_KEY) || null;
         } catch (e) {
-            console.warn('❌ Falha ao ler sessão do localStorage, limpando valor inválido', e);
-            localStorage.removeItem('escritores_user');
+            console.warn('❌ Failed to load session token:', e);
             return null;
         }
     }
 
+    saveSessionToken(token) {
+        try {
+            // Use localStorage to persist session across hard refreshes
+            // Session expiry is managed server-side (24 hours)
+            localStorage.setItem(SESSION_TOKEN_KEY, token);
+            this.sessionToken = token;
+        } catch (e) {
+            console.warn('❌ Failed to save session token:', e);
+        }
+    }
 
-     sanitizeUserForStorage(user) {
-        // Persist only minimal public profile fields — DO NOT store tokens, email, uid or other PII.
-        return {
+    clearSession() {
+        try {
+            localStorage.removeItem(SESSION_TOKEN_KEY);
+            sessionStorage.removeItem(SESSION_TOKEN_KEY); // Clean up if any
+            localStorage.removeItem('escritores_user'); // Clean up legacy
+        } catch (e) {
+            console.warn('❌ Failed to clear session:', e);
+        }
+        this.sessionToken = null;
+        this.currentUser = null;
+    }
+
+    async loadSessionFromBackend() {
+        if (!this.sessionToken) {
+            this.sessionLoaded = true;
+            this.updateUI();
+            return;
+        }
+
+        try {
+            const response = await fetch(`${AUTH_API_URL}/session/me`, {
+                method: 'GET',
+                headers: {
+                    [SESSION_HEADER]: this.sessionToken
+                }
+            });
+
+            const data = await response.json();
+
+            if (data.valid) {
+                this.currentUser = {
+                    name: data.displayName,
+                    email: data.email,
+                    photoUrl: data.photoUrl
+                };
+                console.log('✅ Session loaded from backend');
+            } else {
+                console.log('🔒 Session invalid or expired');
+                this.clearSession();
+            }
+        } catch (error) {
+            console.error('❌ Error loading session from backend:', error);
+            // Don't clear session on network error - might be temporary
+        }
+
+        this.sessionLoaded = true;
+        this.updateUI();
+    }
+
+    // Legacy method - now just returns current user from memory
+    loadUser() {
+        return this.currentUser;
+    }
+
+    // Legacy method - no longer stores in localStorage
+    saveUser(user) {
+        this.currentUser = {
             name: user.name || user.displayName || null,
             photoUrl: user.photoUrl || user.photoURL || null
         };
     }
 
-
-      saveUser(user) {
-        const safeUser = this.sanitizeUserForStorage(user);
-        // Persist only the minimal non-sensitive view.
-        localStorage.setItem('escritores_user', JSON.stringify(safeUser));
-        this.currentUser = safeUser;
-    }
-
     removeUser() {
-        localStorage.removeItem('escritores_user');
-        this.currentUser = null;
+        this.clearSession();
     }
 
     async handleLogin(form) {
@@ -445,7 +534,7 @@ class AuthSystem {
             // Get Firebase ID token
             const idToken = await firebaseUser.getIdToken();
 
-            // Send token to backend for validation and user creation/update
+            // Send token to backend for validation and session creation
             const response = await fetch(`${AUTH_API_URL}/auth/firebase`, {
                 method: 'POST',
                 headers: {
@@ -460,27 +549,24 @@ class AuthSystem {
                 throw new Error(data.message || 'Erro ao sincronizar com o servidor');
             }
 
-            console.log('✅ User synced with backend:', data);
+            console.log('✅ Secure session created:', data);
 
-            // Save only a minimal, non-sensitive user view locally.
-            const sessionUser = {
-                name: data.name || firebaseUser.displayName || (firebaseUser.email ? firebaseUser.email.split('@')[0] : null),
-                photoUrl: data.user?.photoUrl || firebaseUser.photoURL || null
-            };
-
-            this.saveUser(sessionUser);
+            // Save only the session token - user data is fetched from backend
+            if (data.sessionToken) {
+                this.saveSessionToken(data.sessionToken);
+                
+                // Store minimal display info in memory only (not persisted)
+                this.currentUser = {
+                    name: data.displayName || firebaseUser.displayName || null,
+                    email: firebaseUser.email || null,
+                    photoUrl: data.photoUrl || firebaseUser.photoURL || null
+                };
+            }
+            
             return data;
 
         } catch (error) {
             console.error('❌ Error syncing with backend:', error);
-
-            // If backend fails, still save a minimal non-sensitive view of the Firebase profile.
-            const sessionUser = {
-                name: firebaseUser.displayName || (firebaseUser.email ? firebaseUser.email.split('@')[0] : null),
-                photoUrl: firebaseUser.photoURL || null
-            };
-
-            this.saveUser(sessionUser);
             throw error;
         }
     }
@@ -526,20 +612,34 @@ class AuthSystem {
 
     async handleLogout() {
         try {
+            // Invalidate session on backend first
+            if (this.sessionToken) {
+                try {
+                    await fetch(`${AUTH_API_URL}/session/logout`, {
+                        method: 'POST',
+                        headers: {
+                            [SESSION_HEADER]: this.sessionToken
+                        }
+                    });
+                } catch (e) {
+                    console.warn('⚠️ Failed to invalidate backend session:', e);
+                }
+            }
+
             // Sign out from Firebase
             if (window.firebaseAuth) {
                 await window.firebaseAuth.signOut();
             }
             
-            this.removeUser();
+            this.clearSession();
             this.updateUI();
             this.closeUserPanel();
             this.showNotification('Sessão terminada', 'info');
             
         } catch (error) {
             console.error('❌ Logout error:', error);
-            // Still remove local user even if Firebase logout fails
-            this.removeUser();
+            // Still clear local session even if errors occur
+            this.clearSession();
             this.updateUI();
             this.closeUserPanel();
             this.showNotification('Sessão terminada', 'info');
@@ -601,7 +701,7 @@ class AuthSystem {
                 await window.firebaseAuth.signOut();
             }
             
-            this.removeUser();
+            this.clearSession();
             this.updateUI();
             this.showNotification('Conta eliminada com sucesso', 'info');
             window.location.href = 'index.html';
@@ -633,10 +733,9 @@ class AuthSystem {
             // Update profile info
             if (userName) userName.textContent = this.currentUser.name || '';
 
-            // Email is sensitive; prefer not to read it from persistent storage.
-            // If Firebase auth is available and has a current user, show that email; otherwise hide email.
-            let emailToShow = '';
-            if (window.firebaseAuth && window.firebaseAuth.currentUser && window.firebaseAuth.currentUser.email) {
+            // Get email from currentUser (loaded from backend session) or Firebase
+            let emailToShow = this.currentUser.email || '';
+            if (!emailToShow && window.firebaseAuth && window.firebaseAuth.currentUser && window.firebaseAuth.currentUser.email) {
                 emailToShow = window.firebaseAuth.currentUser.email;
             }
             if (userEmail) {

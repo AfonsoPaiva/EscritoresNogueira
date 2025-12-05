@@ -1,11 +1,13 @@
 package main.java.com.escritoresnogueira.backend.controller;
 
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import main.java.com.escritoresnogueira.backend.dto.AuthResponse;
 import main.java.com.escritoresnogueira.backend.dto.FirebaseAuthRequest;
 import main.java.com.escritoresnogueira.backend.dto.FirebaseConfigDTO;
 import main.java.com.escritoresnogueira.backend.dto.RegisterRequest;
+import main.java.com.escritoresnogueira.backend.dto.SessionResponse;
 import main.java.com.escritoresnogueira.backend.service.AuthService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
@@ -63,13 +65,25 @@ public class AuthController {
     /**
      * Authenticate user with Firebase ID token
      * Works for both email/password and Google Sign-In
+     * Returns a secure session token instead of sensitive data
      */
     @PostMapping("/firebase")
-    public ResponseEntity<?> authenticateWithFirebase(@RequestBody FirebaseAuthRequest request) {
+    public ResponseEntity<?> authenticateWithFirebase(
+            @RequestBody FirebaseAuthRequest request,
+            HttpServletRequest httpRequest) {
         try {
             log.info("🔐 Autenticando usuário com Firebase token");
-            AuthResponse response = authService.authenticateWithFirebase(request.getIdToken());
-            log.info("✅ Usuário autenticado: {}", response.getEmail());
+            
+            String ipAddress = getClientIp(httpRequest);
+            String userAgent = httpRequest.getHeader("User-Agent");
+            
+            SessionResponse response = authService.authenticateWithFirebaseAndCreateSession(
+                request.getIdToken(), 
+                ipAddress, 
+                userAgent
+            );
+            
+            log.info("✅ Sessão segura criada para usuário");
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             log.error("❌ Erro na autenticação Firebase: {}", e.getMessage());
@@ -78,6 +92,17 @@ public class AuthController {
                 "message", e.getMessage()
             ));
         }
+    }
+
+    /**
+     * Helper to extract client IP from request
+     */
+    private String getClientIp(HttpServletRequest request) {
+        String xForwardedFor = request.getHeader("X-Forwarded-For");
+        if (xForwardedFor != null && !xForwardedFor.isEmpty()) {
+            return xForwardedFor.split(",")[0].trim();
+        }
+        return request.getRemoteAddr();
     }
 
     /**

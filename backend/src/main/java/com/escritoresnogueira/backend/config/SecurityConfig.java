@@ -41,7 +41,9 @@ public class SecurityConfig {
                 "/health/**",    // Health checks
                 "/books/**",     // Endpoints públicos de livros
                 "/blog/**",      // Endpoints públicos de blog
-                "/admin/**"      // Endpoints privados de admin
+                "/admin/**",     // Endpoints privados de admin
+                "/session/**",   // Endpoints de sessão
+                "/user/**"       // Endpoints de utilizador
             )
 )
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
@@ -68,6 +70,12 @@ public class SecurityConfig {
                 
                 // PÚBLICO: Blog
                 .requestMatchers("/blog/**").permitAll()
+                
+                // SESSION: Endpoints de sessão (validação feita no controller via session token)
+                .requestMatchers("/session/**").permitAll()
+                
+                // USER: Endpoints de utilizador (validação feita no controller via session token)
+                .requestMatchers("/user/**").permitAll()
                 
                 // ADMIN ONLY: Administração
                 .requestMatchers("/admin/**").hasRole("ADMIN")

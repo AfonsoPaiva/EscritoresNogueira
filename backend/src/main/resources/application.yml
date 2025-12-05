@@ -87,6 +87,11 @@ stripe:
   webhook-secret: ${STRIPE_WEBHOOK_SECRET:test-secret}
   currency: ${STRIPE_CURRENCY:BRL}
 
+# Session Configuration
+session:
+  expiration-hours: ${SESSION_EXPIRATION_HOURS:24}
+  max-sessions-per-user: ${SESSION_MAX_PER_USER:5}
+
 # reCAPTCHA Configuration
 recaptcha:
   secret-key: ${RECAPTCHA_SECRET_KEY:test-secret}

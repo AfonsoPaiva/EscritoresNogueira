@@ -2,18 +2,39 @@
 // CONTA.JS - Account page functionality
 // ==================================
 
+// API Configuration
+const CONTA_API_URL = 'http://localhost:8080/api';
+
 // Initialize account page
-function initContaPage() {
-    // Check if user is logged in
-    const auth = new AuthSystem();
-    if (!auth.isLoggedIn()) {
+async function initContaPage() {
+    // Wait for auth system to be ready
+    if (!window.auth) {
+        console.error('❌ Auth system not available');
         window.location.href = 'index.html';
         return;
     }
 
+    // Wait for session to be loaded from backend
+    await window.auth.waitForSession();
+
+    // Check if user is logged in using global auth instance
+    if (!window.auth.isLoggedIn()) {
+        console.log('❌ User not logged in, redirecting...');
+        window.location.href = 'index.html';
+        return;
+    }
+
+    console.log('✅ User authenticated, loading account page...');
+
     initAccountTabs();
-    loadUserProfile();
-    loadUserOrders();
+    
+    // Load data in parallel but don't let failures block the page
+    await Promise.allSettled([
+        loadUserProfile(),
+        loadUserOrders(),
+        loadUserStats()
+    ]);
+    
     initProfileForm();
     initPasswordForm();
     initSettings();
@@ -63,167 +84,278 @@ function handleURLHash() {
     }
 }
 
-// Load user profile data
-function loadUserProfile() {
-    const auth = new AuthSystem();
-    const user = auth.getCurrentUser();
+// Load user profile data from backend
+async function loadUserProfile() {
+    const user = window.auth.getCurrentUser();
 
     if (user) {
-        // Update profile display
-        document.getElementById('profileName').textContent = user.name;
-        document.getElementById('profileEmail').textContent = user.email;
-
+        // Update profile display with basic info from session
+        const profileNameEl = document.getElementById('profileName');
+        const profileEmailEl = document.getElementById('profileEmail');
+        
+        if (profileNameEl) profileNameEl.textContent = user.name || 'Utilizador';
+        
         // Update avatar
         const avatarContainer = document.querySelector('.profile-avatar-large');
         if (avatarContainer) {
             if (user.photoUrl) {
-                avatarContainer.innerHTML = `<img src="${user.photoUrl}" alt="${user.name}" style="width: 100%; height: 100%; object-fit: cover;">`;
+                avatarContainer.innerHTML = `<img src="${user.photoUrl}" alt="${user.name}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">`;
             } else {
                 avatarContainer.innerHTML = '<i class="fas fa-user"></i>';
             }
         }
 
-        // Load additional profile data from localStorage
-        const profileData = getUserProfileData(user.email);
-        if (profileData) {
-            document.getElementById('firstName').value = profileData.firstName || '';
-            document.getElementById('lastName').value = profileData.lastName || '';
-            document.getElementById('email').value = profileData.email || user.email;
-            document.getElementById('phone').value = profileData.phone || '';
-            document.getElementById('address').value = profileData.address || '';
-            document.getElementById('postalCode').value = profileData.postalCode || '';
-            document.getElementById('city').value = profileData.city || '';
-            document.getElementById('country').value = profileData.country || 'Portugal';
+        // Load extended profile from backend
+        try {
+            const response = await fetch(`${CONTA_API_URL}/user/profile`, {
+                method: 'GET',
+                headers: {
+                    'X-Session-Token': window.auth.sessionToken
+                }
+            });
 
-            // Set member since date
-            const memberSince = profileData.createdAt ? new Date(profileData.createdAt).toLocaleDateString('pt-PT') : 'N/A';
-            document.getElementById('memberSince').textContent = memberSince;
-        } else {
-            // Set basic info if no extended profile exists
-            const nameParts = user.name.split(' ');
-            document.getElementById('firstName').value = nameParts[0] || '';
-            document.getElementById('lastName').value = nameParts.slice(1).join(' ') || '';
-            document.getElementById('email').value = user.email;
-            document.getElementById('country').value = 'Portugal';
-            document.getElementById('memberSince').textContent = new Date().toLocaleDateString('pt-PT');
+            if (response.ok) {
+                const profileData = await response.json();
+                
+                // Update email display
+                if (profileEmailEl) profileEmailEl.textContent = profileData.email || '';
+                
+                // Fill form fields
+                const firstNameEl = document.getElementById('firstName');
+                const lastNameEl = document.getElementById('lastName');
+                const emailEl = document.getElementById('email');
+                const phoneEl = document.getElementById('phone');
+                const addressEl = document.getElementById('address');
+                const postalCodeEl = document.getElementById('postalCode');
+                const cityEl = document.getElementById('city');
+                const countryEl = document.getElementById('country');
+                const memberSinceEl = document.getElementById('memberSince');
+
+                // Parse name from display name if firstName/lastName not set
+                let firstName = profileData.firstName || '';
+                let lastName = profileData.lastName || '';
+                
+                if (!firstName && profileData.name) {
+                    const nameParts = profileData.name.trim().split(/\s+/);
+                    firstName = nameParts[0] || '';
+                    lastName = nameParts.slice(1).join(' ') || '';
+                }
+
+                if (firstNameEl) firstNameEl.value = firstName;
+                if (lastNameEl) lastNameEl.value = lastName;
+                if (emailEl) emailEl.value = profileData.email || '';
+                if (phoneEl) phoneEl.value = profileData.phone || '';
+                if (addressEl) addressEl.value = profileData.address || '';
+                if (postalCodeEl) postalCodeEl.value = profileData.postalCode || '';
+                if (cityEl) cityEl.value = profileData.city || '';
+                if (countryEl) countryEl.value = profileData.country || 'Portugal';
+                
+                // Set member since date - handle different date formats
+                if (memberSinceEl) {
+                    let memberSince = 'N/A';
+                    if (profileData.createdAt) {
+                        try {
+                            const date = new Date(profileData.createdAt);
+                            if (!isNaN(date.getTime())) {
+                                memberSince = date.toLocaleDateString('pt-PT');
+                            }
+                        } catch (e) {
+                            console.warn('Could not parse createdAt date:', profileData.createdAt);
+                        }
+                    }
+                    memberSinceEl.textContent = memberSince;
+                }
+            } else {
+                console.log('📝 No profile data found, using defaults');
+                setDefaultProfileValues(user);
+            }
+        } catch (error) {
+            console.error('❌ Error loading profile:', error);
+            setDefaultProfileValues(user);
         }
     }
 }
 
-// Get extended user profile data
-function getUserProfileData(email) {
-    const profileKey = `user_profile_${email}`;
-    const profileData = localStorage.getItem(profileKey);
-    return profileData ? JSON.parse(profileData) : null;
+// Set default profile values
+function setDefaultProfileValues(user) {
+    const nameParts = (user.name || '').split(' ');
+    const firstNameEl = document.getElementById('firstName');
+    const lastNameEl = document.getElementById('lastName');
+    const countryEl = document.getElementById('country');
+    const memberSinceEl = document.getElementById('memberSince');
+
+    if (firstNameEl) firstNameEl.value = nameParts[0] || '';
+    if (lastNameEl) lastNameEl.value = nameParts.slice(1).join(' ') || '';
+    if (countryEl) countryEl.value = 'Portugal';
+    if (memberSinceEl) memberSinceEl.textContent = new Date().toLocaleDateString('pt-PT');
 }
 
-// Save user profile data
-function saveUserProfileData(email, data) {
-    const profileKey = `user_profile_${email}`;
-    localStorage.setItem(profileKey, JSON.stringify(data));
+// Load user statistics (cart items, purchases, etc.)
+async function loadUserStats() {
+    try {
+        const response = await fetch(`${CONTA_API_URL}/user/stats`, {
+            method: 'GET',
+            headers: {
+                'X-Session-Token': window.auth.sessionToken
+            }
+        });
+
+        if (response.ok) {
+            const stats = await response.json();
+            
+            // Update stats display if elements exist
+            const cartCountEl = document.getElementById('statsCartCount');
+            const purchasesEl = document.getElementById('statsPurchases');
+            const totalSpentEl = document.getElementById('statsTotalSpent');
+
+            if (cartCountEl) cartCountEl.textContent = stats.cartItemsCount || 0;
+            if (purchasesEl) purchasesEl.textContent = stats.totalPurchases || 0;
+            if (totalSpentEl) totalSpentEl.textContent = `${(stats.totalSpent || 0).toFixed(2)}€`;
+        }
+    } catch (error) {
+        console.error('❌ Error loading user stats:', error);
+    }
 }
 
 // Initialize profile form
 function initProfileForm() {
     const form = document.getElementById('profileForm');
     if (form) {
-        form.addEventListener('submit', (e) => {
+        form.addEventListener('submit', async (e) => {
             e.preventDefault();
-            handleProfileUpdate(e.target);
+            await handleProfileUpdate(e.target);
         });
     }
 }
 
-// Handle profile update
-function handleProfileUpdate(form) {
-    const auth = new AuthSystem();
-    const user = auth.getCurrentUser();
-
-    if (!user) return;
+// Handle profile update - save to backend
+async function handleProfileUpdate(form) {
+    if (!window.auth.isLoggedIn()) return;
 
     const formData = new FormData(form);
     const profileData = {
         firstName: formData.get('firstName'),
         lastName: formData.get('lastName'),
-        email: formData.get('email'),
         phone: formData.get('phone'),
         address: formData.get('address'),
         postalCode: formData.get('postalCode'),
         city: formData.get('city'),
-        country: formData.get('country'),
-        updatedAt: new Date().toISOString()
+        country: formData.get('country')
     };
 
-    // Save profile data
-    saveUserProfileData(user.email, profileData);
+    try {
+        const response = await fetch(`${CONTA_API_URL}/user/profile`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Session-Token': window.auth.sessionToken
+            },
+            body: JSON.stringify(profileData)
+        });
 
-    // Update user name if changed
-    const newName = `${profileData.firstName} ${profileData.lastName}`.trim();
-    if (newName !== user.name) {
-        user.name = newName;
-        auth.saveUser(user);
-        auth.updateUI();
+        if (response.ok) {
+            const updatedProfile = await response.json();
+            
+            // Update local user name if changed
+            const newName = `${profileData.firstName} ${profileData.lastName}`.trim();
+            if (newName) {
+                window.auth.currentUser.name = newName;
+                window.auth.updateUI();
+            }
+
+            window.showNotification('Perfil atualizado com sucesso!', 'success');
+        } else {
+            const error = await response.json();
+            window.showNotification(error.message || 'Erro ao atualizar perfil', 'error');
+        }
+    } catch (error) {
+        console.error('❌ Error updating profile:', error);
+        window.showNotification('Erro ao atualizar perfil', 'error');
     }
-
-    // Show success message
-    auth.showNotification('Perfil atualizado com sucesso!', 'success');
 }
 
-// Load user orders
-function loadUserOrders() {
-    const auth = new AuthSystem();
-    const user = auth.getCurrentUser();
-
-    if (!user) return;
-
-    const orders = getUserOrders(user.email);
+// Load user orders from backend
+async function loadUserOrders() {
     const ordersList = document.getElementById('ordersList');
+    if (!ordersList) return;
 
-    if (orders && orders.length > 0) {
-        // Display orders
-        ordersList.innerHTML = orders.map(order => `
-            <div class="order-card">
-                <div class="order-header">
-                    <div class="order-info">
-                        <h4>Pedido #${order.id}</h4>
-                        <p class="order-date">${new Date(order.date).toLocaleDateString('pt-PT')}</p>
-                    </div>
-                    <div class="order-status status-${order.status}">
-                        ${getStatusText(order.status)}
-                    </div>
-                </div>
-                <div class="order-items">
-                    ${order.items.map(item => `
-                        <div class="order-item">
-                            <img src="${item.image}" alt="${item.title}" class="order-item-image">
-                            <div class="order-item-details">
-                                <h5>${item.title}</h5>
-                                <p>Quantidade: ${item.quantity}</p>
-                                <p>Preço: ${(item.price * item.quantity).toFixed(2)}€</p>
+    try {
+        const response = await fetch(`${CONTA_API_URL}/user/orders`, {
+            method: 'GET',
+            headers: {
+                'X-Session-Token': window.auth.sessionToken
+            }
+        });
+
+        if (response.ok) {
+            const orders = await response.json();
+            
+            if (orders && orders.length > 0) {
+                ordersList.innerHTML = orders.map(order => `
+                    <div class="order-card">
+                        <div class="order-header">
+                            <div class="order-info">
+                                <h4>Pedido #${order.orderNumber}</h4>
+                                <p class="order-date">${new Date(order.createdAt).toLocaleDateString('pt-PT')}</p>
+                            </div>
+                            <div class="order-status status-${order.status.toLowerCase()}">
+                                ${getStatusText(order.status)}
                             </div>
                         </div>
-                    `).join('')}
+                        <div class="order-items">
+                            ${order.items.map(item => `
+                                <div class="order-item">
+                                    <img src="${item.book?.coverImage || '/assets/images/placeholder.jpg'}" alt="${item.book?.title}" class="order-item-image">
+                                    <div class="order-item-details">
+                                        <h5>${item.book?.title || 'Livro'}</h5>
+                                        <p>Quantidade: ${item.quantity}</p>
+                                        <p>Preço: ${(item.price * item.quantity).toFixed(2)}€</p>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                        <div class="order-total">
+                            <strong>Total: ${order.totalAmount.toFixed(2)}€</strong>
+                        </div>
+                    </div>
+                `).join('');
+            } else {
+                ordersList.innerHTML = `
+                    <div class="empty-orders">
+                        <i class="fas fa-shopping-bag"></i>
+                        <p>Ainda não fez nenhuma encomenda.</p>
+                        <a href="livros.html" class="btn btn-primary">Explorar Livros</a>
+                    </div>
+                `;
+            }
+        } else {
+            ordersList.innerHTML = `
+                <div class="empty-orders">
+                    <i class="fas fa-shopping-bag"></i>
+                    <p>Ainda não fez nenhuma encomenda.</p>
+                    <a href="livros.html" class="btn btn-primary">Explorar Livros</a>
                 </div>
-                <div class="order-total">
-                    <strong>Total: ${order.total.toFixed(2)}€</strong>
-                </div>
+            `;
+        }
+    } catch (error) {
+        console.error('❌ Error loading orders:', error);
+        ordersList.innerHTML = `
+            <div class="empty-orders">
+                <i class="fas fa-exclamation-circle"></i>
+                <p>Erro ao carregar encomendas.</p>
             </div>
-        `).join('');
-    } else {
-        // No orders message is already in HTML
+        `;
     }
-}
-
-// Get user orders from localStorage
-function getUserOrders(email) {
-    const ordersKey = `user_orders_${email}`;
-    const ordersData = localStorage.getItem(ordersKey);
-    return ordersData ? JSON.parse(ordersData) : [];
 }
 
 // Get status text
 function getStatusText(status) {
     const statusMap = {
+        'PENDING': 'Pendente',
+        'PAID': 'Pago',
+        'SHIPPED': 'Enviado',
+        'DELIVERED': 'Entregue',
+        'CANCELLED': 'Cancelado',
         'pending': 'Pendente',
         'processing': 'Em Processamento',
         'shipped': 'Enviado',
@@ -250,37 +382,25 @@ async function handlePasswordChange(form) {
     const newPassword = form.querySelector('#newPassword').value;
     const confirmPassword = form.querySelector('#confirmPassword').value;
 
-    const auth = new AuthSystem();
-    const user = auth.getCurrentUser();
-
-    if (!user) return;
+    if (!window.auth.isLoggedIn()) return;
 
     // Validate new password
     if (newPassword.length < 6) {
-        auth.showNotification('A nova password deve ter pelo menos 6 caracteres', 'error');
+        window.showNotification('A nova password deve ter pelo menos 6 caracteres', 'error');
         return;
     }
 
     if (newPassword !== confirmPassword) {
-        auth.showNotification('As passwords não coincidem', 'error');
+        window.showNotification('As passwords não coincidem', 'error');
         return;
     }
 
     try {
-        // Note: Firebase requires re-authentication for sensitive operations like password change
-        // For simplicity, we'll try to update directly. If it fails with 'requires-recent-login',
-        // the auth.updatePassword method will handle the error message.
-        // Ideally, we should ask for re-authentication (login again) here.
-        
-        // Since we don't have the user's current password in plain text to re-authenticate automatically,
-        // we rely on the session being recent.
-        
-        await auth.updatePassword(newPassword);
+        await window.auth.updatePassword(newPassword);
         form.reset();
-        
+        window.showNotification('Password atualizada com sucesso!', 'success');
     } catch (error) {
-        // Error is already handled/logged in auth.updatePassword
-        auth.showNotification(error.message, 'error');
+        window.showNotification(error.message, 'error');
     }
 }
 
@@ -317,21 +437,12 @@ function initSettings() {
 
 // Delete account
 async function deleteAccount() {
-    const auth = new AuthSystem();
-    const user = auth.getCurrentUser();
-
-    if (!user) return;
+    if (!window.auth.isLoggedIn()) return;
 
     try {
-        await auth.deleteAccount();
-        
-        // Clean up local data
-        localStorage.removeItem(`user_profile_${user.email}`);
-        localStorage.removeItem(`user_orders_${user.email}`);
-        localStorage.removeItem(`user_preferences_${user.email}`);
-        
+        await window.auth.deleteAccount();
     } catch (error) {
-        auth.showNotification(error.message, 'error');
+        window.showNotification(error.message, 'error');
     }
 }
 

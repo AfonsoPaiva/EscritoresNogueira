@@ -11,12 +11,14 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
 import java.util.Set;
 
 @SpringBootApplication
 @EnableCaching
 @EnableJpaAuditing
+@EnableScheduling
 @ComponentScan(basePackages = {"com.escritoresnogueira.backend", "main.java.com.escritoresnogueira.backend"})
 @EnableJpaRepositories(basePackages = {"com.escritoresnogueira.backend.repository", "main.java.com.escritoresnogueira.backend.repository"})
 @EntityScan(basePackages = {"com.escritoresnogueira.backend.model", "main.java.com.escritoresnogueira.backend.model"})
