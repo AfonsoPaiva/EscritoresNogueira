@@ -211,32 +211,39 @@ class AuthSystem {
             const userData = localStorage.getItem('escritores_user');
             if (!userData) return null;
             const parsed = JSON.parse(userData);
-            // Ensure we return only the expected safe fields with defaults
-            return {
+
+            // Only load non-sensitive fields (display name + avatar).
+            const user = {
                 name: parsed.name || null,
-                email: parsed.email || null,
-                photoUrl: parsed.photoUrl || null,
-                uid: parsed.uid || null
+                photoUrl: parsed.photoUrl || null
             };
+
+            // Migrate legacy stored sensitive fields by resaving minimal view.
+            if (parsed.email || parsed.uid) {
+                localStorage.setItem('escritores_user', JSON.stringify(user));
+            }
+
+            return user;
         } catch (e) {
             console.warn('❌ Falha ao ler sessão do localStorage, limpando valor inválido', e);
             localStorage.removeItem('escritores_user');
             return null;
         }
     }
-    sanitizeUserForStorage(user) {
-        // Only persist a minimal profile — do NOT store tokens, credentials, or other sensitive fields.
+
+
+     sanitizeUserForStorage(user) {
+        // Persist only minimal public profile fields — DO NOT store tokens, email, uid or other PII.
         return {
             name: user.name || user.displayName || null,
-            email: user.email || null,
-            photoUrl: user.photoUrl || user.photoURL || null,
-            uid: user.uid || null
+            photoUrl: user.photoUrl || user.photoURL || null
         };
     }
 
 
       saveUser(user) {
         const safeUser = this.sanitizeUserForStorage(user);
+        // Persist only the minimal non-sensitive view.
         localStorage.setItem('escritores_user', JSON.stringify(safeUser));
         this.currentUser = safeUser;
     }
@@ -433,7 +440,7 @@ class AuthSystem {
         }
     }
 
-    async syncUserWithBackend(firebaseUser) {
+   async syncUserWithBackend(firebaseUser) {
         try {
             // Get Firebase ID token
             const idToken = await firebaseUser.getIdToken();
@@ -455,12 +462,10 @@ class AuthSystem {
 
             console.log('✅ User synced with backend:', data);
 
-            // Save user locally
+            // Save only a minimal, non-sensitive user view locally.
             const sessionUser = {
-                name: data.name || firebaseUser.displayName || firebaseUser.email.split('@')[0],
-                email: data.email || firebaseUser.email,
-                photoUrl: data.user?.photoUrl || firebaseUser.photoURL,
-                uid: firebaseUser.uid
+                name: data.name || firebaseUser.displayName || (firebaseUser.email ? firebaseUser.email.split('@')[0] : null),
+                photoUrl: data.user?.photoUrl || firebaseUser.photoURL || null
             };
 
             this.saveUser(sessionUser);
@@ -468,19 +473,18 @@ class AuthSystem {
 
         } catch (error) {
             console.error('❌ Error syncing with backend:', error);
-            
-            // Even if backend sync fails, we can still save the Firebase user locally
+
+            // If backend fails, still save a minimal non-sensitive view of the Firebase profile.
             const sessionUser = {
-                name: firebaseUser.displayName || firebaseUser.email.split('@')[0],
-                email: firebaseUser.email,
-                photoUrl: firebaseUser.photoURL,
-                uid: firebaseUser.uid
+                name: firebaseUser.displayName || (firebaseUser.email ? firebaseUser.email.split('@')[0] : null),
+                photoUrl: firebaseUser.photoURL || null
             };
 
             this.saveUser(sessionUser);
             throw error;
         }
     }
+
 
     async handlePasswordReset(form) {
         if (this.isLoading) return;
@@ -627,12 +631,27 @@ class AuthSystem {
             if (userProfile) userProfile.classList.remove('hidden');
 
             // Update profile info
-            if (userName) userName.textContent = this.currentUser.name;
-            if (userEmail) userEmail.textContent = this.currentUser.email;
-            
+            if (userName) userName.textContent = this.currentUser.name || '';
+
+            // Email is sensitive; prefer not to read it from persistent storage.
+            // If Firebase auth is available and has a current user, show that email; otherwise hide email.
+            let emailToShow = '';
+            if (window.firebaseAuth && window.firebaseAuth.currentUser && window.firebaseAuth.currentUser.email) {
+                emailToShow = window.firebaseAuth.currentUser.email;
+            }
+            if (userEmail) {
+                if (emailToShow) {
+                    userEmail.textContent = emailToShow;
+                    userEmail.classList.remove('hidden');
+                } else {
+                    userEmail.textContent = '';
+                    userEmail.classList.add('hidden');
+                }
+            }
+
             // Update avatar with photo if available
             if (profileAvatar && this.currentUser.photoUrl) {
-                profileAvatar.innerHTML = `<img src="${this.currentUser.photoUrl}" alt="${this.currentUser.name}" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;">`;
+                profileAvatar.innerHTML = `<img src="${this.currentUser.photoUrl}" alt="${this.currentUser.name || ''}" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;">`;
             } else if (profileAvatar) {
                 profileAvatar.innerHTML = '<i class="fas fa-user"></i>';
             }
@@ -642,7 +661,7 @@ class AuthSystem {
             if (registerForm) registerForm.classList.add('hidden');
             if (forgotPasswordForm) forgotPasswordForm.classList.add('hidden');
             if (userProfile) userProfile.classList.add('hidden');
-            
+
             // Reset avatar
             if (profileAvatar) {
                 profileAvatar.innerHTML = '<i class="fas fa-user"></i>';
