@@ -32,18 +32,47 @@ async function initBookDetailPage() {
         await loadBookDetail(bookId, bookSlug);
     } else {
         console.log('❌ No valid book ID or slug found in URL');
-        // Show error instead of redirecting for debugging
-        const bookDetail = document.getElementById('bookDetail');
-        if (bookDetail) {
-            bookDetail.innerHTML = `
-                <div style="grid-column: 1/-1; text-align: center; padding: 60px 20px;">
-                    <i class="fas fa-exclamation-triangle" style="font-size: 4rem; color: var(--border-color); margin-bottom: 20px;"></i>
-                    <p style="color: var(--text-gray); font-size: 1.2rem;">Parâmetros inválidos na URL</p>
-                    <p style="color: var(--text-gray); font-size: 0.9rem; margin-top: 10px;">URL: ${window.location.href}</p>
-                    <a href="livros.html" class="btn btn-primary" style="margin-top: 20px;">Ver Todos os Livros</a>
-                </div>
-            `;
-        }
+       // Show error instead of redirecting for debugging (safe: use textContent)
+const bookDetail = document.getElementById('bookDetail');
+if (bookDetail) {
+    // Clear existing content
+    bookDetail.innerHTML = '';
+
+    const container = document.createElement('div');
+    container.style.gridColumn = '1/-1';
+    container.style.textAlign = 'center';
+    container.style.padding = '60px 20px';
+
+    const icon = document.createElement('i');
+    icon.className = 'fas fa-exclamation-triangle';
+    icon.style.fontSize = '4rem';
+    icon.style.color = 'var(--border-color)';
+    icon.style.marginBottom = '20px';
+    container.appendChild(icon);
+
+    const titleP = document.createElement('p');
+    titleP.style.color = 'var(--text-gray)';
+    titleP.style.fontSize = '1.2rem';
+    titleP.textContent = 'Parâmetros inválidos na URL';
+    container.appendChild(titleP);
+
+    const infoP = document.createElement('p');
+    infoP.style.color = 'var(--text-gray)';
+    infoP.style.fontSize = '0.9rem';
+    infoP.style.marginTop = '10px';
+    // Use textContent to prevent any HTML parsing of the URL
+    infoP.textContent = `URL: ${window.location.href}`;
+    container.appendChild(infoP);
+
+    const link = document.createElement('a');
+    link.href = 'livros.html';
+    link.className = 'btn btn-primary';
+    link.style.marginTop = '20px';
+    link.textContent = 'Ver Todos os Livros';
+    container.appendChild(link);
+
+    bookDetail.appendChild(container);
+}
     }
 }
 
@@ -110,17 +139,47 @@ async function loadBookDetail(bookId, bookSlug) {
             }
         }
         
-        // Show error message (don't redirect automatically)
-        if (bookDetail) {
-            bookDetail.innerHTML = `
-                <div style="grid-column: 1/-1; text-align: center; padding: 60px 20px;">
-                    <i class="fas fa-exclamation-triangle" style="font-size: 4rem; color: var(--border-color); margin-bottom: 20px;"></i>
-                    <p style="color: var(--text-gray); font-size: 1.2rem;">Livro não encontrado</p>
-                    <p style="color: var(--text-gray); font-size: 0.9rem; margin-top: 10px;">Slug: ${bookSlug || 'N/A'} | ID: ${bookId || 'N/A'}</p>
-                    <a href="livros.html" class="btn btn-primary" style="margin-top: 20px;">Ver Todos os Livros</a>
-                </div>
-            `;
-        }
+        /* Safe error display — use DOM methods and textContent to avoid XSS */
+if (bookDetail) {
+    // Clear existing content
+    bookDetail.innerHTML = '';
+
+    const container = document.createElement('div');
+    container.style.gridColumn = '1/-1';
+    container.style.textAlign = 'center';
+    container.style.padding = '60px 20px';
+
+    const icon = document.createElement('i');
+    icon.className = 'fas fa-exclamation-triangle';
+    icon.style.fontSize = '4rem';
+    icon.style.color = 'var(--border-color)';
+    icon.style.marginBottom = '20px';
+    container.appendChild(icon);
+
+    const titleP = document.createElement('p');
+    titleP.style.color = 'var(--text-gray)';
+    titleP.style.fontSize = '1.2rem';
+    titleP.textContent = 'Livro não encontrado';
+    container.appendChild(titleP);
+
+    const infoP = document.createElement('p');
+    infoP.style.color = 'var(--text-gray)';
+    infoP.style.fontSize = '0.9rem';
+    infoP.style.marginTop = '10px';
+    const slugText = bookSlug || 'N/A';
+    const idText = (bookId && !isNaN(bookId)) ? String(bookId) : 'N/A';
+    infoP.textContent = `Slug: ${slugText} | ID: ${idText}`; // textContent prevents HTML parsing
+    container.appendChild(infoP);
+
+    const link = document.createElement('a');
+    link.href = 'livros.html';
+    link.className = 'btn btn-primary';
+    link.style.marginTop = '20px';
+    link.textContent = 'Ver Todos os Livros';
+    container.appendChild(link);
+
+    bookDetail.appendChild(container);
+}
     }
 }
 

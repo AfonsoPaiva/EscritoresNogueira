@@ -206,14 +206,39 @@ class AuthSystem {
         });
     }
 
-    loadUser() {
-        const userData = localStorage.getItem('escritores_user');
-        return userData ? JSON.parse(userData) : null;
+        loadUser() {
+        try {
+            const userData = localStorage.getItem('escritores_user');
+            if (!userData) return null;
+            const parsed = JSON.parse(userData);
+            // Ensure we return only the expected safe fields with defaults
+            return {
+                name: parsed.name || null,
+                email: parsed.email || null,
+                photoUrl: parsed.photoUrl || null,
+                uid: parsed.uid || null
+            };
+        } catch (e) {
+            console.warn('❌ Falha ao ler sessão do localStorage, limpando valor inválido', e);
+            localStorage.removeItem('escritores_user');
+            return null;
+        }
+    }
+    sanitizeUserForStorage(user) {
+        // Only persist a minimal profile — do NOT store tokens, credentials, or other sensitive fields.
+        return {
+            name: user.name || user.displayName || null,
+            email: user.email || null,
+            photoUrl: user.photoUrl || user.photoURL || null,
+            uid: user.uid || null
+        };
     }
 
-    saveUser(user) {
-        localStorage.setItem('escritores_user', JSON.stringify(user));
-        this.currentUser = user;
+
+      saveUser(user) {
+        const safeUser = this.sanitizeUserForStorage(user);
+        localStorage.setItem('escritores_user', JSON.stringify(safeUser));
+        this.currentUser = safeUser;
     }
 
     removeUser() {
