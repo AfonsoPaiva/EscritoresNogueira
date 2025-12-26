@@ -1,4 +1,4 @@
-package main.java.com.escritoresnogueira.backend.model;
+package com.escritoresnogueira.backend.model;
 
 import jakarta.persistence.*;
 import lombok.*;
@@ -55,3 +55,5 @@ public class UserSession extends BaseEntity {
         return active && !isExpired();
     }
 }
+
+

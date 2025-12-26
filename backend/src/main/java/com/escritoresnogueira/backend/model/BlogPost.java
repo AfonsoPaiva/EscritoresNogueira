@@ -1,4 +1,4 @@
-package main.java.com.escritoresnogueira.backend.model;
+package com.escritoresnogueira.backend.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
@@ -89,3 +89,5 @@ public class BlogPost extends BaseEntity {
         comment.setPost(null);
     }
 }
+
+

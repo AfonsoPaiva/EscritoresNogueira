@@ -132,7 +132,7 @@
                 <h4>Criar Conta</h4>
                 <form id="registerFormElement">
                     <div class="form-group">
-                        <input type="text" placeholder="Nome" required>
+                        <input type="text" placeholder="Nome" maxlength="50" required>
                     </div>
                     <div class="form-group">
                         <input type="email" placeholder="Email" required>
@@ -151,6 +151,8 @@
                 </button>
                 <p class="auth-toggle">Já tem conta? <a href="#" id="showLogin">Iniciar sessão</a></p>
             </div>
+
+            <!-- Verify via Firebase email link (handled client-side) -->
 
             <!-- Forgot Password Form -->
             <div class="auth-form hidden" id="forgotPasswordForm">
@@ -319,7 +321,8 @@
                 </div>
                 <form class="newsletter-form" id="newsletterForm">
                     <div class="newsletter-input-wrapper">
-                        <input type="email" placeholder="O seu email" required>
+                        <input type="text" placeholder="Nome (opcional)" id="newsletterName">
+                        <input type="email" placeholder="O seu email" required id="newsletterEmail">
                         <button type="submit" class="btn-newsletter">
                             Subscrever <i class="fas fa-paper-plane"></i>
                         </button>
@@ -396,10 +399,11 @@
     <script src="js/firebase-config.js"></script>
     
     <script src="js/api.js"></script>
-    <script src="js/data.js"></script>
     <script src="js/utils.js"></script>
     <script src="js/cart.js"></script>
     <script src="js/auth.js"></script>
+    <script src="js/themes.js"></script>
+    <script>window.ThemeManager && window.ThemeManager.selectTheme('none');</script>
     <script src="js/main.js"></script>
 </body>
 </html>

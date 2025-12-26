@@ -1,8 +1,8 @@
-package main.java.com.escritoresnogueira.backend.controller;
+package com.escritoresnogueira.backend.controller;
 
-import main.java.com.escritoresnogueira.backend.dto.BookDTO;
-import main.java.com.escritoresnogueira.backend.model.Book;
-import main.java.com.escritoresnogueira.backend.repository.BookRepository;
+import com.escritoresnogueira.backend.dto.BookDTO;
+import com.escritoresnogueira.backend.model.Book;
+import com.escritoresnogueira.backend.repository.BookRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -64,3 +64,5 @@ public class BookController {
         }
     }
 }
+
+

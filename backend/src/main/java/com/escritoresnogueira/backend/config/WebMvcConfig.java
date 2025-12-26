@@ -1,4 +1,4 @@
-package main.java.com.escritoresnogueira.backend.config;
+package com.escritoresnogueira.backend.config;
 
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.MediaType;
@@ -46,3 +46,5 @@ public class WebMvcConfig implements WebMvcConfigurer {
         }
     }
 }
+
+

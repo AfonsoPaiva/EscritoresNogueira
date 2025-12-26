@@ -1,6 +1,6 @@
-package main.java.com.escritoresnogueira.backend.repository;
+package com.escritoresnogueira.backend.repository;
 
-import main.java.com.escritoresnogueira.backend.model.OrderItem;
+import com.escritoresnogueira.backend.model.OrderItem;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -25,4 +25,9 @@ public interface OrderItemRepository extends JpaRepository<OrderItem, Long> {
         @Param("startDate") LocalDateTime startDate, 
         @Param("endDate") LocalDateTime endDate
     );
+
+    // Count references to a book from order items
+    long countByBookId(Long bookId);
 }
+
+

@@ -23,6 +23,10 @@
 </head>
 <body class="page-formulario">
 
+    <!-- reCAPTCHA site key (set this value in production) -->
+    <meta name="recaptcha-site-key" content="">
+
+
     <!-- Header -->
     <header class="header" id="header">
         <div class="container">
@@ -126,7 +130,7 @@
                 <h4>Criar Conta</h4>
                 <form id="registerFormElement">
                     <div class="form-group">
-                        <input type="text" placeholder="Nome" required>
+                        <input type="text" placeholder="Nome" maxlength="50" required>
                     </div>
                     <div class="form-group">
                         <input type="email" placeholder="Email" required>
@@ -194,7 +198,7 @@
                         </div>
                     </div>
 
-                    <form id="publicationForm" class="publication-form">
+                    <form id="publicationForm" class="publication-form" novalidate>
                         <!-- Step 1: Plan Selection -->
                         <div class="form-step active" id="step1">
                             <h2 class="step-title">Escolha o Seu Plano</h2>
@@ -274,21 +278,7 @@
 
                                 <div class="form-group">
                                     <label for="bookGenre">Género Literário *</label>
-                                    <select id="bookGenre" name="bookGenre" required>
-                                        <option value="">Selecione o género</option>
-                                        <option value="romance">Romance</option>
-                                        <option value="ficcao">Ficção</option>
-                                        <option value="policial">Policial/Thriller</option>
-                                        <option value="fantasia">Fantasia</option>
-                                        <option value="ficcao-cientifica">Ficção Científica</option>
-                                        <option value="biografico">Biográfico/Memórias</option>
-                                        <option value="poesia">Poesia</option>
-                                        <option value="infantil">Infantil/Juvenil</option>
-                                        <option value="autoajuda">Autoajuda/Desenvolvimento</option>
-                                        <option value="negocios">Negócios/Empresarial</option>
-                                        <option value="academico">Académico/Técnico</option>
-                                        <option value="outro">Outro</option>
-                                    </select>
+                                    <input type="text" id="bookGenre" name="bookGenre" placeholder="Ex: Romance, Ficção Científica, etc." required>
                                 </div>
 
                                 <div class="form-group">
@@ -312,6 +302,27 @@
                                         <option value="em-progresso">Em progresso (mais de 75%)</option>
                                         <option value="inicio">Fase inicial (menos de 75%)</option>
                                     </select>
+                                </div>
+
+                                <div class="form-group">
+                                    <label>Tipo de Livro *</label>
+                                    <div class="book-type-selection">
+                                        <label class="book-type-option">
+                                            <input type="radio" name="bookType" value="paperback" required>
+                                            <div class="book-type-content">
+                                                <i class="fas fa-book-open"></i>
+                                                <span>Capa Mole</span>
+                                            </div>
+                                        </label>
+                                        <label class="book-type-option">
+                                            <input type="radio" name="bookType" value="hardcover">
+                                            <div class="book-type-content">
+                                                <i class="fas fa-book"></i>
+                                                <span>Capa Dura</span>
+                                            </div>
+                                        </label>
+                                    </div>
+                                    <span class="error-message" id="bookTypeError" style="display: none;">Este campo é obrigatório.</span>
                                 </div>
 
                                 <div class="form-group full-width">
@@ -356,27 +367,23 @@
                                     <input type="tel" id="authorPhone" name="authorPhone" placeholder="+351 912 345 678">
                                 </div>
 
-                                <div class="form-group">
-                                    <label for="preferredContact">Método de Contacto Preferido *</label>
-                                    <select id="preferredContact" name="preferredContact" required>
-                                        <option value="">Selecione</option>
-                                        <option value="email">Email</option>
-                                        <option value="telefone">Telefone</option>
-                                        <option value="whatsapp">WhatsApp</option>
-                                    </select>
+                                <div class="form-group full-width">
+                                    <p class="email-notice">
+                                        <i class="fas fa-envelope"></i>
+                                        Após o envio do formulário, receberá um email de confirmação com os próximos passos.
+                                    </p>
                                 </div>
+
+                                    <div class="form-group full-width">
+                                        <label for="message">Mensagem (opcional)</label>
+                                        <textarea id="message" name="message" rows="4" placeholder="Se quiser, escreva aqui uma mensagem adicional para a nossa equipa."></textarea>
+                                    </div>
 
                                 <div class="form-group full-width">
                                     <label class="checkbox-label">
                                         <input type="checkbox" id="privacyConsent" name="privacyConsent" required>
+                                        <span class="checkmark" aria-hidden="true"></span>
                                         <span>Li e aceito a <a href="apoio.html#privacy" target="_blank">Política de Privacidade</a> e autorizo o tratamento dos meus dados para efeitos de contacto. *</span>
-                                    </label>
-                                </div>
-
-                                <div class="form-group full-width">
-                                    <label class="checkbox-label">
-                                        <input type="checkbox" id="newsletterConsent" name="newsletterConsent">
-                                        <span>Desejo receber novidades e dicas sobre publicação literária.</span>
                                     </label>
                                 </div>
                             </div>
@@ -401,10 +408,31 @@
                                 <p>Obrigado pelo seu interesse. Recebemos o seu pedido e entraremos em contacto consigo nas próximas 24 horas úteis.</p>
                                 <div class="success-summary" id="successSummary">
                                     <!-- Summary will be populated by JS -->
+                                    
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Loader overlay shown while submitting -->
+                        <div id="formLoader" class="form-loader hidden" style="display:none;">
+                            <div class="loader-inner">
+                                <div class="skeleton-card">
+                                    <div class="skeleton-line short"></div>
+                                    <div class="skeleton-line"></div>
+                                    <div class="skeleton-line"></div>
+                                </div>
+                                <p>Enviando o seu pedido... Por favor aguarde.</p>
+                            </div>
+                        </div>
+
+                        <!-- API warning (shown if backend unreachable) -->
+                        <div id="apiWarning" class="api-warning hidden" style="display:none; margin-top:12px;">
+                            <div class="warning-content" style="background:#fff3cd;border:1px solid #ffeeba;padding:12px;border-radius:6px;color:#856404;">
+                                <strong>Atenção:</strong> Não foi possível contactar a nossa API. O seu pedido não foi enviado. Tente novamente mais tarde.
+                            </div>
+                        </div>
                                 </div>
                                 <div class="success-actions">
-                                    <a href="servicos.html" class="btn btn-outline">Ver Serviços</a>
-                                    <a href="index.html" class="btn btn-primary">Voltar ao Início</a>
                                 </div>
                             </div>
                         </div>
@@ -479,7 +507,6 @@
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
     <script src="js/firebase-config.js"></script>
     <script src="js/api.js"></script>
-    <script src="js/data.js"></script>
     <script src="js/utils.js"></script>
     <script src="js/cart.js"></script>
     <script src="js/auth.js"></script>

@@ -1,4 +1,4 @@
-package main.java.com.escritoresnogueira.backend.config;
+package com.escritoresnogueira.backend.config;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -69,6 +69,11 @@ public class RequestLoggingFilter extends OncePerRequestFilter {
                 log.debug("[Request] Header '{}': {}", headerName, request.getHeader(headerName));
             }
         });
+
+        // Avoid logging request bodies that may contain sensitive fields like passwords or idTokens
+        if (contentType != null && contentType.contains("application/json") && (path.contains("/auth/register") || path.contains("/auth/firebase"))) {
+            log.debug("[Request] JSON body suppressed for {} to avoid logging sensitive data", path);
+        }
     }
 
     private void logResponse(ContentCachingRequestWrapper request, ContentCachingResponseWrapper response, long duration) {
@@ -127,3 +132,5 @@ public class RequestLoggingFilter extends OncePerRequestFilter {
                path.endsWith(".html");
     }
 }
+
+

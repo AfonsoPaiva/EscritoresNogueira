@@ -1,6 +1,6 @@
-package main.java.com.escritoresnogueira.backend.dto;
+package com.escritoresnogueira.backend.dto;
 
-import main.java.com.escritoresnogueira.backend.model.Book;
+import com.escritoresnogueira.backend.model.Book;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -47,6 +47,9 @@ public class BookDTO {
     private Integer viewCount;
     private boolean active;
     
+    // Stripe identifiers
+    private String stripeProductId;
+    
     /**
      * Convert Book entity to BookDTO
      */
@@ -76,6 +79,9 @@ public class BookDTO {
                 .reviewCount(book.getReviewCount())
                 .viewCount(book.getViewCount())
                 .active(book.isActive())
+                .stripeProductId(book.getStripeProductId())
                 .build();
     }
 }
+
+

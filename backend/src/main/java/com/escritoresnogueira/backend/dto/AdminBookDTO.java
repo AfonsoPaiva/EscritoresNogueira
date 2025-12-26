@@ -1,11 +1,11 @@
-package main.java.com.escritoresnogueira.backend.dto;
+package com.escritoresnogueira.backend.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import main.java.com.escritoresnogueira.backend.model.Book;
+import com.escritoresnogueira.backend.model.Book;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -76,6 +76,11 @@ public class AdminBookDTO {
     private Integer stock;
     private Boolean active;
     
+    // Stripe product identifier (admin can set)
+    private String stripeProductId;
+    
+    // Stripe price identifier (optional) - removed from API surface; prices are resolved from `stripeProductId`
+    
     /**
      * Convert from Entity to DTO
      */
@@ -116,6 +121,8 @@ public class AdminBookDTO {
                 .samplePages(samplePagesList)
                 .stock(book.getStock())
                 .active(book.isActive())
+                .stripeProductId(book.getStripeProductId())
+                
                 .build();
     }
     
@@ -142,6 +149,8 @@ public class AdminBookDTO {
                 .samplePages(this.samplePages != null ? convertListToJsonString(this.samplePages) : null)
                 .stock(this.stock != null ? this.stock : 0)
                 .active(this.active != null ? this.active : true)
+                .stripeProductId(this.stripeProductId)
+                
                 .build();
     }
     
@@ -167,6 +176,8 @@ public class AdminBookDTO {
         if (this.samplePages != null) book.setSamplePages(convertListToJsonString(this.samplePages));
         if (this.stock != null) book.setStock(this.stock);
         if (this.active != null) book.setActive(this.active);
+        if (this.stripeProductId != null) book.setStripeProductId(this.stripeProductId);
+        // stripePriceId intentionally not accepted from API; backend resolves prices from stripeProductId
     }
     
     /**
@@ -187,3 +198,5 @@ public class AdminBookDTO {
         return sb.toString();
     }
 }
+
+

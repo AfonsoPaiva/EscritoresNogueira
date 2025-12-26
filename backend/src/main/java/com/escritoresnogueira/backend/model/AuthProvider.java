@@ -1,4 +1,4 @@
-package main.java.com.escritoresnogueira.backend.model;
+package com.escritoresnogueira.backend.model;
 
 public enum AuthProvider {
     LOCAL,      // Email/senha tradicional
@@ -6,3 +6,5 @@ public enum AuthProvider {
     FACEBOOK,   // Login com Facebook
     FIREBASE    // Genérico Firebase
 }
+
+

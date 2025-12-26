@@ -1,7 +1,7 @@
-package main.java.com.escritoresnogueira.backend.service;
+package com.escritoresnogueira.backend.service;
 
 import lombok.RequiredArgsConstructor;
-import main.java.com.escritoresnogueira.backend.repository.UserRepository;
+import com.escritoresnogueira.backend.repository.UserRepository;
 import org.springframework.context.annotation.Primary;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -21,3 +21,5 @@ public class UserDetailsServiceImpl implements UserDetailsService {
                 .orElseThrow(() -> new UsernameNotFoundException("Usuário não encontrado: " + email));
     }
 }
+
+

@@ -1,4 +1,4 @@
-package main.java.com.escritoresnogueira.backend.dto;
+package com.escritoresnogueira.backend.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -17,3 +17,5 @@ public class UserStatsDTO {
     private BigDecimal totalSpent;
     private int totalBooksOwned;
 }
+
+

@@ -1,6 +1,6 @@
-package main.java.com.escritoresnogueira.backend.repository;
+package com.escritoresnogueira.backend.repository;
 
-import main.java.com.escritoresnogueira.backend.model.BlogTag;
+import com.escritoresnogueira.backend.model.BlogTag;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -18,3 +18,5 @@ public interface BlogTagRepository extends JpaRepository<BlogTag, Long> {
     
     List<BlogTag> findByNameIn(List<String> names);
 }
+
+

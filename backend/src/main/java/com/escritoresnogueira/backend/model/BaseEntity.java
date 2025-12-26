@@ -1,4 +1,4 @@
-package main.java.com.escritoresnogueira.backend.model;
+package com.escritoresnogueira.backend.model;
 
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -28,3 +28,5 @@ public abstract class BaseEntity {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 }
+
+

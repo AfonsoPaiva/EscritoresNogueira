@@ -11,8 +11,8 @@ const SESSION_HEADER = 'X-Session-Token';
 // Secure storage key (only stores session token, not user data)
 const SESSION_TOKEN_KEY = 'escritores_session_token';
 
-// Declare global auth variable
-window.auth = window.auth || null;
+// reCAPTCHA configuration
+let recaptchaSiteKey = null;
 
 class AuthSystem {
     constructor() {
@@ -26,11 +26,15 @@ class AuthSystem {
         this.firebaseReady = false;
         this.sessionLoaded = false;
         this.sessionLoadPromise = null;
+        this.pendingPassword = null;
+        this.syncing = false;
         this.init();
     }
 
     init() {
         console.log('👤 AuthSystem inicializado');
+        // Load reCAPTCHA config
+        this.loadRecaptchaConfig();
         // Load session from backend if token exists
         this.sessionLoadPromise = this.loadSessionFromBackend();
         this.attachEventListeners();
@@ -51,6 +55,44 @@ class AuthSystem {
         if (this.sessionLoadPromise) {
             await this.sessionLoadPromise;
         }
+    }
+
+    /**
+     * Load reCAPTCHA configuration from backend
+     */
+    async loadRecaptchaConfig() {
+        try {
+            const response = await fetch(`${AUTH_API_URL}/auth/recaptcha-config`);
+            if (response.ok) {
+                const config = await response.json();
+                window.recaptchaSiteKey = config.siteKey;
+                console.log('🔒 reCAPTCHA config loaded');
+                this.loadRecaptchaScript();
+            } else {
+                console.warn('Failed to load reCAPTCHA config');
+            }
+        } catch (error) {
+            console.error('Error loading reCAPTCHA config:', error);
+        }
+    }
+
+    /**
+     * Load reCAPTCHA script dynamically
+     */
+    loadRecaptchaScript() {
+        if (!window.recaptchaSiteKey || document.querySelector('script[src*="recaptcha"]')) {
+            return;
+        }
+
+        const script = document.createElement('script');
+        script.src = `https://www.google.com/recaptcha/api.js?render=${window.recaptchaSiteKey}`;
+        script.async = true;
+        script.defer = true;
+        document.head.appendChild(script);
+
+        script.onload = () => {
+            console.log('🔒 reCAPTCHA script loaded');
+        };
     }
 
     waitForFirebase() {
@@ -82,11 +124,11 @@ class AuthSystem {
             
             window.firebaseAuth.onAuthStateChanged(async (user) => {
                 if (user) {
-                    console.log('🔥 Firebase user detected:', user.email);
+                    console.log('🔥 Firebase user detected:', user.email, 'verified:', user.emailVerified);
                     initialCheck = false;
                     
-                    // Firebase detected a user - check if we have a valid session
-                    if (!this.sessionToken) {
+                    // Only sync with backend if email is verified
+                    if (user.emailVerified && !this.sessionToken && !this.syncing) {
                         try {
                             await this.syncUserWithBackend(user);
                         } catch (error) {
@@ -184,6 +226,38 @@ class AuthSystem {
             registerForm.addEventListener('submit', (e) => {
                 e.preventDefault();
                 this.handleRegister(e.target);
+            });
+        }
+
+        // Verify Email form
+        const verifyEmailForm = document.getElementById('verifyEmailFormElement');
+        const resendVerificationBtn = document.getElementById('resendVerificationBtn');
+        const backToRegister = document.getElementById('backToRegister');
+
+        if (verifyEmailForm) {
+            verifyEmailForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                this.handleVerifyEmail(e.target);
+            });
+        }
+
+        if (resendVerificationBtn) {
+            resendVerificationBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                const emailInput = document.getElementById('verifyEmailInput');
+                const email = emailInput ? emailInput.value : null;
+                if (!email) {
+                    this.showNotification('Por favor insira o email para reenviar o código', 'error');
+                    return;
+                }
+                this.handleResendVerification(email);
+            });
+        }
+
+        if (backToRegister) {
+            backToRegister.addEventListener('click', (e) => {
+                e.preventDefault();
+                this.showRegisterForm();
             });
         }
 
@@ -343,73 +417,73 @@ class AuthSystem {
     }
 
     async handleLogin(form) {
-        if (this.isLoading) return;
+    if (this.isLoading) return;
 
-        // Check if Firebase is ready
-        if (!this.firebaseReady || !window.firebaseAuth) {
-            this.showNotification('Aguarde, a autenticação está a carregar...', 'warning');
-            return;
-        }
-
-        const email = form.querySelector('input[type="email"]').value;
-        const password = form.querySelector('input[type="password"]').value;
-
-        if (!email || !password) {
-            this.showNotification('Por favor, preencha todos os campos', 'error');
-            return;
-        }
-
-        this.setLoading(true);
-
-        try {
-            // Sign in with Firebase
-            const userCredential = await window.firebaseAuth.signInWithEmailAndPassword(email, password);
-            const user = userCredential.user;
-            
-            console.log('🔥 Firebase login successful:', user.email);
-            
-            // Get Firebase ID token and authenticate with backend
-            await this.syncUserWithBackend(user);
-            
-            this.updateUI();
-            this.showNotification('Login efetuado com sucesso!', 'success');
-            form.reset();
-            
-            // Close panel after successful login
-            setTimeout(() => this.closeUserPanel(), 1000);
-            
-        } catch (error) {
-            console.error('❌ Login error:', error);
-            let message = 'Erro ao fazer login';
-            
-            switch (error.code) {
-                case 'auth/user-not-found':
-                    message = 'Utilizador não encontrado';
-                    break;
-                case 'auth/wrong-password':
-                    message = 'Password incorreta';
-                    break;
-                case 'auth/invalid-email':
-                    message = 'Email inválido';
-                    break;
-                case 'auth/user-disabled':
-                    message = 'Conta desativada';
-                    break;
-                case 'auth/too-many-requests':
-                    message = 'Muitas tentativas. Tente mais tarde';
-                    break;
-                case 'auth/invalid-credential':
-                    message = 'Email ou password incorretos';
-                    break;
-                default:
-                    message = error.message || 'Erro ao fazer login';
-            }
-            
-            this.showNotification(message, 'error');
-        } finally {
-            this.setLoading(false);
-        }
+    // Check if Firebase is ready
+    if (!this.firebaseReady || !window.firebaseAuth) {
+        this.showNotification('Aguarde, a autenticação está a carregar...', 'warning');
+        return;
     }
+
+    const email = form.querySelector('input[type="email"]').value;
+    const password = form.querySelector('input[type="password"]').value;
+
+    if (!email || !password) {
+        this.showNotification('Por favor, preencha todos os campos', 'error');
+        return;
+    }
+
+    this.setLoading(true);
+
+    try {
+        // Sign in with Firebase
+        const userCredential = await window.firebaseAuth.signInWithEmailAndPassword(email, password);
+        const user = userCredential.user;
+
+        console.log('🔥 Firebase login successful:', user.email);
+
+        // Get Firebase ID token and authenticate with backend
+        await this.syncUserWithBackend(user);
+
+        this.updateUI();
+        this.showNotification('Login efetuado com sucesso!', 'success');
+        form.reset();
+
+        // Close panel after successful login
+        setTimeout(() => this.closeUserPanel(), 1000);
+
+    } catch (error) {
+        console.error('❌ Login error:', error);
+        let message = 'Erro ao fazer login';
+
+        switch (error.code) {
+            case 'auth/user-not-found':
+                message = 'Utilizador não encontrado';
+                break;
+            case 'auth/wrong-password':
+                message = 'Password incorreta';
+                break;
+            case 'auth/invalid-email':
+                message = 'Email inválido';
+                break;
+            case 'auth/user-disabled':
+                message = 'Conta desativada';
+                break;
+            case 'auth/too-many-requests':
+                message = 'Muitas tentativas. Tente mais tarde';
+                break;
+            case 'auth/invalid-credential':
+                message = 'Email ou password incorretos';
+                break;
+            default:
+                message = error.message || 'Erro ao fazer login';
+        }
+
+        this.showNotification(message, 'error');
+    } finally {
+        this.setLoading(false);
+    }
+}
 
     async handleRegister(form) {
         if (this.isLoading) return;
@@ -432,36 +506,217 @@ class AuthSystem {
         this.setLoading(true);
 
         try {
-            // Register with backend (which creates user in Firebase and database)
-            const response = await fetch(`${AUTH_API_URL}/auth/register`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ name, email, password })
-            });
+            // Basic client-side suspicious interaction heuristic
+            const submitBtn = form.querySelector('button[type="submit"]');
+            const watcher = new (class InteractionWatcher {
+                constructor(target) {
+                    this.moveCount = 0;
+                    this.start = Date.now();
+                    this.target = target;
+                    this._onMove = () => { this.moveCount++; };
+                    if (target) {
+                        target.addEventListener('mousemove', this._onMove);
+                        target.addEventListener('touchstart', this._onMove);
+                    }
+                }
+                isSuspicious() {
+                    const timeSinceLoad = (Date.now() - this.start) / 1000; // seconds
+                    // Suspicious if very fast click with near-zero mouse movement
+                    return timeSinceLoad < 1.2 && this.moveCount < 2;
+                }
+                destroy() {
+                    if (this.target) {
+                        this.target.removeEventListener('mousemove', this._onMove);
+                        this.target.removeEventListener('touchstart', this._onMove);
+                    }
+                }
+            })(submitBtn);
 
-            const data = await response.json();
+            const suspiciousInteraction = watcher.isSuspicious();
 
-            if (!response.ok) {
-                throw new Error(data.message || 'Erro ao registar');
+            // Create Firebase user first (client-side) so we never send plaintext password to backend
+            if (!this.firebaseReady || !window.firebaseAuth) {
+                this.showNotification('A autenticação Firebase não está pronta. Aguarde e tente novamente.', 'error');
+                this.setLoading(false);
+                return;
             }
 
-            console.log('✅ Registration successful:', data);
+            let createdUser = null;
+            try {
+                const userCredential = await window.firebaseAuth.createUserWithEmailAndPassword(email, password);
+                createdUser = userCredential.user;
+                // NOTE: do NOT send verification from client; backend will generate a Firebase verification link
+                // and send it via Mailgun. This keeps control of email templates and deliverability on the server.
+            } catch (e) {
+                // If creation fails, report error and stop
+                console.error('❌ Firebase create user failed:', e);
+                let message = 'Erro ao criar conta (Firebase)';
+                if (e.code === 'auth/email-already-in-use') {
+                    message = 'Este email já está registado. Tente fazer login ou use a conta Google associada.';
+                } else if (e.code === 'auth/weak-password') {
+                    message = 'Password muito fraca. Use pelo menos 6 caracteres.';
+                } else if (e.code === 'auth/invalid-email') {
+                    message = 'Email inválido.';
+                } else {
+                    message = e.message || message;
+                }
+                this.showNotification(message, 'error');
+                this.setLoading(false);
+                return;
+            }
 
-            // Now sign in with Firebase to get the session
-            const userCredential = await window.firebaseAuth.signInWithEmailAndPassword(email, password);
-            await this.syncUserWithBackend(userCredential.user);
+            // 1) Run reCAPTCHA v3 silent token (if available)
+            let v3Token = null;
+            if (window.grecaptcha && window.recaptchaSiteKey) {
+                try {
+                    v3Token = await window.grecaptcha.execute(window.recaptchaSiteKey, { action: 'register' });
+                } catch (err) {
+                    console.warn('reCAPTCHA v3 execute failed, will attempt invisible challenge if required', err);
+                    v3Token = null;
+                }
+            }
 
-            this.updateUI();
-            this.showNotification('Conta criada com sucesso!', 'success');
-            form.reset();
-            
-            // Close panel after successful registration
-            setTimeout(() => this.closeUserPanel(), 1000);
+            // For development on localhost, use test token if reCAPTCHA failed
+            if (!v3Token && window.location.hostname === '127.0.0.1') {
+                v3Token = 'test-token';
+                console.debug('Using test reCAPTCHA token for localhost development');
+            }
+
+            // Obtain ID token from created Firebase user
+            let idToken = null;
+            try {
+                idToken = await createdUser.getIdToken();
+            } catch (e) {
+                console.error('❌ Could not get ID token from Firebase user:', e);
+                // Attempt to clean up created Firebase user to avoid orphan accounts
+                try { await createdUser.delete(); } catch (delErr) { console.warn('Failed to delete orphan Firebase user:', delErr); }
+                this.showNotification('Erro ao validar conta. Tente novamente.', 'error');
+                this.setLoading(false);
+                return;
+            }
+
+            // 2) Initial registration attempt with v3 token and suspicious flag, send idToken (no password)
+            console.debug('auth: initial register POST', { url: `${AUTH_API_URL}/auth/register`, recaptchaToken: v3Token, suspiciousInteraction });
+            const initialResp = await fetch(`${AUTH_API_URL}/auth/register`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name, email, idToken, recaptchaToken: v3Token, suspiciousInteraction })
+            });
+            const initialJson = await initialResp.json();
+
+            if (initialResp.ok && !initialJson.challengeRequired) {
+                // success path
+                console.log('✅ Registration successful:', initialJson);
+                const needsVerification = initialJson.user && initialJson.user.authProvider === 'FIREBASE' && initialJson.user.enabled === false;
+                if (needsVerification) {
+                    // User must verify email before being enabled locally. Keep client Firebase session alive
+                    this.showVerificationModal(email);
+                    this.showNotification('Conta criada. Verifique o seu email para ativar a conta.', 'success');
+                } else {
+                    // Account enabled locally - but check if Firebase email is verified
+                    if (createdUser.emailVerified) {
+                        // Sync immediately
+                        try {
+                            await this.syncUserWithBackend(createdUser);
+                            this.showNotification('Conta criada com sucesso! Sessão iniciada.', 'success');
+                        } catch (e) {
+                            console.warn('Conta criada, mas falha ao criar sessão segura:', e);
+                            this.showNotification('Conta criada. Faça login para continuar.', 'success');
+                            this.showLoginForm();
+                        }
+                    } else {
+                        // Even if backend says enabled, if Firebase not verified, show modal
+                        this.showVerificationModal(email);
+                        this.showNotification('Conta criada. Verifique o seu email para ativar a conta.', 'success');
+                    }
+                }
+                form.reset();
+                watcher.destroy();
+                return;
+            }
+
+            // 3) If backend requests a challenge, render invisible widget and execute
+            if (initialJson && initialJson.challengeRequired) {
+                // Ensure container exists
+                let container = document.getElementById('invisible-recaptcha-container');
+                if (!container) {
+                    container = document.createElement('div');
+                    container.id = 'invisible-recaptcha-container';
+                    container.style.display = 'none';
+                    document.body.appendChild(container);
+                }
+
+                // render widget and execute
+                const widgetId = grecaptcha.render(container, {
+                    sitekey: window.recaptchaSiteKey,
+                    size: 'invisible',
+                    callback: async function(token) {
+                        console.debug('auth: invisible challenge callback, token=', token);
+                        try {
+                                    console.debug('auth: retry register POST', { url: `${AUTH_API_URL}/auth/register`, challengeToken: token });
+                                        const retryResp = await fetch(`${AUTH_API_URL}/auth/register`, {
+                                            method: 'POST',
+                                            headers: { 'Content-Type': 'application/json' },
+                                            body: JSON.stringify({ name, email, idToken, recaptchaToken: token, challenge: true })
+                                        });
+                            const retryJson = await retryResp.json();
+                            if (!retryResp.ok) {
+                                throw new Error(retryJson.message || 'Erro ao registar');
+                            }
+
+                            // success on retry
+                            console.log('✅ Registration successful (after challenge):', retryJson);
+                            const needsVerification2 = retryJson.user && retryJson.user.authProvider === 'FIREBASE' && retryJson.user.enabled === false;
+                            if (needsVerification2) {
+                                this.showVerifyForm();
+                                const verifyEmailInput = document.getElementById('verifyEmailInput');
+                                if (verifyEmailInput) verifyEmailInput.value = email;
+                                this.showNotification('Conta criada. Foi enviado um código para o seu email.', 'success');
+                            } else {
+                                try {
+                                    await this.syncUserWithBackend(createdUser);
+                                    this.showNotification('Conta criada com sucesso! Sessão iniciada.', 'success');
+                                } catch (e) {
+                                    console.warn('Conta criada, mas falha ao criar sessão segura:', e);
+                                    this.showNotification('Conta criada. Faça login para continuar.', 'success');
+                                    this.showLoginForm();
+                                }
+                            }
+                            form.reset();
+                        } catch (err) {
+                            console.error('❌ Registration retry error after challenge:', err);
+                            this.showNotification(err.message || 'Erro ao criar conta', 'error');
+                        } finally {
+                            try { grecaptcha.reset(widgetId); } catch (e) {}
+                        }
+                    }.bind(this)
+                });
+
+                // execute the invisible widget
+                try {
+                    grecaptcha.execute(widgetId);
+                } catch (e) {
+                    console.error('Error executing invisible recaptcha widget', e);
+                    this.showNotification('Erro reCAPTCHA. Tente novamente mais tarde.', 'error');
+                }
+                watcher.destroy();
+                return;
+            }
+
+            // If we reach here, show error from initial attempt
+            throw new Error(initialJson.message || 'Erro ao registar');
 
         } catch (error) {
             console.error('❌ Registration error:', error);
+            // If we created a Firebase user but registration failed server-side, try to remove the orphan account
+            try {
+                if (typeof createdUser !== 'undefined' && createdUser && createdUser.delete) {
+                    await createdUser.delete();
+                    console.debug('Orphan Firebase user deleted after failed registration');
+                }
+            } catch (delErr) {
+                console.warn('Failed to delete orphan Firebase user:', delErr);
+            }
             let message = error.message || 'Erro ao criar conta';
             
             if (message.includes('EMAIL_ALREADY_EXISTS') || message.includes('já registado')) {
@@ -469,6 +724,166 @@ class AuthSystem {
             }
             
             this.showNotification(message, 'error');
+        } finally {
+            this.setLoading(false);
+        }
+    }
+
+    showVerifyForm() {
+        const loginForm = document.getElementById('loginForm');
+        const registerForm = document.getElementById('registerForm');
+        const forgotPasswordForm = document.getElementById('forgotPasswordForm');
+        const verifyEmailForm = document.getElementById('verifyEmailForm');
+
+        if (loginForm) loginForm.classList.add('hidden');
+        if (registerForm) registerForm.classList.add('hidden');
+        if (forgotPasswordForm) forgotPasswordForm.classList.add('hidden');
+        if (verifyEmailForm) verifyEmailForm.classList.remove('hidden');
+    }
+
+    showVerificationModal(email) {
+        // Create modal if not exists
+        let modal = document.getElementById('verificationModal');
+        if (!modal) {
+            modal = document.createElement('div');
+            modal.id = 'verificationModal';
+            modal.className = 'modal';
+            modal.innerHTML = `
+                <style>
+                    .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: transparent; }
+                    .modal-content { background-color: #FFFFFF; color: #1a1a1a; margin: 15% auto; padding: 30px; border: 2px solid #FFB100; width: 90%; max-width: 500px; border-radius: 12px; box-shadow: 0 8px 32px rgba(14, 27, 77, 0.3); font-family: 'Questrial', sans-serif; }
+                    .modal-content h2 { color: #0E1B4D; font-family: 'EB Garamond', serif; margin-bottom: 20px; font-size: 1.8em; }
+                    .modal-content p { margin-bottom: 15px; line-height: 1.6; }
+                    .modal-content strong { color: #0E1B4D; }
+                    .close { color: #1a1a1a; float: right; font-size: 28px; font-weight: bold; cursor: pointer; transition: color 0.3s; }
+                    .close:hover { color: #FFB100; }
+                    #resendBtn { background-color: #FFB100; color: #0E1B4D; border: none; padding: 12px 24px; border-radius: 6px; cursor: pointer; font-weight: bold; transition: background-color 0.3s; margin-top: 20px; }
+                    #resendBtn:disabled { background-color: #666666; cursor: not-allowed; }
+                    #resendBtn:hover:not(:disabled) { background-color: #e6a000; }
+                    #countdown { font-weight: bold; color: #0E1B4D; }
+                </style>
+                <div class="modal-content">
+                    <span class="close" onclick="this.closest('.modal').style.display='none'">&times;</span>
+                    <h2>Verificação de Email</h2>
+                    <p>Enviamos um email de verificação para <strong>${email}</strong>.</p>
+                    <p>Verifique a sua caixa de entrada e clique no link para ativar a conta.</p>
+                    <p id="resendMessage">Pode reenviar o email em <span id="countdown">15:00</span> minutos.</p>
+                    <button id="resendBtn" disabled onclick="window.auth.handleResendVerification('${email}')">Reenviar Email</button>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        } else {
+            modal.querySelector('strong').textContent = email;
+        }
+
+        modal.style.display = 'block';
+
+        // GSAP animation
+        if (window.gsap) {
+            gsap.from(modal.querySelector('.modal-content'), {
+                opacity: 0,
+                y: -50,
+                scale: 0.9,
+                duration: 0.6,
+                ease: "back.out(1.7)"
+            });
+        }
+
+        // Start countdown
+        this.startResendCountdown();
+    }
+
+    startResendCountdown() {
+        const countdownEl = document.getElementById('countdown');
+        const resendBtn = document.getElementById('resendBtn');
+        let timeLeft = 15 * 60; // 15 minutes in seconds
+
+        const timer = setInterval(() => {
+            const minutes = Math.floor(timeLeft / 60);
+            const seconds = timeLeft % 60;
+            countdownEl.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+            timeLeft--;
+
+            if (timeLeft < 0) {
+                clearInterval(timer);
+                countdownEl.textContent = '0:00';
+                resendBtn.disabled = false;
+                document.getElementById('resendMessage').textContent = 'Pode reenviar o email agora.';
+            }
+        }, 1000);
+    }
+
+    async handleVerifyEmail(form) {
+        if (this.isLoading) return;
+
+        const email = document.getElementById('verifyEmailInput').value;
+        const code = document.getElementById('verifyCodeInput').value;
+
+        if (!email || !code) {
+            this.showNotification('Por favor preencha email e código', 'error');
+            return;
+        }
+
+        this.setLoading(true);
+
+        try {
+            // Call backend to verify
+            const response = await fetch(`${AUTH_API_URL}/auth/verify-email`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, code })
+            });
+
+            const data = await response.json();
+            if (!response.ok) {
+                throw new Error(data.message || 'Erro ao verificar email');
+            }
+
+            this.showNotification('Email verificado com sucesso! A iniciar sessão...', 'success');
+
+            // Now sync Firebase client user with backend to create secure session
+            try {
+                const firebaseUser = window.firebaseAuth.currentUser;
+                if (firebaseUser) {
+                    // Force refresh token so backend sees updated email_verified claim
+                    await this.syncUserWithBackend(firebaseUser);
+                } else {
+                    this.showNotification('Verificação concluída. Faça login com o seu email e password.', 'info');
+                }
+            } catch (e) {
+                console.warn('Não foi possível sincronizar conta automaticamente, peça para o utilizador iniciar sessão.', e);
+                this.showNotification('Verificação concluída. Faça login com o seu email e password.', 'info');
+            }
+
+            // Show login form (user can sign in) and close panel
+            this.showLoginForm();
+            setTimeout(() => this.closeUserPanel(), 1000);
+
+        } catch (error) {
+            console.error('❌ Verify error:', error);
+            this.showNotification(error.message || 'Erro ao verificar código', 'error');
+        } finally {
+            this.setLoading(false);
+        }
+    }
+
+    async handleResendVerification(email) {
+        if (this.isLoading) return;
+        this.setLoading(true);
+        try {
+            const response = await fetch(`${AUTH_API_URL}/auth/resend-verification`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email })
+            });
+            // Backend returns a generic success message to avoid user enumeration.
+            // Treat any response as success from the user's perspective.
+            try { await response.json(); } catch (e) { /* ignore non-json */ }
+            this.showNotification('Se a conta existir, enviámos um email de verificação', 'success');
+        } catch (error) {
+            console.error('❌ Resend error:', error);
+            // Show generic message even on client/network errors to avoid leaking account status
+            this.showNotification('Se a conta existir, enviámos um email de verificação', 'success');
         } finally {
             this.setLoading(false);
         }
@@ -530,87 +945,102 @@ class AuthSystem {
     }
 
    async syncUserWithBackend(firebaseUser) {
-        try {
-            // Get Firebase ID token
-            const idToken = await firebaseUser.getIdToken();
+    if (this.syncing) {
+        console.log('🔄 Sync already in progress, skipping');
+        return;
+    }
+    this.syncing = true;
+    try {
+        // Force refresh token to avoid stale/partial tokens during popup flows
+        const idToken = await firebaseUser.getIdToken(true);
+        console.debug('🔐 Sending ID token to backend (length):', idToken ? idToken.length : 0);
 
-            // Send token to backend for validation and session creation
-            const response = await fetch(`${AUTH_API_URL}/auth/firebase`, {
+        const trySend = async () => {
+            const resp = await fetch(`${AUTH_API_URL}/auth/firebase`, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ idToken })
             });
-
-            const data = await response.json();
-
-            if (!response.ok) {
-                throw new Error(data.message || 'Erro ao sincronizar com o servidor');
+            let data;
+            try { data = await resp.json(); } catch (e) { data = { message: 'no-json-response' }; }
+            if (!resp.ok) {
+                console.error('Backend /auth/firebase error', resp.status, data);
+                throw new Error(data.message || `Server returned ${resp.status}`);
             }
+            return data;
+        };
 
+        // First attempt
+        try {
+            const data = await trySend();
             console.log('✅ Secure session created:', data);
-
-            // Save only the session token - user data is fetched from backend
             if (data.sessionToken) {
                 this.saveSessionToken(data.sessionToken);
-                
-                // Store minimal display info in memory only (not persisted)
                 this.currentUser = {
                     name: data.displayName || firebaseUser.displayName || null,
                     email: firebaseUser.email || null,
                     photoUrl: data.photoUrl || firebaseUser.photoURL || null
                 };
             }
-            
             return data;
-
-        } catch (error) {
-            console.error('❌ Error syncing with backend:', error);
-            throw error;
-        }
-    }
-
-
-    async handlePasswordReset(form) {
-        if (this.isLoading) return;
-
-        const email = form.querySelector('input[type="email"]').value;
-
-        if (!email) {
-            this.showNotification('Por favor, insira o seu email', 'error');
-            return;
-        }
-
-        this.setLoading(true);
-
-        try {
-            await window.firebaseAuth.sendPasswordResetEmail(email);
-            this.showNotification('Email de recuperação enviado! Verifique a sua caixa de entrada.', 'success');
-            form.reset();
-            this.showLoginForm();
-        } catch (error) {
-            console.error('❌ Password reset error:', error);
-            let message = 'Erro ao enviar email de recuperação';
-            
-            switch (error.code) {
-                case 'auth/user-not-found':
-                    message = 'Não existe conta com este email';
-                    break;
-                case 'auth/invalid-email':
-                    message = 'Email inválido';
-                    break;
-                default:
-                    message = error.message || 'Erro ao enviar email';
+        } catch (firstErr) {
+            // Retry once after a short delay (covers transient race conditions)
+            console.warn('First /auth/firebase attempt failed, retrying...', firstErr);
+            await new Promise(r => setTimeout(r, 500));
+            const data = await trySend();
+            console.log('✅ Secure session created (retry):', data);
+            if (data.sessionToken) {
+                this.saveSessionToken(data.sessionToken);
+                this.currentUser = {
+                    name: data.displayName || firebaseUser.displayName || null,
+                    email: firebaseUser.email || null,
+                    photoUrl: data.photoUrl || firebaseUser.photoURL || null
+                };
             }
-            
-            this.showNotification(message, 'error');
-        } finally {
-            this.setLoading(false);
+            return data;
         }
+
+    } catch (error) {
+        console.error('❌ Error syncing with backend:', error);
+        throw error;
+    } finally {
+        this.syncing = false;
     }
+}
+
+
+   async handlePasswordReset(form) {
+    if (this.isLoading) return;
+    const email = form.querySelector('input[type="email"]').value;
+    if (!email) {
+        this.showNotification('Por favor, insira o seu email', 'error');
+        return;
+    }
+    this.setLoading(true);
+    try {
+        const response = await fetch(`${AUTH_API_URL}/auth/forgot-password`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email })
+        });
+        // Regardless of backend result, show a generic success message to avoid user enumeration.
+        try { await response.text(); } catch (e) { /* ignore */ }
+        this.showNotification('Se a conta existir, enviámos um email para repor a password. Verifique a sua caixa de entrada.', 'success');
+        form.reset();
+        this.showLoginForm();
+    } catch (error) {
+        console.error('❌ Password reset error (client):', error);
+        // Still show the generic success message so attackers can't enumerate
+        this.showNotification('Se a conta existir, enviámos um email para repor a password. Verifique a sua caixa de entrada.', 'success');
+    } finally {
+        this.setLoading(false);
+    }
+}
 
     async handleLogout() {
+        if (this.isLoading) return;
+
+        this.setLoading(true);
         try {
             // Invalidate session on backend first
             if (this.sessionToken) {
@@ -628,53 +1058,32 @@ class AuthSystem {
 
             // Sign out from Firebase
             if (window.firebaseAuth) {
-                await window.firebaseAuth.signOut();
+                try {
+                    await window.firebaseAuth.signOut();
+                } catch (e) {
+                    console.warn('⚠️ Failed to sign out from Firebase:', e);
+                }
             }
-            
+
             this.clearSession();
             this.updateUI();
-            this.closeUserPanel();
             this.showNotification('Sessão terminada', 'info');
-            
+
         } catch (error) {
             console.error('❌ Logout error:', error);
-            // Still clear local session even if errors occur
-            this.clearSession();
-            this.updateUI();
-            this.closeUserPanel();
-            this.showNotification('Sessão terminada', 'info');
+            this.showNotification('Erro ao terminar sessão', 'error');
+        } finally {
+            this.setLoading(false);
         }
     }
 
-    async updatePassword(newPassword) {
-        if (!this.firebaseReady || !window.firebaseAuth) {
-            throw new Error('Sistema de autenticação não disponível');
-        }
+    async handleDeleteAccount() {
+        if (this.isLoading) return;
+        this.setLoading(true);
 
-        const user = window.firebaseAuth.currentUser;
+        const user = window.firebaseAuth ? window.firebaseAuth.currentUser : null;
         if (!user) {
-            throw new Error('Nenhum utilizador autenticado');
-        }
-
-        try {
-            await user.updatePassword(newPassword);
-            this.showNotification('Password atualizada com sucesso!', 'success');
-        } catch (error) {
-            console.error('❌ Erro ao atualizar password:', error);
-            if (error.code === 'auth/requires-recent-login') {
-                throw new Error('Por favor, faça login novamente para realizar esta operação');
-            }
-            throw error;
-        }
-    }
-
-    async deleteAccount() {
-        if (!this.firebaseReady || !window.firebaseAuth) {
-            throw new Error('Sistema de autenticação não disponível');
-        }
-
-        const user = window.firebaseAuth.currentUser;
-        if (!user) {
+            this.setLoading(false);
             throw new Error('Nenhum utilizador autenticado');
         }
 
@@ -694,34 +1103,47 @@ class AuthSystem {
                 throw new Error(data.message || 'Erro ao eliminar dados do servidor');
             }
 
-            // 2. Delete from Firebase Auth
-            // O backend já tratou de eliminar o utilizador do Firebase Auth via Admin SDK
-            // Apenas precisamos de limpar a sessão local
+            // 2. Delete from Firebase Auth (backend should handle it via Admin SDK)
+            // Just clear local session
             if (window.firebaseAuth) {
-                await window.firebaseAuth.signOut();
+                try {
+                    await window.firebaseAuth.signOut();
+                } catch (e) {
+                    console.warn('Could not sign out after account deletion:', e);
+                }
             }
-            
+
             this.clearSession();
             this.updateUI();
             this.showNotification('Conta eliminada com sucesso', 'info');
             window.location.href = 'index.html';
+
         } catch (error) {
             console.error('❌ Erro ao eliminar conta:', error);
             if (error.code === 'auth/requires-recent-login') {
                 throw new Error('Por favor, faça login novamente para realizar esta operação');
             }
             throw error;
+        } finally {
+            this.setLoading(false);
         }
+    }
+
+    // Backwards-compatible alias for older callers
+    async deleteAccount() {
+        return this.handleDeleteAccount();
     }
 
     updateUI() {
         const loginForm = document.getElementById('loginForm');
         const registerForm = document.getElementById('registerForm');
         const forgotPasswordForm = document.getElementById('forgotPasswordForm');
-        const userProfile = document.getElementById('userProfile');
+        // Some pages use id="userProfile", others use id="userInfo"
+        const userProfile = document.getElementById('userProfile') || document.getElementById('userInfo');
         const userName = document.getElementById('userName');
         const userEmail = document.getElementById('userEmail');
-        const profileAvatar = document.querySelector('.profile-avatar');
+        // Avatar class may differ between pages
+        const profileAvatar = document.querySelector('.profile-avatar') || document.querySelector('.user-avatar');
 
         if (this.currentUser) {
             // Show profile, hide forms
@@ -748,9 +1170,14 @@ class AuthSystem {
                 }
             }
 
+            // Ensure avatar container uses the standard profile-avatar styles
+            if (profileAvatar && !profileAvatar.classList.contains('profile-avatar') && !profileAvatar.classList.contains('profile-avatar-large')) {
+                profileAvatar.classList.add('profile-avatar');
+            }
+
             // Update avatar with photo if available
             if (profileAvatar && this.currentUser.photoUrl) {
-                profileAvatar.innerHTML = `<img src="${this.currentUser.photoUrl}" alt="${this.currentUser.name || ''}" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;">`;
+                profileAvatar.innerHTML = `<img src="${this.currentUser.photoUrl}" alt="${this.currentUser.name || ''}" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover; display:block;">`;
             } else if (profileAvatar) {
                 profileAvatar.innerHTML = '<i class="fas fa-user"></i>';
             }
@@ -772,30 +1199,36 @@ class AuthSystem {
         const loginForm = document.getElementById('loginForm');
         const registerForm = document.getElementById('registerForm');
         const forgotPasswordForm = document.getElementById('forgotPasswordForm');
+        const verifyEmailForm = document.getElementById('verifyEmailForm');
 
         if (loginForm) loginForm.classList.remove('hidden');
         if (registerForm) registerForm.classList.add('hidden');
         if (forgotPasswordForm) forgotPasswordForm.classList.add('hidden');
+        if (verifyEmailForm) verifyEmailForm.classList.add('hidden');
     }
 
     showRegisterForm() {
         const loginForm = document.getElementById('loginForm');
         const registerForm = document.getElementById('registerForm');
         const forgotPasswordForm = document.getElementById('forgotPasswordForm');
+        const verifyEmailForm = document.getElementById('verifyEmailForm');
 
         if (loginForm) loginForm.classList.add('hidden');
         if (registerForm) registerForm.classList.remove('hidden');
         if (forgotPasswordForm) forgotPasswordForm.classList.add('hidden');
+        if (verifyEmailForm) verifyEmailForm.classList.add('hidden');
     }
 
     showForgotPasswordForm() {
         const loginForm = document.getElementById('loginForm');
         const registerForm = document.getElementById('registerForm');
         const forgotPasswordForm = document.getElementById('forgotPasswordForm');
+        const verifyEmailForm = document.getElementById('verifyEmailForm');
 
         if (loginForm) loginForm.classList.add('hidden');
         if (registerForm) registerForm.classList.add('hidden');
         if (forgotPasswordForm) forgotPasswordForm.classList.remove('hidden');
+        if (verifyEmailForm) verifyEmailForm.classList.add('hidden');
     }
 
     toggleUserPanel() {
@@ -811,6 +1244,19 @@ class AuthSystem {
         if (userSidebar && overlay) {
             userSidebar.classList.toggle('active');
             overlay.classList.toggle('active');
+
+            // If opening the panel and user is not logged in, show login form
+            const opened = userSidebar.classList.contains('active');
+            if (opened && typeof this.isLoggedIn === 'function' && !this.isLoggedIn()) {
+                try {
+                    this.showLoginForm();
+                    const emailInput = document.querySelector('#loginFormElement input[type="email"]');
+                    if (emailInput) setTimeout(() => emailInput.focus(), 150);
+                } catch (e) {
+                    // ignore if methods not available
+                    console.warn('Erro ao tentar mostrar o formulário de login', e);
+                }
+            }
 
             console.log('👤 Classes toggleadas', {
                 userActive: userSidebar.classList.contains('active'),
@@ -846,8 +1292,11 @@ class AuthSystem {
         if (!this.isNotificationShowing) {
             this.processNotificationQueue();
         }
-    }
 
+    }
+    
+    
+    
     processNotificationQueue() {
         if (this.notificationQueue.length === 0) {
             this.isNotificationShowing = false;
@@ -932,6 +1381,42 @@ if (!window.auth) {
 
 // Global notification function for all modules to use
 window.showNotification = function(message, type = 'info') {
+    // Process Firebase action links (oobCode) for verifyEmail and resetPassword
+(async function processFirebaseActionLink() {
+    const params = new URLSearchParams(window.location.search);
+    const mode = params.get('mode');
+    const oobCode = params.get('oobCode');
+    if (!oobCode) return;
+
+    // Wait for Firebase to be ready
+    if (!window.firebaseAuth) {
+        window.addEventListener('firebaseReady', () => setTimeout(processFirebaseActionLink, 50));
+        return;
+    }
+
+    try {
+        if (mode === 'verifyEmail') {
+            await window.firebaseAuth.applyActionCode(oobCode);
+            window.showNotification('Email verificado com sucesso!', 'success');
+            // After verification, redirect to account or login page so user can continue
+            setTimeout(() => window.location.href = 'conta.html', 1200);
+        } else if (mode === 'resetPassword') {
+            const email = await window.firebaseAuth.verifyPasswordResetCode(oobCode);
+            // Show a simple prompt for new password - you can replace with a proper form
+            const newPassword = prompt('Insira a nova password para ' + email);
+            if (newPassword && newPassword.length >= 6) {
+                await window.firebaseAuth.confirmPasswordReset(oobCode, newPassword);
+                window.showNotification('Password alterada com sucesso!', 'success');
+                setTimeout(() => window.location.href = 'conta.html', 1200);
+            } else {
+                window.showNotification('Password inválida ou operação cancelada', 'error');
+            }
+        }
+    } catch (err) {
+        console.error('Erro ao processar action link:', err);
+        window.showNotification(err.message || 'Erro ao processar link de verificação', 'error');
+    }
+})();
     if (window.auth) {
         window.auth.showNotification(message, type);
     } else {

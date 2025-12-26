@@ -1,10 +1,10 @@
-package main.java.com.escritoresnogueira.backend.controller;
+package com.escritoresnogueira.backend.controller;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import main.java.com.escritoresnogueira.backend.dto.AdminBookDTO;
-import main.java.com.escritoresnogueira.backend.model.Book;
-import main.java.com.escritoresnogueira.backend.repository.BookRepository;
+import com.escritoresnogueira.backend.dto.AdminBookDTO;
+import com.escritoresnogueira.backend.model.Book;
+import com.escritoresnogueira.backend.repository.BookRepository;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -20,6 +20,8 @@ import java.util.stream.Collectors;
 public class AdminBookController {
 
     private final BookRepository bookRepository;
+    private final com.escritoresnogueira.backend.repository.BookCommentRepository bookCommentRepository;
+    private final com.escritoresnogueira.backend.repository.OrderItemRepository orderItemRepository;
 
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<List<AdminBookDTO>> getAllBooks() {
@@ -50,6 +52,13 @@ public class AdminBookController {
         log.debug("[AdminBookController] POST /admin/books - Creating book: {}", bookDTO.getTitle());
         log.debug("[AdminBookController] Received DTO: {}", bookDTO);
         try {
+            // Prevent duplicate ISBN inserts: return 409 if ISBN already exists
+            if (bookDTO.getIsbn() != null && !bookDTO.getIsbn().trim().isEmpty()) {
+                if (bookRepository.existsByIsbn(bookDTO.getIsbn().trim())) {
+                    log.warn("[AdminBookController] ISBN already exists: {}", bookDTO.getIsbn());
+                    return ResponseEntity.status(409).header("X-Error-Reason", "DUPLICATE_ISBN").build();
+                }
+            }
             Book book = bookDTO.toEntity();
             Book saved = bookRepository.save(book);
             log.info("[AdminBookController] Book created successfully: {} (ID: {})", saved.getTitle(), saved.getId());
@@ -87,10 +96,41 @@ public class AdminBookController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteBook(@PathVariable Long id) {
-        log.debug("[AdminBookController] DELETE /admin/books/{} - Deleting book", id);
+    public ResponseEntity<?> deleteBook(@PathVariable Long id, @RequestParam(required = false, defaultValue = "false") boolean force) {
+        log.debug("[AdminBookController] DELETE /admin/books/{} - Deleting book (force={})", id, force);
         if (bookRepository.existsById(id)) {
             try {
+                Long comments = bookCommentRepository.countByBookId(id);
+                if (comments != null && comments > 0) {
+                    if (!force) {
+                        log.warn("[AdminBookController] Cannot delete book {} because it has {} comments", id, comments);
+                        return ResponseEntity.status(409).header("X-Error-Reason", "BOOK_HAS_COMMENTS").build();
+                    }
+                    // Force delete: remove comments first
+                    log.info("[AdminBookController] Force delete: removing {} comments for book {}", comments, id);
+                    bookCommentRepository.deleteByBookId(id);
+                }
+
+                long orderRefs = orderItemRepository.countByBookId(id);
+                if (orderRefs > 0) {
+                    // We cannot safely delete a book that is referenced by order items
+                    if (!force) {
+                        log.warn("[AdminBookController] Cannot delete book {} because it is referenced by {} order items", id, orderRefs);
+                        return ResponseEntity.status(409).header("X-Error-Reason", "BOOK_HAS_ORDERS").build();
+                    }
+                    // If caller specified force=true, archive the book instead of hard-deleting
+                    // to preserve historical order integrity.
+                    log.info("[AdminBookController] Force delete requested but book {} has {} order refs; archiving instead of deleting", id, orderRefs);
+                    return bookRepository.findById(id)
+                            .map(book -> {
+                                book.setActive(false);
+                                Book saved = bookRepository.save(book);
+                                log.info("[AdminBookController] Book {} archived due to existing orders", id);
+                                return ResponseEntity.noContent().build();
+                            })
+                            .orElseGet(() -> ResponseEntity.notFound().build());
+                }
+
                 bookRepository.deleteById(id);
                 log.info("[AdminBookController] Book deleted successfully (ID: {})", id);
                 return ResponseEntity.noContent().build();
@@ -135,3 +175,5 @@ public class AdminBookController {
             });
     }
 }
+
+

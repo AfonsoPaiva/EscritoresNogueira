@@ -1,4 +1,4 @@
-package main.java.com.escritoresnogueira.backend.model;
+package com.escritoresnogueira.backend.model;
 
 import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -109,6 +109,14 @@ public class Book extends BaseEntity {
     // Sample pages for book preview (stored as JSON array string)
     @Column(name = "sample_pages", length = 2000)
     private String samplePages;
+
+    // Stripe Price ID (optional) to reference the product/price on Stripe
+    @Column(name = "stripe_price_id", length = 255)
+    private String stripePriceId;
+    
+    // Stripe Product ID (optional) to reference the product on Stripe
+    @Column(name = "stripe_product_id", length = 255)
+    private String stripeProductId;
     
     // Helper method to get sample pages as list
     @Transient
@@ -124,3 +132,5 @@ public class Book extends BaseEntity {
         return List.of(cleaned.split(",\\s*"));
     }
 }
+
+

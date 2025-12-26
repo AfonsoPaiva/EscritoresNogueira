@@ -1,6 +1,6 @@
-package main.java.com.escritoresnogueira.backend.repository;
+package com.escritoresnogueira.backend.repository;
 
-import main.java.com.escritoresnogueira.backend.model.BookComment;
+import com.escritoresnogueira.backend.model.BookComment;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -26,4 +26,12 @@ public interface BookCommentRepository extends JpaRepository<BookComment, Long> 
     Long countByBookIdAndStatus(Long bookId, String status);
 
     List<BookComment> findByBookIdAndStatusOrderByCreatedAtDesc(Long bookId, String status);
+
+    // Count comments for a book (all statuses)
+    Long countByBookId(Long bookId);
+
+    // Delete all comments for a book (used for force-deletes)
+    void deleteByBookId(Long bookId);
 }
+
+

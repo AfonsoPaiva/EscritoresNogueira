@@ -1,10 +1,10 @@
-package main.java.com.escritoresnogueira.backend.dto;
+package com.escritoresnogueira.backend.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import main.java.com.escritoresnogueira.backend.model.User;
+import com.escritoresnogueira.backend.model.User;
 
 @Data
 @Builder
@@ -16,3 +16,5 @@ public class AuthResponse {
     private String name;
     private User user;
 }
+
+

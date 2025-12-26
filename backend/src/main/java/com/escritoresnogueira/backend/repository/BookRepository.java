@@ -1,6 +1,6 @@
-package main.java.com.escritoresnogueira.backend.repository;
+package com.escritoresnogueira.backend.repository;
 
-import main.java.com.escritoresnogueira.backend.model.Book;
+import com.escritoresnogueira.backend.model.Book;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -20,4 +20,8 @@ public interface BookRepository extends JpaRepository<Book, Long> {
     List<Book> findByActiveTrue();
     
     List<Book> findByCategoryAndActiveTrue(String category);
+
+    boolean existsByIsbn(String isbn);
 }
+
+

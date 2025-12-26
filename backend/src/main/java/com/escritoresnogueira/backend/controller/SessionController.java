@@ -1,10 +1,10 @@
-package main.java.com.escritoresnogueira.backend.controller;
+package com.escritoresnogueira.backend.controller;
 
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import main.java.com.escritoresnogueira.backend.dto.SessionDataResponse;
-import main.java.com.escritoresnogueira.backend.service.UserSessionService;
+import com.escritoresnogueira.backend.dto.SessionDataResponse;
+import com.escritoresnogueira.backend.service.UserSessionService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -151,3 +151,5 @@ public class SessionController {
         return request.getRemoteAddr();
     }
 }
+
+

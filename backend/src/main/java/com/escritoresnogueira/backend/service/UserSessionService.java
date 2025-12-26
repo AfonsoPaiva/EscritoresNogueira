@@ -1,11 +1,11 @@
-package main.java.com.escritoresnogueira.backend.service;
+package com.escritoresnogueira.backend.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import main.java.com.escritoresnogueira.backend.model.User;
-import main.java.com.escritoresnogueira.backend.model.UserSession;
-import main.java.com.escritoresnogueira.backend.repository.UserRepository;
-import main.java.com.escritoresnogueira.backend.repository.UserSessionRepository;
+import com.escritoresnogueira.backend.model.User;
+import com.escritoresnogueira.backend.model.UserSession;
+import com.escritoresnogueira.backend.repository.UserRepository;
+import com.escritoresnogueira.backend.repository.UserSessionRepository;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -202,6 +202,19 @@ public class UserSessionService {
     }
     
     /**
+     * Scheduled task to cleanup unverified users older than 15 minutes
+     */
+    @Scheduled(fixedRate = 900000) // Run every 15 minutes
+    @Transactional
+    public void cleanupUnverifiedUsers() {
+        LocalDateTime cutoff = LocalDateTime.now().minusMinutes(15);
+        int deletedCount = userRepository.deleteUnverifiedUsersOlderThan(cutoff);
+        if (deletedCount > 0) {
+            log.info("🗑️ Deleted {} unverified users older than 15 minutes", deletedCount);
+        }
+    }
+    
+    /**
      * Extend session expiration (for "remember me" functionality)
      */
     @Transactional
@@ -219,3 +232,5 @@ public class UserSessionService {
      */
     public record SessionData(String displayName, String email, String photoUrl, LocalDateTime expiresAt) {}
 }
+
+

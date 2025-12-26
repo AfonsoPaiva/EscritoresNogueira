@@ -1,4 +1,4 @@
-package main.java.com.escritoresnogueira.backend.dto;
+package com.escritoresnogueira.backend.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -12,3 +12,5 @@ import lombok.NoArgsConstructor;
 public class ApproveBookCommentDTO {
     private String status; // "approved" ou "rejected"
 }
+
+

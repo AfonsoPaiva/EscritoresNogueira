@@ -1,6 +1,6 @@
-package main.java.com.escritoresnogueira.backend.repository;
+package com.escritoresnogueira.backend.repository;
 
-import main.java.com.escritoresnogueira.backend.model.BlogCategory;
+import com.escritoresnogueira.backend.model.BlogCategory;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -18,3 +18,5 @@ public interface BlogCategoryRepository extends JpaRepository<BlogCategory, Long
     
     Optional<BlogCategory> findByName(String name);
 }
+
+

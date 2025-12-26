@@ -2,6 +2,9 @@
 // MAIN.JS - GSAP Integration
 // ==================================
 
+// reCAPTCHA configuration
+window.recaptchaSiteKey = null;
+
 // Initialize on first load
 document.addEventListener('DOMContentLoaded', function() {
     console.log('🚀 DOM carregado:', window.location.pathname);
@@ -9,6 +12,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Initialize in correct order
     initGSAP();
     initLibraries();
+    loadRecaptchaConfig();
     initApp();
     runAnimations();
 
@@ -32,6 +36,40 @@ function initLibraries() {
             offset: 100
         });
     }
+}
+
+// Load reCAPTCHA configuration
+async function loadRecaptchaConfig() {
+    try {
+        const response = await fetch('http://localhost:8080/api/auth/recaptcha-config');
+        if (response.ok) {
+            const config = await response.json();
+            window.recaptchaSiteKey = config.siteKey;
+            console.log('🔒 reCAPTCHA config loaded');
+            loadRecaptchaScript();
+        } else {
+            console.warn('Failed to load reCAPTCHA config');
+        }
+    } catch (error) {
+        console.error('Error loading reCAPTCHA config:', error);
+    }
+}
+
+// Load reCAPTCHA script
+function loadRecaptchaScript() {
+    if (!window.recaptchaSiteKey || document.querySelector('script[src*="recaptcha"]')) {
+        return;
+    }
+
+    const script = document.createElement('script');
+    script.src = `https://www.google.com/recaptcha/api.js?render=${window.recaptchaSiteKey}`;
+    script.async = true;
+    script.defer = true;
+    document.head.appendChild(script);
+
+    script.onload = () => {
+        console.log('🔒 reCAPTCHA script loaded');
+    };
 }
 
 // Enhanced Swiper initialization utility
@@ -564,7 +602,11 @@ function updateActiveNavLink() {
 document.querySelectorAll('a[href^="#"]').forEach(anchor => {
     anchor.addEventListener('click', function (e) {
         e.preventDefault();
-        const target = document.querySelector(this.getAttribute('href'));
+        const href = this.getAttribute('href');
+        // Skip if href is just "#" or empty
+        if (href === '#' || !href || href.length <= 1) return;
+        
+        const target = document.querySelector(href);
         if (target) {
             target.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
@@ -577,43 +619,81 @@ function initNewsletter() {
     
     if (!newsletterForm) return;
     
-    newsletterForm.addEventListener('submit', function(e) {
+    newsletterForm.addEventListener('submit', async function(e) {
         e.preventDefault();
         
+        const nameInput = document.getElementById('newsletterName');
         const emailInput = document.getElementById('newsletterEmail');
+        
+        const name = nameInput ? nameInput.value.trim() : '';
         const email = emailInput.value.trim();
         
-        if (!email) return;
-        
-        // Save to localStorage
-        const subscribers = JSON.parse(localStorage.getItem('newsletterSubscribers') || '[]');
-        
-        if (subscribers.includes(email)) {
+        if (!email) {
             if (window.showNotification) {
-                window.showNotification('Este email já está subscrito!', 'info');
+                window.showNotification('Por favor, insira um email válido.', 'error');
             }
             return;
         }
         
-        subscribers.push(email);
-        localStorage.setItem('newsletterSubscribers', JSON.stringify(subscribers));
+        // Show loading
+        const btn = newsletterForm.querySelector('.btn-newsletter');
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> A inscrever...';
+        btn.disabled = true;
         
-        // Show success message
-        if (window.showNotification) {
-            window.showNotification('Subscrição realizada com sucesso! Obrigado!', 'success');
+        try {
+            // Try to obtain reCAPTCHA token (v3). If not available, proceed without it.
+            let recaptchaToken = null;
+            try {
+                if (window.recaptchaSiteKey && typeof grecaptcha !== 'undefined' && grecaptcha.execute) {
+                    // grecaptcha.ready expects a callback, wrap in a Promise to await it
+                    await new Promise(resolve => grecaptcha.ready(resolve));
+                    recaptchaToken = await grecaptcha.execute(window.recaptchaSiteKey, { action: 'subscribe' });
+                }
+            } catch (rcErr) {
+                console.warn('reCAPTCHA execute failed:', rcErr);
+            }
+
+            // If siteKey is configured but we failed to obtain a token, stop and show error
+            if (window.recaptchaSiteKey && !recaptchaToken) {
+                if (window.showNotification) window.showNotification('Verificação reCAPTCHA falhou. Tente novamente.', 'error');
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+                return;
+            }
+
+            const response = await fetch('http://localhost:8080/api/auth/subscribe-newsletter', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, name, recaptchaToken })
+            });
+            
+            const data = await response.json();
+            if (response.ok) {
+                const msg = data?.message || 'Inscrito na newsletter com sucesso! Verifique o seu email.';
+                const already = data?.alreadySubscribed === true;
+                if (window.showNotification) {
+                    window.showNotification(msg, already ? 'info' : 'success');
+                }
+                // Reset form only when newly subscribed
+                if (!already) {
+                    if (nameInput) nameInput.value = '';
+                    emailInput.value = '';
+                }
+            } else {
+                const errorMsg = data?.message || 'Erro ao inscrever na newsletter.';
+                if (window.showNotification) {
+                    window.showNotification(errorMsg, 'error');
+                }
+            }
+        } catch (error) {
+            console.error('Newsletter subscription error:', error);
+            if (window.showNotification) {
+                window.showNotification('Erro ao conectar. Tente novamente.', 'error');
+            }
+        } finally {
+            btn.innerHTML = originalText;
+            btn.disabled = false;
         }
-        
-        // Reset form
-        emailInput.value = '';
-        
-        // Add animation feedback
-        const btn = newsletterForm.querySelector('.btn');
-        btn.innerHTML = '<i class="fas fa-check"></i> Subscrito!';
-        btn.style.background = '#2ecc71';
-        
-        setTimeout(() => {
-            btn.innerHTML = '<i class="fas fa-envelope"></i> Subscrever';
-            btn.style.background = '';
-        }, 3000);
     });
 }

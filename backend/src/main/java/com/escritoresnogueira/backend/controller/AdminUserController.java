@@ -1,10 +1,10 @@
-package main.java.com.escritoresnogueira.backend.controller;
+package com.escritoresnogueira.backend.controller;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import main.java.com.escritoresnogueira.backend.model.User;
-import main.java.com.escritoresnogueira.backend.repository.UserRepository;
-import main.java.com.escritoresnogueira.backend.service.AuthService;
+import com.escritoresnogueira.backend.model.User;
+import com.escritoresnogueira.backend.repository.UserRepository;
+import com.escritoresnogueira.backend.service.AuthService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -114,3 +114,5 @@ public class AdminUserController {
         return ResponseEntity.ok(Map.of("count", count));
     }
 }
+
+

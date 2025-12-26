@@ -1,4 +1,4 @@
-package main.java.com.escritoresnogueira.backend.model;
+package com.escritoresnogueira.backend.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
@@ -42,3 +42,5 @@ public class BookComment extends BaseEntity {
     @Builder.Default
     private Integer helpfulCount = 0;
 }
+
+

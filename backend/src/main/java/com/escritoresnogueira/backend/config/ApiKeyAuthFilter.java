@@ -1,4 +1,4 @@
-package main.java.com.escritoresnogueira.backend.config;
+package com.escritoresnogueira.backend.config;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -43,7 +43,10 @@ public class ApiKeyAuthFilter extends OncePerRequestFilter {
 
         // We only enforce API key for admin paths. Public read endpoints remain accessible.
         // Use the servlet context path (e.g. /api) so mapping works whether app runs with or without context path.
-        boolean isAdminPath = path.startsWith(contextPath + "/admin");
+        // Treat /admin/** as admin API paths. Exclude the admin UI static path (/admin-ui).
+        // Also treat the newsletter send endpoint as admin.
+        boolean isAdminPath = (path.equals(contextPath + "/admin") || path.startsWith(contextPath + "/admin/"))
+            || path.startsWith(contextPath + "/auth/send-newsletter");
 
         if (!isAdminPath) {
             log.debug("[ApiKeyAuthFilter] Not an admin path, skipping API key check");
@@ -52,6 +55,16 @@ public class ApiKeyAuthFilter extends OncePerRequestFilter {
         }
 
         log.info("[ApiKeyAuthFilter] Admin path detected: {} {}", method, path);
+
+        // If a previous filter (e.g. AdminJwtAuthFilter) already authenticated a ROLE_ADMIN user,
+        // trust that authentication and skip API key enforcement.
+        if (SecurityContextHolder.getContext().getAuthentication() != null
+            && SecurityContextHolder.getContext().getAuthentication().getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"))) {
+            log.info("[ApiKeyAuthFilter] Existing ROLE_ADMIN authentication found, skipping API key check");
+            filterChain.doFilter(request, response);
+            return;
+        }
 
         // For admin paths, require a valid API key. If not present or invalid, reject.
         // Check both header names for flexibility
@@ -128,3 +141,5 @@ public class ApiKeyAuthFilter extends OncePerRequestFilter {
         return skip;
     }
 }
+
+

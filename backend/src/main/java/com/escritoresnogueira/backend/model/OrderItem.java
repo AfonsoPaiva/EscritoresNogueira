@@ -1,4 +1,4 @@
-package main.java.com.escritoresnogueira.backend.model;
+package com.escritoresnogueira.backend.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
@@ -35,3 +35,5 @@ public class OrderItem extends BaseEntity {
         return price.multiply(BigDecimal.valueOf(quantity));
     }
 }
+
+

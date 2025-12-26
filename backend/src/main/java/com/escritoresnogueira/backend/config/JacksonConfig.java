@@ -1,4 +1,4 @@
-package main.java.com.escritoresnogueira.backend.config;
+package com.escritoresnogueira.backend.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
@@ -15,3 +15,5 @@ public class JacksonConfig {
         return mapper;
     }
 }
+
+

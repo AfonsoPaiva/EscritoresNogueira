@@ -1,10 +1,10 @@
-package main.java.com.escritoresnogueira.backend.controller;
+package com.escritoresnogueira.backend.controller;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import main.java.com.escritoresnogueira.backend.dto.BookCommentDTO;
-import main.java.com.escritoresnogueira.backend.dto.CommentActionDTO;
-import main.java.com.escritoresnogueira.backend.service.BookCommentService;
+import com.escritoresnogueira.backend.dto.BookCommentDTO;
+import com.escritoresnogueira.backend.dto.CommentActionDTO;
+import com.escritoresnogueira.backend.service.BookCommentService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -48,6 +48,29 @@ public class AdminCommentsController {
         response.put("totalElements", comments.getTotalElements());
         response.put("totalPages", comments.getTotalPages());
         response.put("pendingCount", bookCommentService.getPendingCommentCount());
+
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * GET /admin/comments
+     * Return all comments (paginated) for admin review. Optional `status` query param could be added later.
+     */
+    @GetMapping
+    public ResponseEntity<Map<String, Object>> getAllComments(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "50") int size) {
+
+        Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
+        Page<BookCommentDTO> comments = bookCommentService.getAllComments(pageable);
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("success", true);
+        response.put("data", comments.getContent());
+        response.put("page", comments.getNumber());
+        response.put("size", comments.getSize());
+        response.put("totalElements", comments.getTotalElements());
+        response.put("totalPages", comments.getTotalPages());
 
         return ResponseEntity.ok(response);
     }
@@ -156,3 +179,5 @@ public class AdminCommentsController {
         }
     }
 }
+
+

@@ -1,4 +1,4 @@
-package main.java.com.escritoresnogueira.backend.model;
+package com.escritoresnogueira.backend.model;
 
 import jakarta.persistence.*;
 import lombok.*;
@@ -30,6 +30,10 @@ public class Order extends BaseEntity {
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     private List<OrderItem> items = new ArrayList<>();
+
+    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private List<OrderStatusHistory> statusHistory = new ArrayList<>();
     
     @Column(nullable = false, precision = 10, scale = 2)
     private BigDecimal total;
@@ -53,6 +57,12 @@ public class Order extends BaseEntity {
     @Column(name = "payment_id")
     private String paymentId;
     
+    @Column(name = "receipt_url")
+    private String receiptUrl;
+
+    @Column(name = "invoice_pdf_url")
+    private String invoicePdfUrl;
+    
     public void addItem(OrderItem item) {
         items.add(item);
         item.setOrder(this);
@@ -70,10 +80,12 @@ public class Order extends BaseEntity {
     }
     
     public enum OrderStatus {
-        PENDING, PAID, SHIPPED, DELIVERED, CANCELLED
+        PENDING, PAID, PROCESSING, SHIPPED, DELIVERED, CANCELLED
     }
     
     public enum PaymentStatus {
         PENDING, PAID, FAILED, REFUNDED
     }
 }
+
+

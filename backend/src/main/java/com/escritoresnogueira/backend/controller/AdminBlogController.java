@@ -1,10 +1,10 @@
-package main.java.com.escritoresnogueira.backend.controller;
+package com.escritoresnogueira.backend.controller;
 
-import main.java.com.escritoresnogueira.backend.model.BlogPost;
-import main.java.com.escritoresnogueira.backend.model.BlogCategory;
-import main.java.com.escritoresnogueira.backend.repository.BlogPostRepository;
-import main.java.com.escritoresnogueira.backend.repository.BlogCategoryRepository;
-import main.java.com.escritoresnogueira.backend.dto.AdminBlogPostDTO;
+import com.escritoresnogueira.backend.model.BlogPost;
+import com.escritoresnogueira.backend.model.BlogCategory;
+import com.escritoresnogueira.backend.repository.BlogPostRepository;
+import com.escritoresnogueira.backend.repository.BlogCategoryRepository;
+import com.escritoresnogueira.backend.dto.AdminBlogPostDTO;
 import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -21,6 +21,10 @@ public class AdminBlogController {
     @Autowired
     private BlogCategoryRepository blogCategoryRepository;
 
+    @GetMapping("/posts")
+    public ResponseEntity<java.util.List<BlogPost>> getPosts() {
+        return ResponseEntity.ok(blogPostRepository.findAll());
+    }
     
     @PostMapping("/posts")
     public ResponseEntity<BlogPost> createPost(@RequestBody AdminBlogPostDTO dto) {
@@ -102,3 +106,5 @@ public class AdminBlogController {
         return ResponseEntity.notFound().build();
     }
 }
+
+

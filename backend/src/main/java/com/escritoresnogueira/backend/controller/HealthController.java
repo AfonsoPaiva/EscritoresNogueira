@@ -1,4 +1,4 @@
-package main.java.com.escritoresnogueira.backend.controller;
+package com.escritoresnogueira.backend.controller;
 
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Value;
@@ -54,3 +54,5 @@ public class HealthController {
         return ResponseEntity.ok(response);
     }
 }
+
+

@@ -1,16 +1,16 @@
-package main.java.com.escritoresnogueira.backend.controller;
+package com.escritoresnogueira.backend.controller;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import main.java.com.escritoresnogueira.backend.dto.UpdateProfileDTO;
-import main.java.com.escritoresnogueira.backend.dto.UserProfileDTO;
-import main.java.com.escritoresnogueira.backend.dto.UserStatsDTO;
-import main.java.com.escritoresnogueira.backend.model.Order;
-import main.java.com.escritoresnogueira.backend.model.User;
-import main.java.com.escritoresnogueira.backend.model.UserSession;
-import main.java.com.escritoresnogueira.backend.repository.OrderRepository;
-import main.java.com.escritoresnogueira.backend.repository.UserRepository;
-import main.java.com.escritoresnogueira.backend.service.UserSessionService;
+import com.escritoresnogueira.backend.dto.UpdateProfileDTO;
+import com.escritoresnogueira.backend.dto.UserProfileDTO;
+import com.escritoresnogueira.backend.dto.UserStatsDTO;
+import com.escritoresnogueira.backend.model.Order;
+import com.escritoresnogueira.backend.model.User;
+import com.escritoresnogueira.backend.model.UserSession;
+import com.escritoresnogueira.backend.repository.OrderRepository;
+import com.escritoresnogueira.backend.repository.UserRepository;
+import com.escritoresnogueira.backend.service.UserSessionService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -64,6 +64,8 @@ public class UserController {
                 .country(user.getCountry())
                 .photoUrl(user.getPhotoUrl())
                 .createdAt(user.getCreatedAt())
+                .authProvider(user.getAuthProvider())
+                .enabled(user.isEnabled())
                 .build();
 
         return ResponseEntity.ok(profile);
@@ -204,12 +206,52 @@ public class UserController {
 
         User user = userOpt.get();
         
-        Page<Order> orders = orderRepository.findByUserId(
+        // Return orders that belong to the user by association OR match the user's email
+        Page<Order> orders = orderRepository.findByUserIdOrCustomerEmail(
             user.getId(),
+            user.getEmail(),
             PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"))
         );
 
         return ResponseEntity.ok(orders.getContent());
+    }
+
+    /**
+     * Delete a single user order (only allowed for the owner and for non-paid orders)
+     */
+    @DeleteMapping("/orders/{orderId}")
+    public ResponseEntity<?> deleteOrder(
+            @RequestHeader(value = SESSION_HEADER, required = false) String sessionToken,
+            @PathVariable Long orderId) {
+
+        Optional<User> userOpt = getUserFromSession(sessionToken);
+        if (userOpt.isEmpty()) {
+            return ResponseEntity.status(401).body(Map.of("error", "unauthenticated"));
+        }
+        User user = userOpt.get();
+
+        Optional<Order> ordOpt = orderRepository.findById(orderId);
+        if (ordOpt.isEmpty()) return ResponseEntity.status(404).body(Map.of("error", "order not found"));
+
+        Order order = ordOpt.get();
+
+        // Verify ownership: by user association or by matching customer email
+        boolean owner = false;
+        if (order.getUser() != null && order.getUser().getId() != null && order.getUser().getId().equals(user.getId())) owner = true;
+        if (!owner && order.getCustomerEmail() != null && !order.getCustomerEmail().isBlank() && order.getCustomerEmail().equalsIgnoreCase(user.getEmail())) owner = true;
+        if (!owner) return ResponseEntity.status(403).body(Map.of("error", "forbidden"));
+
+        // Prevent deleting orders that are already paid
+        if (order.getPaymentStatus() == Order.PaymentStatus.PAID) {
+            return ResponseEntity.status(400).body(Map.of("error", "cannot delete paid order"));
+        }
+
+        try {
+            orderRepository.delete(order);
+            return ResponseEntity.ok(Map.of("deleted", true, "orderId", orderId));
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(Map.of("error", "failed to delete order", "detail", e.getMessage()));
+        }
     }
 
     /**
@@ -241,3 +283,5 @@ public class UserController {
         return sb.toString();
     }
 }
+
+

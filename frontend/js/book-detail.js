@@ -580,11 +580,27 @@ function initReviewForm() {
         submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enviando...';
 
         try {
+            // Get reCAPTCHA token
+            let recaptchaToken = null;
+            if (window.grecaptcha && window.recaptchaSiteKey) {
+                try {
+                    recaptchaToken = await window.grecaptcha.execute(window.recaptchaSiteKey, { action: 'comment' });
+                } catch (error) {
+                    console.warn('reCAPTCHA execution failed, using test token:', error);
+                    recaptchaToken = 'test-token';
+                }
+            } else {
+                // Fallback for development/testing
+                console.warn('reCAPTCHA not available, using test token');
+                recaptchaToken = 'test-token';
+            }
+
             const response = await api.submitBookComment(currentBook.id, {
                 authorName: authorName,
                 rating: parseInt(rating.value),
                 title: title,
-                content: text
+                content: text,
+                recaptchaToken: recaptchaToken
             });
 
             if (response.success) {

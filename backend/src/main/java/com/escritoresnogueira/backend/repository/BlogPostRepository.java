@@ -1,7 +1,7 @@
-package main.java.com.escritoresnogueira.backend.repository;
+package com.escritoresnogueira.backend.repository;
 
-import main.java.com.escritoresnogueira.backend.model.BlogCategory;
-import main.java.com.escritoresnogueira.backend.model.BlogPost;
+import com.escritoresnogueira.backend.model.BlogCategory;
+import com.escritoresnogueira.backend.model.BlogPost;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -41,3 +41,5 @@ public interface BlogPostRepository extends JpaRepository<BlogPost, Long> {
     
     Long countByPublishedTrue();
 }
+
+

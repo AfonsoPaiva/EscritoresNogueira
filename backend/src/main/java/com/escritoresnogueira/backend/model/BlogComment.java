@@ -1,4 +1,4 @@
-package main.java.com.escritoresnogueira.backend.model;
+package com.escritoresnogueira.backend.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
@@ -37,3 +37,5 @@ public class BlogComment extends BaseEntity {
     @Builder.Default
     private boolean approved = false;
 }
+
+

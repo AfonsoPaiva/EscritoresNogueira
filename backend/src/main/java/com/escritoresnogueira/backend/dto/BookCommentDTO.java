@@ -1,4 +1,4 @@
-package main.java.com.escritoresnogueira.backend.dto;
+package com.escritoresnogueira.backend.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
@@ -32,3 +32,5 @@ public class BookCommentDTO {
     @JsonProperty("helpfulCount")
     private Integer helpfulCount;
 }
+
+

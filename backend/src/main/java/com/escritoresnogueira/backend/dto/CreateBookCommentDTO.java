@@ -1,4 +1,4 @@
-package main.java.com.escritoresnogueira.backend.dto;
+package com.escritoresnogueira.backend.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -14,4 +14,7 @@ public class CreateBookCommentDTO {
     private Integer rating; // 1-5
     private String title;
     private String content;
+    private String recaptchaToken;
 }
+
+

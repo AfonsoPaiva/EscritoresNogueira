@@ -1,9 +1,9 @@
-package main.java.com.escritoresnogueira.backend.controller;
+package com.escritoresnogueira.backend.controller;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import main.java.com.escritoresnogueira.backend.dto.BookCommentDTO;
-import main.java.com.escritoresnogueira.backend.service.BookCommentService;
+import com.escritoresnogueira.backend.dto.BookCommentDTO;
+import com.escritoresnogueira.backend.service.BookCommentService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -155,3 +155,5 @@ public class AdminBookCommentController {
         }
     }
 }
+
+

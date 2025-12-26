@@ -1,17 +1,30 @@
-package main.java.com.escritoresnogueira.backend.controller;
+package com.escritoresnogueira.backend.controller;
 
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import main.java.com.escritoresnogueira.backend.dto.AuthResponse;
-import main.java.com.escritoresnogueira.backend.dto.FirebaseAuthRequest;
-import main.java.com.escritoresnogueira.backend.dto.FirebaseConfigDTO;
-import main.java.com.escritoresnogueira.backend.dto.RegisterRequest;
-import main.java.com.escritoresnogueira.backend.dto.SessionResponse;
-import main.java.com.escritoresnogueira.backend.service.AuthService;
+import com.escritoresnogueira.backend.dto.AuthResponse;
+import com.escritoresnogueira.backend.dto.FirebaseAuthRequest;
+import com.escritoresnogueira.backend.dto.FirebaseConfigDTO;
+import com.escritoresnogueira.backend.dto.RegisterRequest;
+import com.escritoresnogueira.backend.dto.SendNewsletterRequest;
+import com.escritoresnogueira.backend.dto.SessionResponse;
+import com.escritoresnogueira.backend.dto.SubscribeNewsletterRequest;
+import com.escritoresnogueira.backend.dto.UnsubscribeNewsletterRequest;
+import com.escritoresnogueira.backend.service.AuthService;
+import com.escritoresnogueira.backend.service.NewsletterService;
+import com.escritoresnogueira.backend.service.ReCaptchaService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Map;
 
@@ -23,6 +36,12 @@ import java.util.Map;
 public class AuthController {
 
     private final AuthService authService;
+    private final ReCaptchaService reCaptchaService;
+    private final NewsletterService newsletterService;
+    // Simple in-memory rate limiter: key -> counter + window start
+    private final java.util.concurrent.ConcurrentHashMap<String, RateLimitInfo> rateLimits = new java.util.concurrent.ConcurrentHashMap<>();
+    private static final long RATE_LIMIT_WINDOW_MS = 60 * 60 * 1000L; // 1 hour
+    private static final int RATE_LIMIT_MAX = 5; // max requests per window per key
 
     @Value("${firebase.web.api-key}")
     private String firebaseApiKey;
@@ -42,10 +61,22 @@ public class AuthController {
     @Value("${firebase.web.app-id:}")
     private String firebaseAppId;
 
+    @Value("${recaptcha.site-key}")
+    private String recaptchaSiteKey;
+
     /**
-     * Get Firebase configuration for web SDK
-     * This is safe to expose - it's the same config you'd put in your frontend
+     * Get reCAPTCHA configuration for web
      */
+    @GetMapping("/recaptcha-config")
+    public ResponseEntity<Map<String, String>> getRecaptchaConfig() {
+        log.debug("📱 Returning reCAPTCHA configuration");
+        
+        Map<String, String> config = Map.of(
+            "siteKey", recaptchaSiteKey
+        );
+        
+        return ResponseEntity.ok(config);
+    }
     @GetMapping("/firebase-config")
     public ResponseEntity<FirebaseConfigDTO> getFirebaseConfig() {
         log.debug("📱 Returning Firebase web configuration");
@@ -109,11 +140,37 @@ public class AuthController {
      * Register a new user with email and password
      */
     @PostMapping("/register")
-    public ResponseEntity<?> registerUser(@RequestBody RegisterRequest request) {
+    public ResponseEntity<?> registerUser(@RequestBody RegisterRequest request, HttpServletRequest httpRequest) {
         try {
-            log.info("📝 Registando novo usuário: {}", request.getEmail());
-            AuthResponse response = authService.registerUser(request);
-            log.info("✅ Usuário registado: {}", response.getEmail());
+            log.info("📝 Registando novo usuário");
+
+            // Verify reCAPTCHA (detailed: supports v3 score and v2/invisible tokens)
+            String clientIp = getClientIp(httpRequest);
+            ReCaptchaService.VerificationResult rc = reCaptchaService.verifyTokenDetailed(request.getRecaptchaToken(), clientIp);
+            if (rc == null || rc.success == null || !rc.success) {
+                log.warn("❌ reCAPTCHA verification failed for registration (result={})", rc);
+                return ResponseEntity.badRequest().body(Map.of(
+                    "error", true,
+                    "message", "Verificação reCAPTCHA falhou. Tente novamente."
+                ));
+            }
+
+            // If we received a v3 score and it's below threshold, require invisible challenge
+            if (rc.score != null) {
+                double threshold = 0.5; // adjust based on tuning
+                if (rc.score < threshold && (request.getChallenge() == null || !request.getChallenge())) {
+                    log.info("Low reCAPTCHA v3 score ({}). Asking client to run invisible challenge.", rc.score);
+                    return ResponseEntity.status(400).body(Map.of("challengeRequired", true));
+                }
+            }
+
+            // Require client to send Firebase ID token (do not accept passwords)
+            if (request.getIdToken() == null || request.getIdToken().isBlank()) {
+                return ResponseEntity.badRequest().body(Map.of("error", true, "message", "idToken obrigatório"));
+            }
+
+            AuthResponse response = authService.registerUserWithIdToken(request.getIdToken(), request.getName());
+            log.info("✅ Usuário registado localmente");
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             log.error("❌ Erro no registo: {}", e.getMessage());
@@ -162,4 +219,182 @@ public class AuthController {
             "service", "auth"
         ));
     }
+@PostMapping("/resend-verification")
+public ResponseEntity<?> resendVerification(@RequestBody Map<String, String> body) {
+    try {
+        String email = body.get("email");
+        if (email == null || email.isBlank()) {
+            return ResponseEntity.badRequest().body(Map.of("error", true, "message", "Email obrigatório"));
+        }
+        String key = buildRateLimitKey(email);
+        if (!isAllowedByRateLimit(key)) {
+            log.warn("Rate limited resendVerification for key={}", key);
+            // Don't reveal to client - return generic success
+            return ResponseEntity.ok(Map.of("success", true, "message", "Se a conta existir, enviámos um email de verificação"));
+        }
+
+        boolean ok = authService.sendVerificationEmail(email);
+        if (!ok) {
+            log.warn("Failed to send verification email for {} (internal).", email);
+        }
+        // Always return a generic message to avoid user enumeration
+        return ResponseEntity.ok(Map.of("success", true, "message", "Se a conta existir, enviámos um email de verificação"));
+    } catch (Exception e) {
+        log.error("❌ Erro ao reenviar verificação: {}", e.getMessage(), e);
+        return ResponseEntity.ok(Map.of("success", true, "message", "Se a conta existir, enviámos um email de verificação"));
+    }
 }
+
+    @PostMapping("/forgot-password")
+    public ResponseEntity<?> forgotPassword(@RequestBody Map<String, String> body) {
+        try {
+            String email = body.get("email");
+            if (email == null || email.isBlank()) {
+                return ResponseEntity.badRequest().body(Map.of("error", true, "message", "Email obrigatório"));
+            }
+            String key = buildRateLimitKey(email);
+            if (!isAllowedByRateLimit(key)) {
+                log.warn("Rate limited forgotPassword for key={}", key);
+                return ResponseEntity.ok(Map.of("success", true, "message", "Se a conta existir, enviámos um email para repor a password"));
+            }
+
+            // Only attempt to send reset email if the account exists locally.
+            if (!authService.userExists(email)) {
+                log.warn("Forgot-password requested for non-existent email {} - skipping send", email);
+                return ResponseEntity.ok(Map.of("success", true, "message", "Se a conta existir, enviámos um email para repor a password"));
+            }
+
+            boolean ok = authService.sendPasswordResetEmail(email);
+            if (!ok) {
+                log.warn("Failed to send password reset email for {} (internal).", email);
+            }
+            // Always return a generic message to avoid user enumeration
+            return ResponseEntity.ok(Map.of("success", true, "message", "Se a conta existir, enviámos um email para repor a password"));
+        } catch (Exception e) {
+            log.error("❌ Erro ao enviar reposição de password: {}", e.getMessage(), e);
+            return ResponseEntity.ok(Map.of("success", true, "message", "Se a conta existir, enviámos um email para repor a password"));
+        }
+    }
+
+    private String buildRateLimitKey(String email) {
+        // Key by email (lower-case) - could also include IP if desired
+        return email.trim().toLowerCase();
+    }
+
+    private boolean isAllowedByRateLimit(String key) {
+        long now = System.currentTimeMillis();
+        rateLimits.compute(key, (k, info) -> {
+            if (info == null || now - info.windowStartMs > RATE_LIMIT_WINDOW_MS) {
+                return new RateLimitInfo(1, now);
+            }
+            info.count++;
+            return info;
+        });
+        RateLimitInfo current = rateLimits.get(key);
+        return current.count <= RATE_LIMIT_MAX;
+    }
+
+    private static class RateLimitInfo {
+        volatile int count;
+        final long windowStartMs;
+
+        RateLimitInfo(int count, long windowStartMs) {
+            this.count = count;
+            this.windowStartMs = windowStartMs;
+        }
+    }
+
+    @PostMapping("/subscribe-newsletter")
+    public ResponseEntity<?> subscribeNewsletter(@RequestBody SubscribeNewsletterRequest request) {
+        try {
+            // Verify reCAPTCHA token (supports v3 with score and v2/invisible tokens)
+            String clientIp = ""; // best-effort; can't access HttpServletRequest here directly
+            try {
+                // attempt to get IP from RequestContextHolder if available
+                jakarta.servlet.http.HttpServletRequest httpReq = ((org.springframework.web.context.request.ServletRequestAttributes) org.springframework.web.context.request.RequestContextHolder.currentRequestAttributes()).getRequest();
+                clientIp = getClientIp(httpReq);
+            } catch (Exception e) {
+                // ignore - IP remains empty
+            }
+
+            ReCaptchaService.VerificationResult rc = reCaptchaService.verifyTokenDetailed(request.getRecaptchaToken(), clientIp);
+            if (rc == null || rc.success == null || !rc.success) {
+                return ResponseEntity.badRequest().body(Map.of("error", true, "message", "Verificação reCAPTCHA falhou. Tente novamente."));
+            }
+
+            if (rc.score != null) {
+                double threshold = 0.5;
+                if (rc.score < threshold && (request.getChallenge() == null || !request.getChallenge())) {
+                    return ResponseEntity.status(400).body(Map.of("challengeRequired", true));
+                }
+            }
+            // If already subscribed, return a friendly notice so frontend can show an informative message
+            if (newsletterService.isSubscribed(request.getEmail())) {
+                log.info("Subscribe attempted but already subscribed: {}", request.getEmail());
+                return ResponseEntity.ok(Map.of("message", "Já está inscrito na newsletter", "alreadySubscribed", true));
+            }
+
+            newsletterService.subscribe(request.getEmail(), request.getName());
+            return ResponseEntity.ok(Map.of("message", "Inscrito na newsletter com sucesso", "alreadySubscribed", false));
+        } catch (Exception e) {
+            log.error("Erro ao inscrever na newsletter: {}", e.getMessage());
+            return ResponseEntity.badRequest().body(Map.of("error", true, "message", "Erro ao inscrever"));
+        }
+    }
+
+    @PostMapping("/unsubscribe-newsletter")
+    public ResponseEntity<?> unsubscribeNewsletter(@RequestBody UnsubscribeNewsletterRequest request) {
+        try {
+            boolean success = newsletterService.unsubscribe(request.getEmail());
+            if (success) {
+                return ResponseEntity.ok(Map.of("message", "Cancelada a inscrição na newsletter"));
+            } else {
+                return ResponseEntity.badRequest().body(Map.of("error", true, "message", "Email não encontrado na newsletter"));
+            }
+        } catch (Exception e) {
+            log.error("Erro ao cancelar inscrição: {}", e.getMessage());
+            return ResponseEntity.badRequest().body(Map.of("error", true, "message", "Erro ao cancelar"));
+        }
+    }
+
+    @GetMapping("/unsubscribe-newsletter")
+    public ResponseEntity<?> unsubscribeNewsletterGet(@RequestParam(required = false) String email,
+                                                     @RequestParam(required = false) String token) {
+        try {
+            boolean success;
+            if (token != null) {
+                // Unsubscribe via token (from newsletter emails)
+                success = newsletterService.unsubscribeByToken(token);
+            } else if (email != null) {
+                // Unsubscribe via email (legacy support)
+                authService.unsubscribeNewsletter(email);
+                success = true;
+            } else {
+                return ResponseEntity.badRequest().body("Parâmetro email ou token é obrigatório");
+            }
+
+            if (success) {
+                return ResponseEntity.ok("Inscrição cancelada com sucesso. <a href='/'>Voltar ao site</a>");
+            } else {
+                return ResponseEntity.badRequest().body("Email não encontrado na newsletter");
+            }
+        } catch (Exception e) {
+            log.error("Erro ao cancelar inscrição: {}", e.getMessage());
+            return ResponseEntity.badRequest().body("Erro ao cancelar inscrição");
+        }
+    }
+
+    @PostMapping("/send-newsletter")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> sendNewsletter(@RequestBody SendNewsletterRequest request) {
+        try {
+            authService.sendNewsletterToAll(request.getSubject(), request.getContent());
+            return ResponseEntity.ok(Map.of("message", "Newsletter enviada com sucesso"));
+        } catch (Exception e) {
+            log.error("Erro ao enviar newsletter: {}", e.getMessage());
+            return ResponseEntity.badRequest().body(Map.of("error", true, "message", "Erro ao enviar"));
+        }
+    }
+}
+
+

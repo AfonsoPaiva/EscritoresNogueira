@@ -1,10 +1,10 @@
-package main.java.com.escritoresnogueira.backend.controller;
+package com.escritoresnogueira.backend.controller;
 
-import main.java.com.escritoresnogueira.backend.model.BlogPost;
-import main.java.com.escritoresnogueira.backend.model.BlogCategory;
-import main.java.com.escritoresnogueira.backend.repository.BlogPostRepository;
-import main.java.com.escritoresnogueira.backend.repository.BlogCategoryRepository;
-import main.java.com.escritoresnogueira.backend.dto.PublicBlogPostDTO;
+import com.escritoresnogueira.backend.model.BlogPost;
+import com.escritoresnogueira.backend.model.BlogCategory;
+import com.escritoresnogueira.backend.repository.BlogPostRepository;
+import com.escritoresnogueira.backend.repository.BlogCategoryRepository;
+import com.escritoresnogueira.backend.dto.PublicBlogPostDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -122,3 +122,5 @@ public class BlogController {
         return minutes + " min";
     }
 }
+
+

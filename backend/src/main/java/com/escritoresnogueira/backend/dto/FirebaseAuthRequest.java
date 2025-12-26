@@ -1,4 +1,4 @@
-package main.java.com.escritoresnogueira.backend.dto;
+package com.escritoresnogueira.backend.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -14,3 +14,5 @@ public class FirebaseAuthRequest {
         return idToken;
     }
 }
+
+

@@ -32,6 +32,18 @@ spring:
           batch_size: 25
         order_inserts: true
         order_updates: true
+
+  # Email (SMTP) configuration example - set real values via environment variables in production
+  mail:
+    host: ${SMTP_HOST:}
+    port: ${SMTP_PORT:587}
+    username: ${SMTP_USERNAME:}
+    password: ${SMTP_PASSWORD:}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls.enable: true
   
 
 
@@ -131,4 +143,15 @@ management:
       enabled: true
     diskspace:
       enabled: true
+
+
+# From address used by the EmailService
+app:
+  email:
+    from: ${APP_EMAIL_FROM:no-reply@escritoresnogueira.com}
+
+# Mailgun Configuration
+mailgun:
+  api-key: ${MAILGUN_API_KEY:}
+  domain: ${MAILGUN_DOMAIN:}
 

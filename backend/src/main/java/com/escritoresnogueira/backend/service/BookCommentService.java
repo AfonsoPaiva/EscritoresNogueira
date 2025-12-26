@@ -1,13 +1,13 @@
-package main.java.com.escritoresnogueira.backend.service;
+package com.escritoresnogueira.backend.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import main.java.com.escritoresnogueira.backend.dto.BookCommentDTO;
-import main.java.com.escritoresnogueira.backend.dto.CreateBookCommentDTO;
-import main.java.com.escritoresnogueira.backend.model.Book;
-import main.java.com.escritoresnogueira.backend.model.BookComment;
-import main.java.com.escritoresnogueira.backend.repository.BookCommentRepository;
-import main.java.com.escritoresnogueira.backend.repository.BookRepository;
+import com.escritoresnogueira.backend.dto.BookCommentDTO;
+import com.escritoresnogueira.backend.dto.CreateBookCommentDTO;
+import com.escritoresnogueira.backend.model.Book;
+import com.escritoresnogueira.backend.model.BookComment;
+import com.escritoresnogueira.backend.repository.BookCommentRepository;
+import com.escritoresnogueira.backend.repository.BookRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -78,6 +78,14 @@ public class BookCommentService {
                 .map(this::mapToDTO);
     }
     
+    /**
+     * Get all comments (admin view, paginated)
+     */
+    public Page<BookCommentDTO> getAllComments(Pageable pageable) {
+        return bookCommentRepository.findAll(pageable)
+                .map(this::mapToDTO);
+    }
+
     /**
      * Get pending comments (admin view)
      */
@@ -178,3 +186,5 @@ public class BookCommentService {
                 .build();
     }
 }
+
+

@@ -1,6 +1,6 @@
-package main.java.com.escritoresnogueira.backend.repository;
+package com.escritoresnogueira.backend.repository;
 
-import main.java.com.escritoresnogueira.backend.model.Order;
+import com.escritoresnogueira.backend.model.Order;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -23,6 +23,8 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     
     Page<Order> findByPaymentStatus(Order.PaymentStatus paymentStatus, Pageable pageable);
     
+    Page<Order> findByUserIdOrCustomerEmail(Long userId, String customerEmail, Pageable pageable);
+    
     @Query("SELECT o FROM Order o WHERE o.customerEmail = :email")
     Page<Order> findByCustomerEmail(@Param("email") String email, Pageable pageable);
     
@@ -42,4 +44,10 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     
     @Query("SELECT COUNT(o) FROM Order o WHERE o.paymentStatus = :status")
     Long countByPaymentStatus(@Param("status") Order.PaymentStatus status);
+
+    Optional<Order> findByPaymentId(String paymentId);
+
+    List<Order> findAllByUserId(Long userId);
 }
+
+

@@ -1,4 +1,4 @@
-package main.java.com.escritoresnogueira.backend.model;
+package com.escritoresnogueira.backend.model;
 
 import jakarta.persistence.*;
 import lombok.*;
@@ -73,7 +73,13 @@ public class User extends BaseEntity implements UserDetails {
     @Column(nullable = false)
     private boolean enabled = true;
     
+    // newsletter_subscriber moved to separate NewsletterClient table
+    
     private LocalDateTime lastLogin;
+    
+    @Column(name = "last_password_reset_requested_at")
+    private LocalDateTime lastPasswordResetRequestedAt;
+    // (email verification handled by Firebase - no local verification fields)
     
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
@@ -107,3 +113,5 @@ public class User extends BaseEntity implements UserDetails {
         return true;
     }
 }
+
+

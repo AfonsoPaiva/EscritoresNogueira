@@ -23,6 +23,57 @@ function initFormularioPage() {
     
     // Initialize plan selection highlighting
     initPlanSelection();
+
+    // Load reCAPTCHA script dynamically if site key provided
+    const siteKeyMeta = document.querySelector('meta[name="recaptcha-site-key"]');
+    const siteKey = siteKeyMeta ? siteKeyMeta.content : null;
+    if (siteKey && !window.grecaptcha) {
+        const script = document.createElement('script');
+        script.src = `https://www.google.com/recaptcha/api.js?render=${encodeURIComponent(siteKey)}`;
+        script.async = true;
+        script.defer = true;
+        document.head.appendChild(script);
+    }
+}
+
+// Ensure reCAPTCHA script is loaded and ready
+function ensureRecaptchaLoaded(siteKey) {
+    return new Promise((resolve, reject) => {
+        if (window.grecaptcha && typeof grecaptcha.execute === 'function') {
+            grecaptcha.ready(resolve);
+            return;
+        }
+
+        // Create script if not present
+        const existing = document.querySelector(`script[src*="recaptcha/api.js"]`);
+        if (existing) {
+            const check = () => {
+                if (window.grecaptcha && typeof grecaptcha.execute === 'function') return grecaptcha.ready(resolve);
+                setTimeout(check, 50);
+            };
+            check();
+            return;
+        }
+
+        const script = document.createElement('script');
+        script.src = `https://www.google.com/recaptcha/api.js?render=${encodeURIComponent(siteKey)}`;
+        script.async = true;
+        script.defer = true;
+        script.onload = () => {
+            if (window.grecaptcha && typeof grecaptcha.execute === 'function') {
+                grecaptcha.ready(resolve);
+            } else {
+                // Wait a short while for grecaptcha to become available
+                const wait = () => {
+                    if (window.grecaptcha && typeof grecaptcha.execute === 'function') return grecaptcha.ready(resolve);
+                    setTimeout(wait, 50);
+                };
+                wait();
+            }
+        };
+        script.onerror = () => reject(new Error('Failed to load reCAPTCHA'));
+        document.head.appendChild(script);
+    });
 }
 
 // Initialize plan selection visual feedback
@@ -135,15 +186,31 @@ function validateFormStep(step) {
             
             if (!isChecked) {
                 isValid = false;
+                let errorClass = '.plan-option'; // default for plan
+                if (field.name === 'bookType') {
+                    errorClass = '.book-type-option';
+                    // Show error message for book type
+                    const errorMsg = document.getElementById('bookTypeError');
+                    if (errorMsg) errorMsg.style.display = 'block';
+                }
                 radioGroup.forEach(radio => {
-                    radio.closest('.plan-option').classList.add('error');
+                    const option = radio.closest(errorClass);
+                    if (option) option.classList.add('error');
                 });
-                showNotification('Por favor, selecione um plano.', 'error');
+                showNotification('Por favor, selecione uma opção.', 'error');
+            } else {
+                // Clear error if selected
+                if (field.name === 'bookType') {
+                    const errorMsg = document.getElementById('bookTypeError');
+                    if (errorMsg) errorMsg.style.display = 'none';
+                }
             }
         } else if (field.type === 'checkbox') {
             if (!field.checked) {
                 isValid = false;
-                field.classList.add('error');
+                // mark the visible checkbox element (label or checkmark) as error
+                const label = field.closest('.checkbox-label');
+                if (label) label.classList.add('error');
                 showNotification('Por favor, aceite os termos para continuar.', 'error');
             }
         } else if (!field.value.trim()) {
@@ -165,22 +232,125 @@ function initFormSubmission() {
     
     if (!form) return;
     
-    form.addEventListener('submit', function(e) {
+    // Add event listeners to clear errors on input
+    const radioButtons = form.querySelectorAll('input[type="radio"]');
+    radioButtons.forEach(radio => {
+        radio.addEventListener('change', function() {
+            // Clear error class from options
+            let errorClass = '.plan-option';
+            if (this.name === 'bookType') {
+                errorClass = '.book-type-option';
+                // Hide error message
+                const errorMsg = document.getElementById('bookTypeError');
+                if (errorMsg) errorMsg.style.display = 'none';
+            }
+            const group = form.querySelectorAll(`input[name="${this.name}"]`);
+            group.forEach(r => {
+                const option = r.closest(errorClass);
+                if (option) option.classList.remove('error');
+            });
+        });
+    });
+
+    // Clear checkbox error when user toggles it
+    const checkboxes = form.querySelectorAll('input[type="checkbox"]');
+    checkboxes.forEach(cb => {
+        cb.addEventListener('change', function() {
+            const label = this.closest('.checkbox-label');
+            if (label) label.classList.remove('error');
+        });
+    });
+    
+    form.addEventListener('submit', async function(e) {
         e.preventDefault();
-        
+
         // Validate final step
         if (!validateFormStep(currentFormStep)) {
             return;
         }
-        
+
         // Collect form data
         const formData = collectFormData();
-        
-        // Save to localStorage (in a real app, this would send to a server)
-        saveFormSubmission(formData);
-        
-        // Show success message
-        showSuccessMessage(formData);
+
+        // Optimistic: disable submit button
+        const submitBtn = form.querySelector('button[type="submit"]');
+        if (submitBtn) { submitBtn.disabled = true; submitBtn.classList.add('loading'); }
+        // Show loader and hide previous warning
+        const loader = document.getElementById('formLoader');
+        const apiWarning = document.getElementById('apiWarning');
+        if (apiWarning) { apiWarning.style.display = 'none'; apiWarning.classList.add('hidden'); }
+        if (loader) { loader.style.display = 'flex'; loader.classList.remove('hidden'); }
+
+        try {
+            // Obtain reCAPTCHA token using the same pattern as `main.js`:
+            // prefer `window.recaptchaSiteKey` (loaded at app init), fallback to meta tag.
+            const siteKeyMeta = document.querySelector('meta[name="recaptcha-site-key"]');
+            const configuredKey = window.recaptchaSiteKey || (siteKeyMeta ? siteKeyMeta.content : null);
+
+            if (configuredKey) {
+                try {
+                    // Wait for grecaptcha to be ready (wrap callback in Promise)
+                    await new Promise(resolve => grecaptcha.ready(resolve));
+                    const token = await grecaptcha.execute(configuredKey, { action: 'submit_form' });
+                    formData.recaptchaToken = token;
+                } catch (rcErr) {
+                    console.warn('reCAPTCHA execute failed:', rcErr);
+                    formData.recaptchaToken = '';
+                }
+
+                // If a siteKey is configured but we failed to obtain a token, abort and notify
+                if (window.recaptchaSiteKey && !formData.recaptchaToken) {
+                    if (window.showNotification) window.showNotification('Verificação reCAPTCHA falhou. Tente novamente.', 'error');
+                    if (submitBtn) { submitBtn.disabled = false; submitBtn.classList.remove('loading'); }
+                    if (loader) { loader.style.display = 'none'; loader.classList.add('hidden'); }
+                    return;
+                }
+            } else {
+                // No site key configured — leave token empty (dev/local mode)
+                formData.recaptchaToken = '';
+            }
+
+            // Determine API base: if frontend served from a dev port different from backend (8080),
+            // use localhost:8080 as backend during development. In production the same-origin path ('') will be used.
+            const devHosts = ['localhost', '127.0.0.1'];
+            const apiBase = (devHosts.includes(location.hostname) && location.port && location.port !== '8080') ? 'http://localhost:8080' : '';
+
+            const resp = await fetch(apiBase + '/api/form-submissions', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(formData)
+            });
+
+            if (!resp.ok) {
+                // If backend unreachable or rejects, show warning
+                let msg = 'Erro ao submeter o formulário';
+                try {
+                    const err = await resp.json();
+                    msg = err && err.message ? err.message : msg;
+                } catch (e) { /* ignore parse errors */ }
+
+                if (apiWarning) { apiWarning.style.display = 'block'; apiWarning.classList.remove('hidden'); }
+                throw new Error(msg);
+            }
+
+            const saved = await resp.json();
+
+            // Optionally keep a local copy
+            saveFormSubmission(Object.assign({}, formData, { id: saved.id, submittedAt: saved.submittedAt }));
+
+            // Show success message
+            showSuccessMessage(formData);
+        } catch (ex) {
+            console.error('Form submission failed', ex);
+            if (typeof showNotification === 'function') {
+                showNotification('Ocorreu um erro ao enviar o pedido. Tente novamente mais tarde.', 'error');
+            } else {
+                alert('Ocorreu um erro ao enviar o pedido. Tente novamente mais tarde.');
+            }
+        } finally {
+            if (submitBtn) { submitBtn.disabled = false; submitBtn.classList.remove('loading'); }
+            if (loader) { loader.style.display = 'none'; loader.classList.add('hidden'); }
+        }
     });
 }
 
@@ -190,20 +360,19 @@ function collectFormData() {
     const formData = new FormData(form);
     
     return {
+        name: formData.get('authorName'),
+        email: formData.get('authorEmail'),
+        phone: formData.get('authorPhone'),
+        message: formData.get('message') || '',
         plan: formData.get('plan'),
         bookTitle: formData.get('bookTitle'),
         bookGenre: formData.get('bookGenre'),
         wordCount: formData.get('wordCount'),
         manuscriptStatus: formData.get('manuscriptStatus'),
+        bookType: formData.get('bookType'),
         bookSynopsis: formData.get('bookSynopsis'),
         additionalInfo: formData.get('additionalInfo'),
-        authorName: formData.get('authorName'),
-        authorEmail: formData.get('authorEmail'),
-        authorPhone: formData.get('authorPhone'),
-        preferredContact: formData.get('preferredContact'),
-        newsletterConsent: formData.get('newsletterConsent') === 'on',
-        submittedAt: new Date().toISOString(),
-        status: 'pending'
+        privacyConsent: formData.get('privacyConsent') ? true : false
     };
 }
 
@@ -242,6 +411,7 @@ function showSuccessMessage(data) {
     };
     
     const summary = document.getElementById('successSummary');
+    const shownMessage = data.message && data.message.trim() ? data.message : (data.additionalInfo && data.additionalInfo.trim() ? data.additionalInfo : '(não fornecido)');
     summary.innerHTML = `
         <div class="summary-item">
             <span class="summary-label">Plano:</span>
@@ -249,11 +419,15 @@ function showSuccessMessage(data) {
         </div>
         <div class="summary-item">
             <span class="summary-label">Livro:</span>
-            <span class="summary-value">${data.bookTitle}</span>
+            <span class="summary-value">${data.bookTitle || '(não fornecido)'}</span>
         </div>
         <div class="summary-item">
             <span class="summary-label">Email:</span>
-            <span class="summary-value">${data.authorEmail}</span>
+            <span class="summary-value">${data.email || '(não fornecido)'}</span>
+        </div>
+        <div class="summary-item">
+            <span class="summary-label">Mensagem:</span>
+            <span class="summary-value">${shownMessage}</span>
         </div>
     `;
     

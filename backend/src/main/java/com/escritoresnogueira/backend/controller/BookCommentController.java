@@ -1,10 +1,11 @@
-package main.java.com.escritoresnogueira.backend.controller;
+package com.escritoresnogueira.backend.controller;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import main.java.com.escritoresnogueira.backend.dto.BookCommentDTO;
-import main.java.com.escritoresnogueira.backend.dto.CreateBookCommentDTO;
-import main.java.com.escritoresnogueira.backend.service.BookCommentService;
+import com.escritoresnogueira.backend.dto.BookCommentDTO;
+import com.escritoresnogueira.backend.dto.CreateBookCommentDTO;
+import com.escritoresnogueira.backend.service.BookCommentService;
+import com.escritoresnogueira.backend.service.ReCaptchaService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -12,6 +13,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import jakarta.servlet.http.HttpServletRequest;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -24,6 +26,7 @@ import java.util.Map;
 public class BookCommentController {
     
     private final BookCommentService bookCommentService;
+    private final ReCaptchaService reCaptchaService;
     
     /**
      * Submit a new comment for a book
@@ -32,12 +35,23 @@ public class BookCommentController {
     @PostMapping("/{bookId}/comments")
     public ResponseEntity<Map<String, Object>> submitComment(
             @PathVariable Long bookId,
-            @RequestBody CreateBookCommentDTO dto) {
+            @RequestBody CreateBookCommentDTO dto,
+            HttpServletRequest request) {
         
         log.info("=== POST /books/{}/comments received ===", bookId);
         log.info("DTO: authorName={}, rating={}, title={}", dto.getAuthorName(), dto.getRating(), dto.getTitle());
         
         try {
+            // Verify reCAPTCHA
+            String clientIp = getClientIp(request);
+            if (!reCaptchaService.verifyToken(dto.getRecaptchaToken(), clientIp)) {
+                log.warn("❌ reCAPTCHA verification failed for comment submission on book {}", bookId);
+                Map<String, Object> response = new HashMap<>();
+                response.put("success", false);
+                response.put("message", "Verificação reCAPTCHA falhou. Tente novamente.");
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+            }
+
             BookCommentDTO comment = bookCommentService.submitComment(bookId, dto);
             
             Map<String, Object> response = new HashMap<>();
@@ -117,4 +131,17 @@ public class BookCommentController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
         }
     }
+    
+    /**
+     * Helper to extract client IP from request
+     */
+    private String getClientIp(HttpServletRequest request) {
+        String xForwardedFor = request.getHeader("X-Forwarded-For");
+        if (xForwardedFor != null && !xForwardedFor.isEmpty()) {
+            return xForwardedFor.split(",")[0].trim();
+        }
+        return request.getRemoteAddr();
+    }
 }
+
+

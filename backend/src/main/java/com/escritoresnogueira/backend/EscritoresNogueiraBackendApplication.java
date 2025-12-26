@@ -1,6 +1,6 @@
 package com.escritoresnogueira.backend;
 
-import main.java.com.escritoresnogueira.backend.model.User;
+import com.escritoresnogueira.backend.model.User;
 import io.github.cdimascio.dotenv.Dotenv;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
@@ -12,6 +12,7 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.web.client.RestTemplate;
 
 import java.util.Set;
 
@@ -23,6 +24,11 @@ import java.util.Set;
 @EnableJpaRepositories(basePackages = {"com.escritoresnogueira.backend.repository", "main.java.com.escritoresnogueira.backend.repository"})
 @EntityScan(basePackages = {"com.escritoresnogueira.backend.model", "main.java.com.escritoresnogueira.backend.model"})
 public class EscritoresNogueiraBackendApplication {
+
+    @Bean
+    public RestTemplate restTemplate() {
+        return new RestTemplate();
+    }
 
     // Carrega .env no carregamento da classe — também será executado durante os testes
     static {
@@ -71,3 +77,5 @@ public class EscritoresNogueiraBackendApplication {
         System.out.println("==============================================\n");
     }
 }
+
+

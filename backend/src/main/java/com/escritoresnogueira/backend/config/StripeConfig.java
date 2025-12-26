@@ -1,4 +1,4 @@
-package main.java.com.escritoresnogueira.backend.config;
+package com.escritoresnogueira.backend.config;
 
 import com.stripe.Stripe;
 import org.springframework.beans.factory.annotation.Value;
@@ -11,10 +11,19 @@ public class StripeConfig {
 
     @Value("${stripe.api-key}")
     private String apiKey;
+    
+    @Value("${stripe.publishable-key:}")
+    private String publishableKey;
 
     @PostConstruct
     public void init() {
         Stripe.apiKey = apiKey;
         System.out.println(" Stripe API inicializada com sucesso!");
     }
+
+    public String getPublishableKey() {
+        return publishableKey;
+    }
 }
+
+

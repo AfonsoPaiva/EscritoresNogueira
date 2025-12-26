@@ -122,7 +122,7 @@
                 <h4>Registar</h4>
                 <form id="registerFormElement">
                     <div class="form-group">
-                        <input type="text" placeholder="Nome completo" required>
+                        <input type="text" placeholder="Nome" maxlength="50" required>
                     </div>
                     <div class="form-group">
                         <input type="email" placeholder="E-mail" required>
@@ -234,17 +234,14 @@
                             </div>
 
                             <div class="form-group" data-aos="fade-up">
-                                <label for="country">País *</label>
-                                <select id="country" name="country" required>
-                                    <option value="">Selecione um país</option>
-                                    <option value="PT" selected>Portugal</option>
-                                    <option value="ES">Espanha</option>
-                                    <option value="FR">França</option>
-                                    <option value="DE">Alemanha</option>
-                                    <option value="IT">Itália</option>
-                                    <option value="UK">Reino Unido</option>
-                                    <option value="BR">Brasil</option>
-                                </select>
+                                <label>Envios</label>
+                                <div class="alert alert-info" style="display:flex;align-items:center;gap:10px;">
+                                    <i class="fas fa-map-marker-alt" style="font-size:1.2rem;color:#0E1B4D;"></i>
+                                    <div>
+                                        <strong>Envios apenas para Portugal Continental</strong>
+                                        <div style="font-size:0.9rem;color:#555;">Se precisar de envio para ilhas ou outro país, contacte-nos antes de efetuar a compra.</div>
+                                    </div>
+                                </div>
                             </div>
 
                             <div class="form-group" data-aos="fade-up">
@@ -268,82 +265,15 @@
                         <h2 data-aos="fade-up">Método de Pagamento</h2>
 
                         <div class="payment-methods" data-aos="fade-up">
-                            <div class="payment-method active" data-method="card">
-                                <input type="radio" name="paymentMethod" id="cardPayment" value="card" checked>
-                                <label for="cardPayment">
-                                    <i class="fas fa-credit-card"></i>
-                                    <span>Cartão de Crédito/Débito</span>
-                                </label>
-                            </div>
-
-                            <div class="payment-method" data-method="mbway">
-                                <input type="radio" name="paymentMethod" id="mbwayPayment" value="mbway">
-                                <label for="mbwayPayment">
-                                    <i class="fas fa-mobile-alt"></i>
-                                    <span>MB WAY</span>
-                                </label>
-                            </div>
-
-                            <div class="payment-method" data-method="transfer">
-                                <input type="radio" name="paymentMethod" id="transferPayment" value="transfer">
-                                <label for="transferPayment">
-                                    <i class="fas fa-university"></i>
-                                    <span>Transferência Bancária</span>
-                                </label>
-                            </div>
+                            <p>Ao clicar em "Finalizar Pedido" será redirecionado para a página de pagamento segura da Stripe, onde poderá escolher o método de pagamento disponível.</p>
                         </div>
 
-                        <!-- Card Payment Form -->
-                        <form id="cardPaymentForm" class="payment-form active">
-                            <div class="form-group" data-aos="fade-up">
-                                <label for="cardNumber">Número do Cartão *</label>
-                                <input type="text" id="cardNumber" placeholder="0000 0000 0000 0000" maxlength="19" required>
-                                <div class="card-icons">
-                                    <i class="fab fa-cc-visa"></i>
-                                    <i class="fab fa-cc-mastercard"></i>
-                                    <i class="fab fa-cc-amex"></i>
-                                </div>
-                            </div>
-
-                            <div class="form-group" data-aos="fade-up">
-                                <label for="cardName">Nome no Cartão *</label>
-                                <input type="text" id="cardName" placeholder="NOME APELIDO" required>
-                            </div>
-
-                            <div class="form-row" data-aos="fade-up">
-                                <div class="form-group">
-                                    <label for="cardExpiry">Validade *</label>
-                                    <input type="text" id="cardExpiry" placeholder="MM/AA" maxlength="5" required>
-                                </div>
-                                <div class="form-group">
-                                    <label for="cardCvv">CVV *</label>
-                                    <input type="text" id="cardCvv" placeholder="000" maxlength="3" required>
-                                </div>
-                            </div>
-                        </form>
-
-                        <!-- MB WAY Payment Form -->
-                        <form id="mbwayPaymentForm" class="payment-form">
-                            <div class="form-group" data-aos="fade-up">
-                                <label for="mbwayPhone">Número de Telefone *</label>
-                                <input type="tel" id="mbwayPhone" placeholder="900 000 000" maxlength="9" required>
-                                <small>Irá receber uma notificação no seu telemóvel para confirmar o pagamento</small>
-                            </div>
-                        </form>
-
-                        <!-- Transfer Payment Info -->
-                        <div id="transferPaymentInfo" class="payment-form">
-                            <div class="transfer-info" data-aos="fade-up">
-                                <p><strong>Dados para Transferência:</strong></p>
-                                <div class="bank-details">
-                                    <p><strong>IBAN:</strong> PT50 0000 0000 0000 0000 0000 0</p>
-                                    <p><strong>Titular:</strong> Escritores Nogueira, Lda</p>
-                                    <p><strong>Banco:</strong> Banco Exemplo</p>
-                                    <p><strong>Referência:</strong> <span id="transferReference">EN-00000</span></p>
-                                </div>
-                                <div class="alert alert-info">
-                                    <i class="fas fa-info-circle"></i>
-                                    <span>Após realizar a transferência, o pedido será processado em até 48 horas úteis.</span>
+                        <div id="cardPaymentForm" class="payment-form active" data-aos="fade-up">
+                            <div class="alert alert-success" style="display:flex;align-items:center;gap:10px;">
+                                <i class="fas fa-shield-alt" style="font-size:1.2rem;color:#0E1B4D;"></i>
+                                <div>
+                                    <strong>Pagamento Seguro por Stripe</strong>
+                                    <div style="font-size:0.9rem;color:#555;">Ao clicar em finalizar, será redirecionado para a Stripe para concluir o pagamento.</div>
                                 </div>
                             </div>
                         </div>
@@ -471,11 +401,11 @@
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
     <script src="js/firebase-config.js"></script>
     <script src="js/api.js"></script>
-    <script src="js/data.js"></script>
     <script src="js/utils.js"></script>
     <script src="js/cart.js"></script>
     <script src="js/auth.js"></script>
     <script src="js/main.js"></script>
+    <script src="https://js.stripe.com/v3/"></script>
     <script src="js/pagamento.js"></script>
 </body>
 </html>

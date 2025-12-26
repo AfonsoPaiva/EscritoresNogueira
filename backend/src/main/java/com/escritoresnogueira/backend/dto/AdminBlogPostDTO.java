@@ -1,4 +1,4 @@
-package main.java.com.escritoresnogueira.backend.dto;
+package com.escritoresnogueira.backend.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -22,3 +22,5 @@ public class AdminBlogPostDTO {
     // Accept category as name (string). If you prefer id, you can add categoryId field.
     private String category;
 }
+
+

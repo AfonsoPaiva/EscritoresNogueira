@@ -1,4 +1,4 @@
-package main.java.com.escritoresnogueira.backend.config;
+package com.escritoresnogueira.backend.config;
 
 import com.google.auth.oauth2.GoogleCredentials;
 import com.google.firebase.FirebaseApp;
@@ -57,3 +57,5 @@ public class FirebaseConfig {
         return FirebaseAuth.getInstance(firebaseApp);
     }
 }
+
+
