@@ -1,0 +1,8 @@
+{
+  "name": "escritores-nogueira-frontend-config",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "vercel-build": "node scripts/generate-runtime-config.js"
+  }
+}

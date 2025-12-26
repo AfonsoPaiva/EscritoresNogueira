@@ -4,8 +4,16 @@
 
 // API base URL can be injected at runtime via `window.API_BASE` (useful for Vercel).
 // Falls back to localhost for local development.
+function resolveApiBase() {
+    const v = window.API_BASE;
+    if (typeof v === 'string' && v.trim() !== '' && v.toLowerCase() !== 'undefined') {
+        return v;
+    }
+    return 'http://localhost:8080/api';
+}
+
 const API_CONFIG = {
-    baseUrl: window.API_BASE,
+    baseUrl: resolveApiBase(),
     timeout: 10000
 };
 
