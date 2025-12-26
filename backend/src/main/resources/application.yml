@@ -148,7 +148,9 @@ management:
 # From address used by the EmailService
 app:
   email:
-    from: ${APP_EMAIL_FROM:no-reply@escritoresnogueira.com}
+    from: ${APP_EMAIL_FROM:}
+  newsletter:
+    from: ${APP_NEWSLETTER_FROM:}
 
 # Mailgun Configuration
 mailgun:

@@ -34,6 +34,7 @@
           <li data-view="orders">Orders</li>
           <li data-view="forms">Form Submissions</li>
           <li data-view="newsletters">Newsletters</li>
+          <li data-view="users">Users</li>
         </ul>
       </aside>
 
@@ -120,14 +121,20 @@
         <!-- Posts -->
         <div id="posts" class="view" style="display:none">
           <div class="card">
-            <h3>Create Post</h3>
-            <form id="createPostForm" class="form-grid">
-              <input name="title" placeholder="Title" required />
-              <input name="slug" placeholder="Slug" required />
-              <textarea name="content" placeholder="Content (HTML)"></textarea>
-              <button class="btn primary" type="submit">Create</button>
-            </form>
-          </div>
+              <h3>Create Post</h3>
+              <form id="createPostForm" class="form-grid">
+                <div class="form-row"><label>Título:<input name="title" placeholder="Title" required /></label></div>
+                <div class="form-row"><label>Slug (URL):<input name="slug" placeholder="Slug" required /></label></div>
+                <div class="form-row"><label>Autor:<input name="author" placeholder="Author" /></label></div>
+                <div class="form-row"><label>Categoria:<input name="category" placeholder="Category name" /></label></div>
+                <div class="form-row"><label>Excerpt:<input name="excerpt" placeholder="Short excerpt" /></label></div>
+                <div class="form-row"><label>Imagem (URL):<input name="featuredImage" placeholder="Featured image URL" /></label></div>
+                <div class="form-row"><label>Publicado: <input type="checkbox" name="published" /></label></div>
+                <div class="form-row"><label>Destaque: <input type="checkbox" name="featured" /></label></div>
+                <div class="form-row"><label>Conteúdo (HTML):<textarea name="content" placeholder="Content (HTML)" rows="8"></textarea></label></div>
+                <div class="form-row"><button class="btn primary" type="submit">Create Post</button></div>
+              </form>
+            </div>
           <div class="card">
             <h3>Posts</h3>
             <div id="postsList">Loading...</div>
@@ -197,6 +204,14 @@
               <textarea name="content" id="newsletterContent" placeholder="HTML content" rows="6"></textarea>
               <button class="btn primary" type="submit">Send</button>
             </form>
+          </div>
+        </div>
+        
+        <!-- Users -->
+        <div id="users" class="view" style="display:none">
+          <div class="card">
+            <h3>Users</h3>
+            <div id="usersList">Loading...</div>
           </div>
         </div>
       </section>

@@ -18,4 +18,6 @@ public class NewsletterClientDTO {
     private String name;
     private LocalDateTime subscribedAt;
     private boolean active;
+    // Admin-only: token used for unsubscribe links
+    private String unsubscribeToken;
 }

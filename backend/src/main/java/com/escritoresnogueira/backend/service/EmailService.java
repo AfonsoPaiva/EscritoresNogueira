@@ -41,6 +41,9 @@ public class EmailService {
     @Value("${app.email.from:no-reply@escritoresnogueira.com}")
     private String fromAddress;
 
+    @Value("${app.newsletter.from:}")
+    private String newsletterFrom;
+
     @Value("${mailgun.api-key:}")
     private String mailgunApiKey;
 
@@ -111,6 +114,59 @@ public class EmailService {
         }
     }
 
+    /**
+     * Mailgun send variant that allows specifying a different sender (used for newsletters).
+     */
+    private void sendViaMailgunFrom(String from, String to, String subject, String html, String text) {
+        if (mailgunApiKey == null || mailgunApiKey.isBlank() || mailgunDomain == null || mailgunDomain.isBlank()) {
+            throw new IllegalStateException("Mailgun not configured");
+        }
+
+        try {
+            String url = "https://api.mailgun.net/v3/" + mailgunDomain + "/messages";
+            HttpClient client = HttpClient.newHttpClient();
+            // Ensure provided 'from' uses the Mailgun domain, otherwise fallback to postmaster
+            String effectiveFrom = (from != null && !from.isBlank()) ? from : fromAddress;
+            if (effectiveFrom == null) effectiveFrom = "postmaster@" + mailgunDomain;
+            if (!effectiveFrom.toLowerCase().contains("@" + mailgunDomain.toLowerCase())) {
+                log.warn("Newsletter from address '{}' does not match Mailgun domain '{}'. Using postmaster@{} as sender.", effectiveFrom, mailgunDomain, mailgunDomain);
+                effectiveFrom = "postmaster@" + mailgunDomain;
+            }
+
+            Map<String, String> form = Map.of(
+                    "from", effectiveFrom,
+                    "to", to,
+                    "subject", subject,
+                    "html", html,
+                    "text", text == null ? "" : text,
+                    "h:Reply-To", "contacto@escritoresnogueira.com",
+                    "h:X-Mailgun-Tag", "newsletter",
+                    "h:X-Auto-Response-Suppress", "All"
+            );
+
+            String auth = Base64.getEncoder().encodeToString(("api:" + mailgunApiKey).getBytes(StandardCharsets.UTF_8));
+
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(url))
+                    .header("Authorization", "Basic " + auth)
+                    .header("Content-Type", "application/x-www-form-urlencoded")
+                    .POST(ofFormData(form))
+                    .build();
+
+            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+            int status = response.statusCode();
+            String body = response.body();
+            if (status >= 400) {
+                log.error("Mailgun send failed (status={}): {}", status, body);
+                throw new RuntimeException("Mailgun send failed: status=" + status + " body=" + (body == null ? "" : body));
+            }
+            log.info("✉️ Newsletter email sent via Mailgun to {} (status={})", to, status);
+        } catch (Exception e) {
+            log.error("Erro ao enviar newsletter via Mailgun: {}", e.getMessage(), e);
+            throw new RuntimeException("Erro ao enviar newsletter via Mailgun: " + e.getMessage());
+        }
+    }
+
     public void sendVerificationLink(String to, String link) {
         log.debug("Sending verification link to {}: {}", to, link);
         String subject = "Verificação de Email - Escritores Nogueira";
@@ -166,8 +222,11 @@ public class EmailService {
                 "Este é um email automático. Por favor, não responda diretamente.\n" +
                 "Se este email foi para a caixa de spam, adicione contacto@escritoresnogueira.com aos seus contactos.";
 
+        String effectiveNewsletterFrom = (newsletterFrom != null && !newsletterFrom.isBlank()) ? newsletterFrom : fromAddress;
+        log.info("[EmailService] effectiveNewsletterFrom='{}' (app.email.from='{}', app.newsletter.from='{}')", effectiveNewsletterFrom, fromAddress, newsletterFrom);
         if (mailgunApiKey != null && !mailgunApiKey.isBlank() && mailgunDomain != null && !mailgunDomain.isBlank()) {
-            sendViaMailgun(to, subject, html, text);
+            log.info("[EmailService] Sending newsletter via Mailgun using From='{}'", effectiveNewsletterFrom);
+            sendViaMailgunFrom(effectiveNewsletterFrom, to, subject, html, text);
             return;
         }
 
@@ -175,7 +234,7 @@ public class EmailService {
         try {
             SimpleMailMessage msg = new SimpleMailMessage();
             msg.setTo(to);
-            msg.setFrom(fromAddress);
+            msg.setFrom(effectiveNewsletterFrom != null ? effectiveNewsletterFrom : fromAddress);
             msg.setSubject(subject);
             msg.setText(text);
             mailSender.send(msg);
@@ -361,7 +420,28 @@ public class EmailService {
             "</div>" +
             "</body></html>";
 
-        sendViaMailgun(to, subject, html, text);
+        String effectiveNewsletterFrom = (newsletterFrom != null && !newsletterFrom.isBlank()) ? newsletterFrom : fromAddress;
+        boolean mailgunConfigured = mailgunApiKey != null && !mailgunApiKey.isBlank() && mailgunDomain != null && !mailgunDomain.isBlank();
+        log.info("[EmailService] sendWelcomeEmail effectiveFrom='{}' (app.email.from='{}', app.newsletter.from='{}'), mailgunConfigured={}", effectiveNewsletterFrom, fromAddress, newsletterFrom, mailgunConfigured);
+        if (mailgunConfigured) {
+            log.info("[EmailService] Sending welcome/newsletter via Mailgun using From='{}'", effectiveNewsletterFrom);
+            sendViaMailgunFrom(effectiveNewsletterFrom, to, subject, html, text);
+            return;
+        }
+
+        // Mailgun not configured: try SMTP fallback
+        try {
+            SimpleMailMessage msg = new SimpleMailMessage();
+            msg.setTo(to);
+            msg.setFrom(effectiveNewsletterFrom != null ? effectiveNewsletterFrom : fromAddress);
+            msg.setSubject(subject);
+            msg.setText(text);
+            mailSender.send(msg);
+            log.info("✉️ Welcome newsletter sent (SMTP fallback) to {}", to);
+            return;
+        } catch (Exception e) {
+            log.warn("SMTP fallback failed for welcome email to {}: {}", to, e.getMessage());
+        }
     }
 
     public void sendNewsletterEmail(String to, String subject, String content) {
@@ -381,7 +461,30 @@ public class EmailService {
                 (unsubscribeLink.isEmpty() ? "" : "<p style='margin-top:18px'><a href='" + unsubscribeLink + "' class='cta'>Cancelar Inscrição</a></p>") +
                 "</div><div class='footer'><p>Se tiver dúvidas, contacte-nos em <a href='mailto:contacto@escritoresnogueira.com'>contacto@escritoresnogueira.com</a></p></div></div></body></html>";
 
-        sendViaMailgun(to, subject, html, text);
+        String effectiveNewsletterFrom = (newsletterFrom != null && !newsletterFrom.isBlank()) ? newsletterFrom : fromAddress;
+        boolean mailgunConfigured = mailgunApiKey != null && !mailgunApiKey.isBlank() && mailgunDomain != null && !mailgunDomain.isBlank();
+        log.info("[EmailService] sendNewsletterEmail effectiveFrom='{}' (app.email.from='{}', app.newsletter.from='{}'), mailgunConfigured={}", effectiveNewsletterFrom, fromAddress, newsletterFrom, mailgunConfigured);
+        if (mailgunConfigured) {
+            log.info("[EmailService] Sending newsletter via Mailgun using From='{}'", effectiveNewsletterFrom);
+            sendViaMailgunFrom(effectiveNewsletterFrom, to, subject, html, text);
+            return;
+        }
+
+        // SMTP fallback for newsletters
+        try {
+            SimpleMailMessage msg = new SimpleMailMessage();
+            msg.setTo(to);
+            msg.setFrom(effectiveNewsletterFrom != null ? effectiveNewsletterFrom : fromAddress);
+            msg.setSubject(subject);
+            msg.setText(text);
+            mailSender.send(msg);
+            log.info("✉️ Newsletter sent (SMTP fallback) to {} (From={})", to, effectiveNewsletterFrom != null ? effectiveNewsletterFrom : fromAddress);
+            return;
+        } catch (Exception e) {
+            log.error("SMTP fallback failed for newsletter to {}: {}", to, e.getMessage());
+            // allow exception to propagate
+            throw new RuntimeException("Erro ao enviar newsletter: " + e.getMessage(), e);
+        }
     }
 
     /**

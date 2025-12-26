@@ -136,6 +136,7 @@
     if (name === 'orders') loadOrders();
     if (name === 'forms') loadForms();
     if (name === 'newsletters') loadNewsletters();
+    if (name === 'users') loadUsers();
   }
 
   navItems.forEach(li => li.addEventListener('click', () => showView(li.dataset.view)));
@@ -425,7 +426,36 @@ let editingBookId = null;
   // POSTS
   const postsListEl = document.getElementById('postsList');
 let editingPostId = null;
-document.getElementById('createPostForm').addEventListener('submit', async e => { e.preventDefault(); const data = Object.fromEntries(new FormData(e.target).entries()); try { const method = editingPostId ? 'PUT' : 'POST'; const url = editingPostId ? '/admin/blog/posts/' + editingPostId : '/admin/blog/posts'; const res = await tryCandidates(url, { method, credentials:'include', headers:{'Content-Type':'application/json'}, body:JSON.stringify(data)}); if(!res.ok) throw new Error('Save failed'); e.target.reset(); editingPostId = null; document.querySelector('#createPostForm button[type=submit]').textContent = 'Create Post'; loadPosts(); } catch(err){ alert('Save post error: '+err.message); }});
+document.getElementById('createPostForm').addEventListener('submit', async e => {
+    e.preventDefault();
+    try {
+      // Build payload from form, normalize booleans and empty strings
+      const form = e.target;
+      const fd = new FormData(form);
+      const data = Object.fromEntries(fd.entries());
+
+      // Convert checkbox values to booleans
+      data.featured = !!form.querySelector('[name="featured"]')?.checked;
+      data.published = !!form.querySelector('[name="published"]')?.checked;
+
+      // Normalize empty strings to null for optional fields
+      ['excerpt','featuredImage','author','category'].forEach(k => {
+        if (data[k] !== undefined && String(data[k]).trim() === '') data[k] = null;
+      });
+
+      const method = editingPostId ? 'PUT' : 'POST';
+      const url = editingPostId ? '/admin/blog/posts/' + editingPostId : '/admin/blog/posts';
+      const res = await tryCandidates(url, { method, credentials: 'include', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
+      if (!res.ok) {
+        const t = await res.text().catch(() => null);
+        throw new Error('Save failed: ' + res.status + (t ? '\n' + t : ''));
+      }
+      form.reset();
+      editingPostId = null;
+      document.querySelector('#createPostForm button[type=submit]').textContent = 'Create Post';
+      loadPosts();
+    } catch (err) { alert('Save post error: ' + (err && err.message ? err.message : err)); }
+  });
   async function loadPosts() {
     postsListEl.innerHTML = 'Loading...';
     try {
@@ -450,7 +480,38 @@ document.getElementById('createPostForm').addEventListener('submit', async e => 
         const viewBtn = document.createElement('button'); viewBtn.className='btn'; viewBtn.textContent='Details'; viewBtn.addEventListener('click', ()=> alert(JSON.stringify(p,null,2)));
         const edit = document.createElement('button'); edit.className='btn'; edit.textContent='Edit'; edit.addEventListener('click', () => editPost(p));
         const del = document.createElement('button'); del.className='btn'; del.textContent='Delete'; del.addEventListener('click', async ()=>{ if(!confirm('Delete post?')) return; await deletePost(p.id); });
-        actions.appendChild(viewBtn); actions.appendChild(edit); actions.appendChild(del); tr.appendChild(actions); tbody.appendChild(tr);
+
+        // Publish / Unpublish button
+        const pub = document.createElement('button');
+        pub.className = p.published ? 'btn' : 'btn primary';
+        pub.textContent = p.published ? 'Unpublish' : 'Publish';
+        pub.addEventListener('click', async () => {
+          try {
+            const confirmMsg = p.published ? 'Mark post as unpublished?' : 'Mark post as published?';
+            if (!confirm(confirmMsg)) return;
+            // Build payload merging existing visible fields to avoid overwriting with nulls
+            const payload = {
+              title: p.title || '',
+              slug: p.slug || '',
+              content: p.content || '',
+              excerpt: p.excerpt || null,
+              featuredImage: p.featuredImage || null,
+              author: p.author || null,
+              featured: !!p.featured,
+              published: !p.published,
+              category: p.categoryName || (p.category || null)
+            };
+            const res = await tryCandidates('/admin/blog/posts/' + p.id, { method: 'PUT', credentials: 'include', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+            if (!res.ok) {
+              const t = await res.text().catch(()=>null);
+              throw new Error('Update failed: ' + res.status + (t ? '\n' + t : ''));
+            }
+            // Refresh list
+            loadPosts();
+          } catch (e) { alert('Publish error: ' + (e && e.message ? e.message : e)); }
+        });
+
+        actions.appendChild(viewBtn); actions.appendChild(edit); actions.appendChild(pub); actions.appendChild(del); tr.appendChild(actions); tbody.appendChild(tr);
       });
       table.appendChild(tbody); postsListEl.innerHTML=''; postsListEl.appendChild(table);
     } catch (e) { postsListEl.textContent = 'Error: ' + (e && e.message ? e.message : e); }
@@ -463,7 +524,13 @@ document.getElementById('createPostForm').addEventListener('submit', async e => 
     const set = (name, value) => { const el = form.querySelector('[name="' + name + '"]'); if (el) { if (el.type === 'checkbox') el.checked = !!value; else el.value = value || ''; } };
     set('title', p.title);
     set('slug', p.slug);
+    set('author', p.author);
+    set('category', p.categoryName || p.category || '');
+    set('excerpt', p.excerpt);
+    set('featuredImage', p.featuredImage);
     set('content', p.content);
+    set('published', p.published);
+    set('featured', p.featured);
     // update submit button label
     const btn = form.querySelector('button[type=submit]'); if (btn) btn.textContent = 'Update Post';
     // ensure posts view is visible
@@ -827,15 +894,89 @@ document.getElementById('createPostForm').addEventListener('submit', async e => 
       const tbody = document.createElement('tbody');
       subs.forEach(s => {
         const tr = document.createElement('tr');
-        tr.innerHTML = `<td>${escapeHtml(s.email||s)}</td><td>${escapeHtml(s.name||'')}</td>`;
+        const email = (typeof s === 'string') ? s : (s.email || '');
+        const name = (typeof s === 'string') ? '' : (s.name || '');
+        tr.innerHTML = `<td>${escapeHtml(email)}</td><td>${escapeHtml(name)}</td>`;
         const actions = document.createElement('td');
         const view = document.createElement('button'); view.className='btn'; view.textContent='Details'; view.addEventListener('click', ()=> alert(JSON.stringify(s, null, 2)));
         actions.appendChild(view);
+
+        // Unsubscribe subscriber (admin) — prefer unsubscribe by token when available
+        const del = document.createElement('button');
+        del.className = 'btn';
+        del.textContent = 'Unsubscribe';
+        del.addEventListener('click', async () => {
+          try {
+            if (!confirm('Unsubscribe subscriber ' + email + '?')) return;
+            const id = (s && s.id) ? s.id : null;
+            const token = (s && s.unsubscribeToken) ? s.unsubscribeToken : null;
+            let res;
+            if (token) {
+              // Use the public unsubscribe link (token) to mark as unsubscribed
+              const url = '/auth/unsubscribe-newsletter?token=' + encodeURIComponent(token);
+              res = await tryCandidates(url, { method: 'GET', credentials: 'include' });
+            } else if (id) {
+              // Fallback to hard-delete by id
+              res = await tryCandidates('/admin/newsletters/clients/' + id, { method: 'DELETE', credentials: 'include' });
+            } else {
+              // Last fallback: delete by email via admin endpoint
+              res = await tryCandidates('/admin/newsletters/clients', { method: 'DELETE', credentials: 'include', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email }) });
+            }
+            if (!res || !res.ok) {
+              const t = res ? await res.text().catch(()=>null) : null;
+              throw new Error('Unsubscribe failed' + (t ? ': ' + t : ''));
+            }
+            loadNewsletters();
+          } catch (e) { alert('Unsubscribe failed: ' + (e && e.message ? e.message : e)); }
+        });
+
+        actions.appendChild(del);
         tr.appendChild(actions);
         tbody.appendChild(tr);
       });
       table.appendChild(tbody);
       el.innerHTML = ''; el.appendChild(table);
+    } catch (e) { el.textContent = 'Error: ' + e.message; }
+  }
+
+  // USERS
+  async function loadUsers() {
+    const el = document.getElementById('usersList');
+    if (!el) return;
+    el.textContent = 'Loading...';
+    try {
+      const users = await fetchJson('/admin/users');
+      if (!Array.isArray(users)) { el.textContent = JSON.stringify(users, null, 2); return; }
+      const table = document.createElement('table');
+      table.innerHTML = `<thead><tr><th>Id</th><th>Email</th><th>Name</th><th>Roles</th><th>Active</th><th>Last Login</th><th></th></tr></thead>`;
+      const tbody = document.createElement('tbody');
+      users.forEach(u => {
+        const tr = document.createElement('tr');
+        const roles = (u.roles && Array.isArray(u.roles)) ? u.roles.join(', ') : (u.roles || '');
+        const lastLogin = u.lastLogin ? new Date(u.lastLogin).toLocaleString() : '';
+        tr.innerHTML = `<td>${u.id||''}</td><td>${escapeHtml(u.email||'')}</td><td>${escapeHtml(u.name||'')}</td><td>${escapeHtml(roles)}</td><td>${u.active? 'Yes':'No'}</td><td>${escapeHtml(lastLogin)}</td>`;
+        const actions = document.createElement('td'); actions.className='actions';
+        const viewBtn = document.createElement('button'); viewBtn.className='btn'; viewBtn.textContent='Details'; viewBtn.addEventListener('click', () => alert(JSON.stringify(u, null, 2)));
+        const promote = document.createElement('button'); promote.className='btn primary'; promote.textContent='Promote'; promote.addEventListener('click', async () => {
+          if (!confirm('Promote user to admin?')) return;
+          try {
+            const res = await tryCandidates('/admin/users/' + u.id + '/promote', { method: 'POST', credentials: 'include' });
+            if (!res.ok) { const t = await res.text().catch(()=>null); throw new Error('Promote failed: ' + (t ? t : res.status)); }
+            alert('User promoted'); loadUsers();
+          } catch (e) { alert('Promote failed: ' + (e && e.message ? e.message : e)); }
+        });
+        const del = document.createElement('button'); del.className='btn'; del.textContent='Delete'; del.addEventListener('click', async () => {
+          if (!confirm('Delete user?')) return;
+          try {
+            const res = await tryCandidates('/admin/users/' + u.id, { method: 'DELETE', credentials: 'include' });
+            if (!res.ok) { const t = await res.text().catch(()=>null); throw new Error('Delete failed: ' + (t ? t : res.status)); }
+            alert('User deleted'); loadUsers();
+          } catch (e) { alert('Delete failed: ' + (e && e.message ? e.message : e)); }
+        });
+        actions.appendChild(viewBtn); actions.appendChild(promote); actions.appendChild(del);
+        tr.appendChild(actions); tbody.appendChild(tr);
+      });
+      table.appendChild(tbody); el.innerHTML = ''; el.appendChild(table);
     } catch (e) { el.textContent = 'Error: ' + e.message; }
   }
 

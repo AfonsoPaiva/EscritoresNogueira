@@ -319,12 +319,12 @@ public class PaymentController {
 
     @PostMapping("/confirm-session")
     public ResponseEntity<?> confirmSession(@RequestHeader(value = "X-Session-Token", required = false) String sessionToken,
-                                            @RequestBody Map<String, String> body) {
+                                            @RequestBody Map<String, Object> body) {
         try {
-            if (body == null || !body.containsKey("sessionId") || body.get("sessionId") == null || body.get("sessionId").isBlank()) {
+            if (body == null || !body.containsKey("sessionId") || body.get("sessionId") == null || String.valueOf(body.get("sessionId")).isBlank()) {
                 return ResponseEntity.badRequest().body(Map.of("error", "Missing sessionId"));
             }
-            String sessionId = body.get("sessionId");
+            String sessionId = String.valueOf(body.get("sessionId"));
             Session stripeSession = Session.retrieve(sessionId);
             if (stripeSession == null) return ResponseEntity.status(404).body(Map.of("error", "Session not found"));
 
@@ -392,9 +392,36 @@ public class PaymentController {
             } catch (Exception ignore) {}
 
             // ensure essential non-nullable fields are set before persisting
-            if ((order.getCustomerEmail() == null || order.getCustomerEmail().isBlank()) && determinedCustomerEmail != null && !determinedCustomerEmail.isBlank()) {
-                order.setCustomerEmail(determinedCustomerEmail);
-            }
+                if ((order.getCustomerEmail() == null || order.getCustomerEmail().isBlank()) && determinedCustomerEmail != null && !determinedCustomerEmail.isBlank()) {
+                    order.setCustomerEmail(determinedCustomerEmail);
+                }
+                // allow frontend to send shipping/customerEmail in the confirm request
+                try {
+                    if (body.containsKey("customerEmail")) {
+                        Object ce = body.get("customerEmail");
+                        if (ce != null && !String.valueOf(ce).isBlank()) order.setCustomerEmail(String.valueOf(ce));
+                    }
+                } catch (Exception ignore) {}
+
+                try {
+                    if (body.containsKey("shipping")) {
+                        Object shippingObj = body.get("shipping");
+                        if (shippingObj != null) {
+                            try {
+                                com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+                                String shippingJson = mapper.writeValueAsString(shippingObj);
+                                order.setShippingAddress(shippingJson);
+                            } catch (Exception e) {
+                                order.setShippingAddress(String.valueOf(shippingObj));
+                            }
+                        }
+                    } else if (body.containsKey("shippingAddress")) {
+                        Object sa = body.get("shippingAddress");
+                        if (sa != null) order.setShippingAddress(String.valueOf(sa));
+                    }
+                } catch (Exception e) {
+                    log.warn("Failed to parse shipping data from confirm-session body: {}", e.getMessage());
+                }
             if (order.getTotal() == null) order.setTotal(order.calculateTotal());
 
             order.setPaymentStatus(Order.PaymentStatus.PAID);

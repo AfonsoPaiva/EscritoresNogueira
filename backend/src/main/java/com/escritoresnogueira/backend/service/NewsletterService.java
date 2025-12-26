@@ -124,6 +124,7 @@ public class NewsletterService {
                 .name(client.getName())
                 .subscribedAt(client.getSubscribedAt())
                 .active(client.isActive())
+                .unsubscribeToken(client.getUnsubscribeToken())
                 .build();
     }
 }

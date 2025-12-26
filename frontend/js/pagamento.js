@@ -439,7 +439,7 @@ async function handleCheckoutSuccess(sessionId) {
         const resp = await fetch('http://localhost:8080/api/payments/confirm-session', {
             method: 'POST',
             headers: headers,
-            body: JSON.stringify({ sessionId })
+            body: JSON.stringify({ sessionId, shipping: shippingData, customerEmail: shippingData.email })
         });
         const data = await resp.json();
         if (resp.ok) {
@@ -491,6 +491,8 @@ function savePaymentData(method) {
 function createOrder() {
     const cart = window.cart || new ShoppingCart();
     const orderNumber = generateOrderNumber();
+    // Ensure we have the latest shipping form values
+    try { saveShippingData(); } catch (e) { console.warn('saveShippingData failed', e); }
     
     return {
         orderNumber: orderNumber,

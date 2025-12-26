@@ -547,14 +547,29 @@ async function loadUserOrders() {
                         `).join('');
 
                         // shipping info (best-effort)
-                        const shipping = order.shippingAddress || order.shipping || order.address || order.customerAddress || order.customer || {};
-                        const shipLines = [];
-                        if (shipping.name) shipLines.push(escapeHtml(shipping.name));
-                        if (shipping.street) shipLines.push(escapeHtml(shipping.street));
-                        if (shipping.city) shipLines.push(escapeHtml(shipping.city));
-                        if (shipping.postalCode) shipLines.push(escapeHtml(shipping.postalCode));
-                        if (shipping.country) shipLines.push(escapeHtml(shipping.country));
-                        const shippingHtml = shipLines.length ? `<div>${shipLines.join('<br/>')}</div>` : `<div>Sem morada registada</div>`;
+                            let shipping = order.shippingAddress || order.shipping || order.address || order.customer || {};
+                            // If shipping is a JSON string (saved by backend), parse it
+                            if (typeof shipping === 'string') {
+                                const s = shipping.trim();
+                                if (s.startsWith('{') || s.startsWith('[')) {
+                                    try { shipping = JSON.parse(s); } catch (e) { /* leave as string */ }
+                                }
+                            }
+                            const shipLines = [];
+                            if (typeof shipping === 'string') {
+                                if (shipping.trim()) shipLines.push(escapeHtml(shipping));
+                            } else {
+                                // prefer combined first/last name
+                                const name = (shipping.firstName || shipping.name ? ((shipping.firstName ? escapeHtml(shipping.firstName) : '') + (shipping.lastName ? ' ' + escapeHtml(shipping.lastName) : '')) : (shipping.name || '') );
+                                if (name) shipLines.push(name);
+                                if (shipping.address) shipLines.push(escapeHtml(shipping.address));
+                                if (shipping.street) shipLines.push(escapeHtml(shipping.street));
+                                // city/postal
+                                const cityLine = [shipping.postalCode || shipping.postal || shipping.postalCodeFormatted, shipping.city || shipping.town].filter(Boolean).join(' ');
+                                if (cityLine) shipLines.push(escapeHtml(cityLine));
+                                if (shipping.country) shipLines.push(escapeHtml(shipping.country));
+                            }
+                            const shippingHtml = shipLines.length ? `<div>${shipLines.join('<br/>')}</div>` : `<div>Sem morada registada</div>`;
 
                         modalBody.innerHTML = `
                             <div class="order-modal-body">
