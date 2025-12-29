@@ -222,11 +222,12 @@ public class EmailService {
                 "Este é um email automático. Por favor, não responda diretamente.\n" +
                 "Se este email foi para a caixa de spam, adicione contacto@escritoresnogueira.com aos seus contactos.";
 
-        String effectiveNewsletterFrom = (newsletterFrom != null && !newsletterFrom.isBlank()) ? newsletterFrom : fromAddress;
-        log.info("[EmailService] effectiveNewsletterFrom='{}' (app.email.from='{}', app.newsletter.from='{}')", effectiveNewsletterFrom, fromAddress, newsletterFrom);
+        // Use transactional (no-reply) sender for verification emails
+        String effectiveFrom = fromAddress != null && !fromAddress.isBlank() ? fromAddress : "no-reply@escritoresnogueira.com";
+        log.info("[EmailService] verification email From='{}' (app.email.from='{}', app.newsletter.from='{}')", effectiveFrom, fromAddress, newsletterFrom);
         if (mailgunApiKey != null && !mailgunApiKey.isBlank() && mailgunDomain != null && !mailgunDomain.isBlank()) {
-            log.info("[EmailService] Sending newsletter via Mailgun using From='{}'", effectiveNewsletterFrom);
-            sendViaMailgunFrom(effectiveNewsletterFrom, to, subject, html, text);
+            log.info("[EmailService] Sending verification via Mailgun using From='{}'", effectiveFrom);
+            sendViaMailgun(to, subject, html, text);
             return;
         }
 
@@ -234,7 +235,7 @@ public class EmailService {
         try {
             SimpleMailMessage msg = new SimpleMailMessage();
             msg.setTo(to);
-            msg.setFrom(effectiveNewsletterFrom != null ? effectiveNewsletterFrom : fromAddress);
+            msg.setFrom(effectiveFrom);
             msg.setSubject(subject);
             msg.setText(text);
             mailSender.send(msg);
@@ -345,6 +346,44 @@ public class EmailService {
                 log.error("Failed to write password reset link to local log: {}", ex.getMessage(), ex);
             }
             // Do not rethrow; callers expect boolean/generic responses
+        }
+    }
+
+    /**
+     * Send transactional email (no-reply) — uses `app.email.from` as sender.
+     */
+    public void sendTransactionalEmail(String to, String subject, String html, String text) {
+        String effectiveFrom = fromAddress != null && !fromAddress.isBlank() ? fromAddress : "no-reply@escritoresnogueira.com";
+        boolean mailgunConfigured = mailgunApiKey != null && !mailgunApiKey.isBlank() && mailgunDomain != null && !mailgunDomain.isBlank();
+        log.info("[EmailService] sendTransactionalEmail effectiveFrom='{}' mailgunConfigured={}", effectiveFrom, mailgunConfigured);
+        if (mailgunConfigured) {
+            // Mailgun path uses configured app.email.from internally
+            sendViaMailgun(to, subject, html, text);
+            return;
+        }
+
+        // SMTP fallback
+        try {
+            if (html != null && !html.isBlank()) {
+                MimeMessage mime = mailSender.createMimeMessage();
+                MimeMessageHelper helper = new MimeMessageHelper(mime, true, StandardCharsets.UTF_8.name());
+                helper.setTo(to);
+                helper.setFrom(effectiveFrom);
+                helper.setSubject(subject);
+                helper.setText(html, true);
+                mailSender.send(mime);
+            } else {
+                SimpleMailMessage msg = new SimpleMailMessage();
+                msg.setTo(to);
+                msg.setFrom(effectiveFrom);
+                msg.setSubject(subject);
+                msg.setText(text != null ? text : "");
+                mailSender.send(msg);
+            }
+            log.info("✉️ Transactional email sent (SMTP fallback) to {} (From={})", to, effectiveFrom);
+        } catch (Exception e) {
+            log.error("Erro ao enviar email transacional para {}: {}", to, e.getMessage(), e);
+            throw new RuntimeException("Erro ao enviar email transacional: " + e.getMessage(), e);
         }
     }
 

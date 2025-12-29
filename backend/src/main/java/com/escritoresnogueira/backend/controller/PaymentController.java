@@ -52,9 +52,10 @@ public class PaymentController {
 
     @Value("${stripe.publishable-key:}")
     private String publishableKey;
+    @Value("${app.frontend.url:http://127.0.0.1:5501/frontend/conta.html#orders}")
+    private String frontendUrl;
+    
 
-    @Value("${stripe.allowed-methods:}")
-    private String stripeAllowedMethods;
 
     @GetMapping("/config")
     public ResponseEntity<?> getConfig() {
@@ -65,7 +66,7 @@ public class PaymentController {
     public ResponseEntity<?> createCheckoutSession(@RequestHeader(value = "X-Session-Token", required = false) String sessionToken,
                                                    @RequestBody CreatePaymentRequest req) {
         try {
-            log.info("createCheckoutSession called - stripeAllowedMethods='{}' sessionTokenPresent={}", stripeAllowedMethods, sessionToken != null && !sessionToken.isBlank());
+            log.info("createCheckoutSession called - sessionTokenPresent={}", sessionToken != null && !sessionToken.isBlank());
             if (req.getItems() == null || req.getItems().isEmpty()) {
                 return ResponseEntity.badRequest().body(Map.of("error", "No items provided"));
             }
@@ -175,81 +176,19 @@ public class PaymentController {
                     .setMode(SessionCreateParams.Mode.PAYMENT)
                     .setSuccessUrl(successUrl)
                     .setCancelUrl(cancelUrl);
-
-            // Configure allowed payment method types from configuration (comma-separated)
-            if (stripeAllowedMethods != null && !stripeAllowedMethods.isBlank()) {
-                String[] methods = stripeAllowedMethods.split(",");
-                for (String m : methods) {
-                    String key = m.trim().toLowerCase();
-                    try {
-                        switch (key) {
-                            case "card":
-                                scBuilder.addPaymentMethodType(SessionCreateParams.PaymentMethodType.CARD);
-                                break;
-                            case "ideal":
-                                scBuilder.addPaymentMethodType(SessionCreateParams.PaymentMethodType.IDEAL);
-                                break;
-                            case "sepa_debit":
-                            case "sepa-debit":
-                                scBuilder.addPaymentMethodType(SessionCreateParams.PaymentMethodType.SEPA_DEBIT);
-                                break;
-                            case "sofort":
-                                scBuilder.addPaymentMethodType(SessionCreateParams.PaymentMethodType.SOFORT);
-                                break;
-                            case "p24":
-                                scBuilder.addPaymentMethodType(SessionCreateParams.PaymentMethodType.P24);
-                                break;
-                            case "bancontact":
-                                scBuilder.addPaymentMethodType(SessionCreateParams.PaymentMethodType.BANCONTACT);
-                                break;
-                            case "eps":
-                                scBuilder.addPaymentMethodType(SessionCreateParams.PaymentMethodType.EPS);
-                                break;
-                            case "fpx":
-                                scBuilder.addPaymentMethodType(SessionCreateParams.PaymentMethodType.FPX);
-                                break;
-                            case "alipay":
-                                scBuilder.addPaymentMethodType(SessionCreateParams.PaymentMethodType.ALIPAY);
-                                break;
-                            case "wechat_pay":
-                            case "wechat-pay":
-                                scBuilder.addPaymentMethodType(SessionCreateParams.PaymentMethodType.WECHAT_PAY);
-                                break;
-                            case "konbini":
-                                scBuilder.addPaymentMethodType(SessionCreateParams.PaymentMethodType.KONBINI);
-                                break;
-                            case "afterpay_clearpay":
-                            case "afterpay-clearpay":
-                                scBuilder.addPaymentMethodType(SessionCreateParams.PaymentMethodType.AFTERPAY_CLEARPAY);
-                                break;
-                            case "klarna":
-                                scBuilder.addPaymentMethodType(SessionCreateParams.PaymentMethodType.KLARNA);
-                                break;
-                            case "oxxo":
-                                scBuilder.addPaymentMethodType(SessionCreateParams.PaymentMethodType.OXXO);
-                                break;
-                            case "paypal":
-                                scBuilder.addPaymentMethodType(SessionCreateParams.PaymentMethodType.PAYPAL);
-                                break;
-                        }
-                    } catch (Exception e) {
-                        log.warn("Failed to add payment method {}: {}", key, e.getMessage());
-                    }
-                }
-            } else {
-                // If no explicit allowed methods are configured, do not set
-                // `payment_method_types` on the Checkout Session. Leaving it unset
-                // lets Stripe Checkout display all payment methods enabled in
-                // your Stripe Dashboard that are compatible with the currency/region.
-            }
+            // Leave `payment_method_types` unset so Stripe Checkout shows
+            // the payment methods enabled in your Stripe Dashboard.
 
             if (customerEmail != null && !customerEmail.isBlank()) scBuilder.setCustomerEmail(customerEmail);
             scBuilder.putMetadata("orderNumber", order.getOrderNumber());
             scBuilder.putMetadata("orderId", String.valueOf(order.getId()));
 
+            // Create Checkout Session and let Stripe Checkout display the
+            // payment methods enabled in your Stripe Dashboard for this
+            // account / currency / region. We do not set
+            // `payment_method_types` here so Dashboard settings are authoritative.
             Session session = Session.create(scBuilder.build());
             try {
-                // Log which payment methods the created session exposes (helps debug Checkout UI)
                 List<String> pmts = session.getPaymentMethodTypes();
                 log.info("Created Checkout Session id={} url={} payment_method_types={}", session.getId(), session.getUrl(), pmts);
             } catch (Exception _e) {
@@ -451,213 +390,103 @@ public class PaymentController {
             try {
                 String customerEmail = order.getCustomerEmail();
                 if (customerEmail != null && !customerEmail.isBlank()) {
+                    String receiptUrl = null;
                     byte[] invoicePdfBytes = null;
                     String invoiceFilename = null;
-                    try {
-                        // if we were able to find an invoice PDF url earlier (in stripeSession retrieval), use it
-                        String piId = stripeSession.getPaymentIntent();
-                        if (piId != null) {
-                            try {
-                                PaymentIntent pi = PaymentIntent.retrieve(piId);
-                                if (pi != null && pi.getInvoice() != null) {
-                                    String invId = pi.getInvoice();
-                                    try {
-                                        Invoice inv = Invoice.retrieve(invId);
-                                        if (inv != null && inv.getInvoicePdf() != null) {
-                                            String pdfUrl = inv.getInvoicePdf();
-                                            invoiceFilename = "invoice-" + order.getOrderNumber() + ".pdf";
-                                            try {
-                                                HttpClient client = HttpClient.newHttpClient();
-                                                HttpRequest req = HttpRequest.newBuilder()
-                                                        .uri(URI.create(pdfUrl))
-                                                        .GET()
-                                                        .build();
-                                                HttpResponse<byte[]> resp = client.send(req, HttpResponse.BodyHandlers.ofByteArray());
-                                                if (resp.statusCode() >= 200 && resp.statusCode() < 300) {
-                                                    invoicePdfBytes = resp.body();
-                                                } else {
-                                                    log.warn("Failed to download invoice pdf (status={}) from {}", resp.statusCode(), pdfUrl);
-                                                }
-                                            } catch (Exception e) {
-                                                log.warn("Error downloading invoice pdf: {}", e.getMessage());
-                                            }
-                                        }
-                                    } catch (Exception ie) {
-                                        log.warn("Unable to retrieve invoice {}: {}", invId, ie.getMessage());
+                    String pdfUrl = null;
+
+                    // Get payment intent ID
+                    String piId = stripeSession.getPaymentIntent();
+                    if (piId != null) {
+                        try {
+                            // Try to get receipt URL from charges
+                            com.stripe.param.ChargeListParams clp = com.stripe.param.ChargeListParams.builder().setPaymentIntent(piId).setLimit(1L).build();
+                            com.stripe.model.ChargeCollection cc = com.stripe.model.Charge.list(clp);
+                            if (cc != null && cc.getData() != null && !cc.getData().isEmpty()) {
+                                com.stripe.model.Charge ch = cc.getData().get(0);
+                                if (ch.getReceiptUrl() != null) {
+                                    receiptUrl = ch.getReceiptUrl();
+                                    log.info("Found receipt URL for order {}: {}", order.getOrderNumber(), receiptUrl);
+                                }
+                            }
+                        } catch (Exception e) {
+                            log.warn("Unable to get receipt URL: {}", e.getMessage());
+                        }
+
+                        try {
+                            // Try to get invoice PDF
+                            PaymentIntent pi = PaymentIntent.retrieve(piId);
+                            if (pi != null && pi.getInvoice() != null) {
+                                String invId = pi.getInvoice();
+                                Invoice inv = Invoice.retrieve(invId);
+                                if (inv != null && inv.getInvoicePdf() != null) {
+                                    pdfUrl = inv.getInvoicePdf();
+                                    invoiceFilename = "invoice-" + order.getOrderNumber() + ".pdf";
+                                    HttpClient client = HttpClient.newHttpClient();
+                                    HttpRequest req = HttpRequest.newBuilder()
+                                                .uri(URI.create(pdfUrl))
+                                                .GET()
+                                                .build();
+                                    HttpResponse<byte[]> resp = client.send(req, HttpResponse.BodyHandlers.ofByteArray());
+                                    if (resp.statusCode() >= 200 && resp.statusCode() < 300) {
+                                        invoicePdfBytes = resp.body();
+                                    } else {
+                                        log.warn("Failed to download invoice pdf (status={}) from {}", resp.statusCode(), pdfUrl);
                                     }
                                 }
-                            } catch (Exception ignore) {
                             }
+                        } catch (Exception e) {
+                            log.warn("Unable to get invoice PDF: {}", e.getMessage());
+                        }
+                    }
+
+                    // Persist receipt and invoice URLs on the order so the frontend can show links
+                    try {
+                        boolean updated = false;
+                        if (receiptUrl != null && !receiptUrl.isBlank()) {
+                            order.setReceiptUrl(receiptUrl);
+                            updated = true;
+                        }
+                        if (pdfUrl != null && !pdfUrl.isBlank()) {
+                            order.setInvoicePdfUrl(pdfUrl);
+                            updated = true;
+                        }
+                        if (updated) {
+                            try { orderRepository.save(order); } catch (Exception e) { log.warn("Failed to persist invoice/receipt URLs on order {}: {}", order.getOrderNumber(), e.getMessage()); }
                         }
                     } catch (Exception e) {
-                        log.warn("Error while preparing invoice attachment: {}", e.getMessage());
+                        log.warn("Error persisting invoice/receipt URLs: {}", e.getMessage());
                     }
 
                     String subject = "Obrigado pela sua compra - Pedido " + order.getOrderNumber();
                     String html = "<p>Olá,</p>" +
-                            "<p>Obrigado pelo seu pedido. Em anexo encontra a fatura emitida pela compra.</p>" +
+                            "<p>Obrigado pelo seu pedido. O pagamento foi processado com sucesso.</p>" +
                             "<p>Número do pedido: <strong>" + order.getOrderNumber() + "</strong></p>" +
+                            (receiptUrl != null ? "<p>Pode consultar o recibo em: <a href='" + receiptUrl + "' target='_blank'>Ver Recibo</a></p>" : "") +
                             "<p>Se tiver alguma dúvida, responda a este email.</p>" +
                             "<p>Com os melhores cumprimentos,<br/>Escritores Nogueira</p>";
                     String text = "Olá,\n\nObrigado pelo seu pedido. Número do pedido: " + order.getOrderNumber() + "\n\nCumprimentos,\nEscritores Nogueira";
 
                     if (invoicePdfBytes != null && invoicePdfBytes.length > 0) {
-                        try {
-                            emailService.sendEmailWithAttachment(customerEmail, subject, html, text, invoicePdfBytes, invoiceFilename != null ? invoiceFilename : "invoice.pdf");
-                        } catch (Exception e) {
-                            log.error("Failed to send invoice email with attachment: {}", e.getMessage(), e);
-                        }
+                        emailService.sendEmailWithAttachment(customerEmail, subject, html, text, invoicePdfBytes, invoiceFilename != null ? invoiceFilename : "invoice.pdf");
+                        log.info("Invoice email sent with PDF attachment for order {}", order.getOrderNumber());
                     } else {
-                        // send without attachment as fallback
-                        try {
-                            emailService.sendNewsletterEmail(customerEmail, subject, html);
-                        } catch (Exception e) {
-                            log.error("Failed to send invoice email (no attachment): {}", e.getMessage(), e);
-                        }
+                        // Append tracking link to the invoice email and send as transactional (no-reply)
+                        String ordersLink = frontendUrl;
+                        String htmlWithLink = html + "<p>Pode acompanhar a sua encomenda aqui: <a href='" + ordersLink + "' target='_blank'>Acompanhar Encomenda</a></p>";
+                        String textWithLink = text + "\n\nPode acompanhar a sua encomenda aqui: " + ordersLink;
+                        emailService.sendTransactionalEmail(customerEmail, subject, htmlWithLink, textWithLink);
+                        log.info("Invoice email (no attachment) sent (transactional) for order {}", order.getOrderNumber());
                     }
                 }
             } catch (Exception e) {
                 log.warn("Error while sending invoice email: {}", e.getMessage());
             }
 
-            // try to obtain a Stripe receipt URL and invoice PDF to include in email
-            String receiptUrl = null;
-            String invoicePdfUrl = null;
-            byte[] invoicePdfBytes = null;
-            try {
-                String piId = stripeSession.getPaymentIntent();
-                if (piId != null) {
-                    // Some Stripe SDK versions expose charges on the PaymentIntent; when not available, list charges by payment_intent
-                    try {
-                        PaymentIntent pi = PaymentIntent.retrieve(piId);
-                        // attempt to access charges via reflection-safe approach: list charges filtered by payment_intent
-                        try {
-                            if (pi != null && pi.getInvoice() != null) {
-                                String invId = pi.getInvoice();
-                                try {
-                                    Invoice inv = Invoice.retrieve(invId);
-                                    if (inv != null) invoicePdfUrl = inv.getInvoicePdf();
-                                } catch (Exception ie) {
-                                    log.warn("Unable to retrieve invoice {}: {}", invId, ie.getMessage());
-                                }
-                            }
-                        } catch (Exception ignore) {}
-                    } catch (Exception ignore) {
-                        // ignore - we'll list charges below regardless
-                    }
-
-                    com.stripe.param.ChargeListParams clp = com.stripe.param.ChargeListParams.builder()
-                            .setPaymentIntent(piId)
-                            .setLimit(1L)
-                            .build();
-                    com.stripe.model.ChargeCollection cc = com.stripe.model.Charge.list(clp);
-                    if (cc != null && cc.getData() != null && !cc.getData().isEmpty()) {
-                        com.stripe.model.Charge ch = cc.getData().get(0);
-                        receiptUrl = ch.getReceiptUrl();
-                    }
-                }
-            } catch (Exception e) {
-                log.warn("Unable to retrieve payment intent/charge for session {}: {}", sessionId, e.getMessage());
-            }
-
-            // If we have an invoice PDF URL, try to download it (public hosted URL)
-            if (invoicePdfUrl != null) {
-                try {
-                    HttpClient http = HttpClient.newHttpClient();
-                    HttpRequest req = HttpRequest.newBuilder().uri(URI.create(invoicePdfUrl)).GET().build();
-                    HttpResponse<byte[]> resp = http.send(req, HttpResponse.BodyHandlers.ofByteArray());
-                    if (resp.statusCode() == 200) {
-                        invoicePdfBytes = resp.body();
-                    } else {
-                        log.warn("Failed to download invoice PDF (status={} url={})", resp.statusCode(), invoicePdfUrl);
-                    }
-                } catch (Exception e) {
-                    log.warn("Unable to download invoice PDF for session {}: {}", sessionId, e.getMessage());
-                }
-            }
-
-            // persist receipt/invoice links on the order so frontend can access them
-            try {
-                if (receiptUrl != null && !receiptUrl.isBlank()) order.setReceiptUrl(receiptUrl);
-                if (invoicePdfUrl != null && !invoicePdfUrl.isBlank()) order.setInvoicePdfUrl(invoicePdfUrl);
-            } catch (Exception e) {
-                log.warn("Could not set receipt/invoice URLs on order {}: {}", order.getId(), e.getMessage());
-            }
-
-            orderRepository.save(order);
-
-            // Send confirmation email (attach invoice PDF when available)
-            try {
-                String to = order.getCustomerEmail() != null && !order.getCustomerEmail().isBlank() ? order.getCustomerEmail() : (order.getUser() != null ? order.getUser().getEmail() : null);
-                if (to != null && !to.isBlank()) {
-                    String subject = "Confirmação de Encomenda - " + order.getOrderNumber();
-                    StringBuilder txt = new StringBuilder();
-                    txt.append("Olá,\n\n");
-                    txt.append("Obrigado pela sua encomenda.\n\n");
-                    txt.append("Encomenda: " + order.getOrderNumber() + "\n");
-                    txt.append("Total: " + (order.getTotal() != null ? order.getTotal().toString() : "") + "\n\n");
-                    txt.append("Itens:\n");
-                    if (order.getItems() != null) {
-                        order.getItems().forEach(oi -> txt.append(String.format(" - %s x%d — %s\n", oi.getBook() != null ? oi.getBook().getTitle() : "", oi.getQuantity(), oi.getPrice())));
-                    }
-                    if (receiptUrl != null) {
-                        txt.append("\nReceipt: " + receiptUrl + "\n");
-                    }
-                    txt.append("\nCumprimentos,\nEscritores Nogueira");
-
-                    String html = "<p>Olá,</p><p>Obrigado pela sua encomenda.</p>" +
-                            "<p><strong>Encomenda:</strong> " + order.getOrderNumber() + "<br/>" +
-                            "<strong>Total:</strong> " + (order.getTotal() != null ? order.getTotal().toString() : "") + "</p>" +
-                            "<p><strong>Itens:</strong></p><ul>";
-                    if (order.getItems() != null) {
-                        for (OrderItem oi : order.getItems()) {
-                            html += "<li>" + (oi.getBook() != null ? oi.getBook().getTitle() : "") + " x" + oi.getQuantity() + " — " + oi.getPrice() + "</li>";
-                        }
-                    }
-                    html += "</ul>";
-                    if (receiptUrl != null) html += "<p>Receipt: <a href='" + receiptUrl + "'>ver recibo</a></p>";
-
-                    if (invoicePdfBytes != null && invoicePdfBytes.length > 0) {
-                        String filename = "invoice-" + order.getOrderNumber() + ".pdf";
-                        emailService.sendEmailWithAttachment(to, subject, html, txt.toString(), invoicePdfBytes, filename);
-                    } else {
-                        emailService.sendNewsletterEmail(to, subject, txt.toString());
-                    }
-                } else {
-                    log.warn("No customer email available to send confirmation for order {}", order.getId());
-                }
-            } catch (Exception e) {
-                log.error("Failed to send confirmation email for order {}: {}", order.getId(), e.getMessage());
-            }
-
-            Map<String,Object> resp = new HashMap<>();
-            resp.put("orderId", order.getId());
-            resp.put("orderNumber", order.getOrderNumber());
-            resp.put("customerEmail", order.getCustomerEmail() != null && !order.getCustomerEmail().isBlank() ? order.getCustomerEmail() : (order.getUser() != null ? order.getUser().getEmail() : null));
-            resp.put("status", order.getStatus() != null ? order.getStatus().name() : "PROCESSING");
-            if (receiptUrl != null) resp.put("receiptUrl", receiptUrl);
-            return ResponseEntity.ok(resp);
-        } catch (com.stripe.exception.StripeException e) {
-            log.error("Stripe error retrieving session {}: {}", body, e.getMessage(), e);
-            return ResponseEntity.status(500).body(Map.of("error", "Stripe error: " + e.getMessage()));
-        } catch (Exception ex) {
-            log.error("Error confirming session", ex);
-            return ResponseEntity.status(500).body(Map.of("error", ex.getMessage()));
-        }
-    }
-
-    @GetMapping("/check-product/{productId}")
-    public ResponseEntity<?> checkProduct(@PathVariable String productId) {
-        try {
-            Product p = Product.retrieve(productId);
-            return ResponseEntity.ok(Map.of("id", p.getId(), "name", p.getName(), "active", p.getActive(), "type", p.getType()));
-        } catch (StripeException e) {
-            log.error("Stripe error retrieving product {}: {} (code={}, req={})", productId, e.getMessage(), e.getCode(), e.getRequestId(), e);
-            Map<String,Object> body = new HashMap<>();
-            body.put("error", e.getMessage());
-            body.put("code", e.getCode());
-            body.put("requestId", e.getRequestId());
-            return ResponseEntity.status(500).body(body);
+            return ResponseEntity.ok(Map.of("orderId", order.getId(), "orderNumber", order.getOrderNumber()));
+        } catch (Exception e) {
+            log.error("Error confirming session", e);
+            return ResponseEntity.status(500).body(Map.of("error", e.getMessage()));
         }
     }
 

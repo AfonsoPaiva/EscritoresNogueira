@@ -3,10 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Permissions-Policy" content="private-token=()">
     <title>Livros - Escritores Nogueira</title>
     <meta name="description" content="Explore o nosso catálogo completo de livros">
     
     <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:wght@400;500;600;700;800&family=Questrial&display=swap" rel="stylesheet">
     
     <!-- Icons -->
@@ -15,13 +18,15 @@
     <!-- Swiper CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css">
     
-    <!-- AOS CSS -->
-    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    <!-- AOS removed: replaced by GSAP+ScrollTrigger -->
     
     <!-- Main CSS -->
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body class="page-livros">
+    
+    <!-- Site Wrapper -->
+    <div class="site-wrapper">
     
     <!-- Header -->
     <header class="header" id="header">
@@ -32,7 +37,6 @@
                 </a>
                 
                 <ul class="nav-menu" id="navMenu">
-                    <li><a href="index.html" class="nav-link">Início</a></li>
                     <li><a href="livros.html" class="nav-link active">Livros</a></li>
                     <li><a href="servicos.html" class="nav-link">Serviços</a></li>
                     <li><a href="sobre.html" class="nav-link">Sobre</a></li>
@@ -159,22 +163,20 @@
     </div>
 
     <!-- Main Content -->
-    <div>
-        <div>
-            <main class="transition-fade">
-                
-                <!-- Page Header -->
-                <section class="page-header">
+    <main class="site-container">
+        
+        <!-- Page Header -->
+        <section class="page-header" data-aos="fade-up">
             <div class="container">
-                <h1 class="page-title" data-aos="fade-up">Catálogo de Livros</h1>
-                <p class="page-subtitle" data-aos="fade-up" data-aos-delay="100">Explore a nossa coleção completa</p>
+                <h1 class="page-title">Catálogo de Livros</h1>
+                <p class="page-subtitle">Explore a nossa coleção completa</p>
             </div>
         </section>
 
         <!-- Books Section -->
-        <section class="section books-catalog">
+        <section class="section books-catalog" data-aos="slide-up" data-aos-delay="200">
             <div class="container">
-                <div class="catalog-controls" data-aos="fade-up">
+                <div class="catalog-controls" data-aos="zoom-in" data-aos-delay="300">
                     <div class="filters">
                         <select id="categoryFilter" class="filter-select">
                             <option value="">Todas as Categorias</option>
@@ -204,7 +206,7 @@
                     </div>
                 </div>
 
-                <div class="books-grid" id="booksGrid" data-aos="fade-up" data-aos-delay="100">
+                <div class="books-grid" id="booksGrid" data-aos="slide-up" data-aos-delay="400" data-aos-stagger-group="books">
                     <!-- Loading Skeletons -->
                     <div class="skeleton-card">
                         <div class="skeleton-img"></div>
@@ -240,9 +242,7 @@
             </div>
         </section>
 
-            </main>
-        </div>
-    </div>
+    </main>
 
     <!-- Footer -->
     <footer class="footer">
@@ -295,6 +295,8 @@
             </div>
         </div>
     </footer>
+    
+    </div> <!-- End Site Wrapper -->
 
     <!-- Overlay -->
     <div class="overlay" id="overlay"></div>
@@ -310,11 +312,10 @@
         </button>
     </div>
 
-    <!-- Scripts -->
-    <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
-    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+    <!-- GSAP for animations -->
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.1/dist/gsap.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.1/dist/ScrollTrigger.min.js"></script>
+    
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
@@ -323,7 +324,16 @@
     <script src="js/utils.js"></script>
     <script src="js/cart.js"></script>
     <script src="js/auth.js"></script>
+    <script src="js/animations.js"></script>
     <script src="js/main.js"></script>
     <script src="js/books.js"></script>
+    <script src="js/blog.js"></script>
+    <script src="js/apoio.js"></script>
+    <script src="js/article.js"></script>
+    <script src="js/book-detail.js"></script>
+    <script src="js/conta.js"></script>
+    <script src="js/formulario.js"></script>
+    <script src="js/pagamento.js"></script>
+    <script src="js/servicos.js"></script>
 </body>
 </html>

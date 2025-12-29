@@ -15,17 +15,17 @@
     <!-- Swiper CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css">
 
-    <!-- AOS CSS -->
-    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    <!-- AOS removed: replaced by GSAP+ScrollTrigger -->
 
     <!-- Main CSS -->
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body class="page-formulario">
 
-    <!-- reCAPTCHA site key (set this value in production) -->
     <meta name="recaptcha-site-key" content="">
 
+    <!-- Site Wrapper -->
+    <div class="site-wrapper">
 
     <!-- Header -->
     <header class="header" id="header">
@@ -36,7 +36,7 @@
                 </a>
 
                 <ul class="nav-menu" id="navMenu">
-                    <li><a href="index.html" class="nav-link">Início</a></li>
+                    
                     <li><a href="livros.html" class="nav-link">Livros</a></li>
                     <li><a href="servicos.html" class="nav-link active">Serviços</a></li>
                     <li><a href="sobre.html" class="nav-link">Sobre</a></li>
@@ -108,10 +108,12 @@
                 <h4>Iniciar Sessão</h4>
                 <form id="loginFormElement">
                     <div class="form-group">
-                        <input type="email" placeholder="Email" required>
+                        <label class="visually-hidden" for="loginEmail">Email</label>
+                        <input type="email" id="loginEmail" name="email" placeholder="Email" required>
                     </div>
                     <div class="form-group">
-                        <input type="password" placeholder="Password" required>
+                        <label class="visually-hidden" for="loginPassword">Password</label>
+                        <input type="password" id="loginPassword" name="password" placeholder="Password" required>
                     </div>
                     <button type="submit" class="btn btn-primary">Entrar</button>
                 </form>
@@ -130,13 +132,16 @@
                 <h4>Criar Conta</h4>
                 <form id="registerFormElement">
                     <div class="form-group">
-                        <input type="text" placeholder="Nome" maxlength="50" required>
+                        <label class="visually-hidden" for="registerName">Nome</label>
+                        <input type="text" id="registerName" name="name" placeholder="Nome" maxlength="50" required>
                     </div>
                     <div class="form-group">
-                        <input type="email" placeholder="Email" required>
+                        <label class="visually-hidden" for="registerEmail">Email</label>
+                        <input type="email" id="registerEmail" name="email" placeholder="Email" required>
                     </div>
                     <div class="form-group">
-                        <input type="password" placeholder="Password" required>
+                        <label class="visually-hidden" for="registerPassword">Password</label>
+                        <input type="password" id="registerPassword" name="password" placeholder="Password" required>
                     </div>
                     <button type="submit" class="btn btn-primary">Registar</button>
                 </form>
@@ -165,11 +170,11 @@
     </div>
 
     <!-- Main Content -->
-    <main>
+    <main class="site-container">
         <!-- Page Header -->
         <section class="page-header formulario-header">
             <div class="container">
-                <div class="page-header-content" data-aos="fade-up">
+                <div class="page-header-content">
                     <h1 class="page-title">Formulário de Publicação</h1>
                     <p class="page-subtitle">Conte-nos sobre o seu projeto literário</p>
                 </div>
@@ -179,7 +184,7 @@
         <!-- Form Section -->
         <section class="section formulario-section">
             <div class="container">
-                <div class="formulario-wrapper" data-aos="fade-up">
+                <div class="formulario-wrapper">
                     <!-- Progress Steps -->
                     <div class="form-progress">
                         <div class="progress-step active" data-step="1">
@@ -364,7 +369,13 @@
 
                                 <div class="form-group">
                                     <label for="authorPhone">Telefone</label>
-                                    <input type="tel" id="authorPhone" name="authorPhone" placeholder="+351 912 345 678">
+                                    <div class="phone-input-container">
+                                        <div class="country-fixed">
+                                            <img src="https://flagcdn.com/w40/pt.png" alt="Portugal" class="country-flag">
+                                            <span class="country-code">+351</span>
+                                        </div>
+                                        <input type="tel" id="authorPhone" name="authorPhone" placeholder="912 345 678">
+                                    </div>
                                 </div>
 
                                 <div class="form-group full-width">
@@ -493,15 +504,17 @@
             </div>
         </div>
     </footer>
+    
+    </div> <!-- End Site Wrapper -->
 
     <!-- Overlay -->
     <div class="overlay" id="overlay"></div>
 
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
-    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+    <!-- AOS script removed -->
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.1/dist/gsap.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.1/dist/ScrollTrigger.min.js"></script>
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
@@ -510,6 +523,7 @@
     <script src="js/utils.js"></script>
     <script src="js/cart.js"></script>
     <script src="js/auth.js"></script>
+    <script src="js/animations.js"></script>
     <script src="js/main.js"></script>
     <script src="js/formulario.js"></script>
 </body>

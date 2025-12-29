@@ -371,7 +371,7 @@ function displayRelatedBooks(books, container) {
         <div class="swiper-slide">
             <div class="book-card" data-href="${bookUrl}" data-book-id="${book.id}">
                 <div class="book-image">
-                    ${imageUrl ? `<img src="${imageUrl}" alt="${book.title}">` : '<i class="fas fa-book"></i>'}
+                    ${imageUrl ? `<img src="${imageUrl}" alt="${book.title}" width="280" height="350" loading="lazy">` : '<i class="fas fa-book"></i>'}
                     ${isPromo ? '<div class="book-badge">Promoção</div>' : ''}
                 </div>
                 <div class="book-info">
@@ -493,7 +493,8 @@ function initRelatedSwiper() {
                     slideChange: function() {
                         // Refresh AOS for new visible slides
                         if (typeof AOS !== 'undefined') {
-                            AOS.refresh();
+                            if (typeof initGSAPAnimations === 'function') { try { initGSAPAnimations(); } catch (e) { console.warn('initGSAPAnimations failed', e); } }
+                            if (typeof ScrollTrigger !== 'undefined') { try { ScrollTrigger.refresh(); } catch (e) { console.warn('ScrollTrigger.refresh failed', e); } }
                         }
                     }
                 }
@@ -580,14 +581,32 @@ function initReviewForm() {
         submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enviando...';
 
         try {
-            // Get reCAPTCHA token
+            // Get reCAPTCHA token (use safe wrapper to avoid iOS private-token/PAT flows)
             let recaptchaToken = null;
-            if (window.grecaptcha && window.recaptchaSiteKey) {
+            if (window.recaptchaSiteKey) {
                 try {
-                    recaptchaToken = await window.grecaptcha.execute(window.recaptchaSiteKey, { action: 'comment' });
+                    if (typeof window.safeRecaptchaExecute === 'function') {
+                        recaptchaToken = await window.safeRecaptchaExecute(window.recaptchaSiteKey, { action: 'comment' });
+                    } else if (window.grecaptcha && typeof grecaptcha.execute === 'function') {
+                        await new Promise(resolve => grecaptcha.ready(resolve));
+                        recaptchaToken = await grecaptcha.execute(window.recaptchaSiteKey, { action: 'comment' });
+                    }
                 } catch (error) {
-                    console.warn('reCAPTCHA execution failed, using test token:', error);
-                    recaptchaToken = 'test-token';
+                    console.warn('reCAPTCHA execution failed:', error);
+                    recaptchaToken = null;
+                }
+                // If still no token, allow test token only on localhost for dev; otherwise abort (v3 required)
+                if (!recaptchaToken) {
+                    const isLocal = ['127.0.0.1','localhost'].includes(window.location.hostname);
+                    if (isLocal) {
+                        console.warn('Using test-token for local development');
+                        recaptchaToken = 'test-token';
+                    } else {
+                        if (window.showNotification) window.showNotification('Verificação reCAPTCHA obrigatória. Tente novamente mais tarde.', 'error');
+                        submitBtn.disabled = false;
+                        submitBtn.innerHTML = originalBtnText;
+                        return;
+                    }
                 }
             } else {
                 // Fallback for development/testing

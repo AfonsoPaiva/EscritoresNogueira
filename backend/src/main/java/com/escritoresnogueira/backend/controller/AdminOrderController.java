@@ -30,6 +30,8 @@ public class AdminOrderController {
     private final OrderStatusHistoryRepository historyRepository;
     private final UserSessionService sessionService;
     private final EmailService emailService;
+    @org.springframework.beans.factory.annotation.Value("${app.frontend.url:http://127.0.0.1:5501/frontend/conta.html#orders}")
+    private String frontendUrl;
 
     private static final String SESSION_HEADER = "X-Session-Token";
 
@@ -83,9 +85,15 @@ public class AdminOrderController {
             String customerEmail = order.getCustomerEmail();
             if (customerEmail != null && !customerEmail.isBlank()) {
                 if (newStatus == Order.OrderStatus.SHIPPED) {
-                    emailService.sendNewsletterEmail(customerEmail, "Pedido enviado - " + order.getOrderNumber(), "O seu pedido foi enviado.");
+                    String subj = "Pedido enviado - " + order.getOrderNumber();
+                    String html = "<p>O seu pedido foi enviado.</p><p>Pode acompanhar a sua encomenda aqui: <a href='" + frontendUrl + "' target='_blank'>Acompanhar Encomenda</a></p>";
+                    String text = "O seu pedido foi enviado.\n\nPode acompanhar a sua encomenda aqui: " + frontendUrl;
+                    emailService.sendTransactionalEmail(customerEmail, subj, html, text);
                 } else if (newStatus == Order.OrderStatus.DELIVERED) {
-                    emailService.sendNewsletterEmail(customerEmail, "Pedido realizado - " + order.getOrderNumber(), "O seu pedido foi concluído. Obrigado!");
+                    String subj = "Pedido realizado - " + order.getOrderNumber();
+                    String html = "<p>O seu pedido foi concluído. Obrigado!</p><p>Pode acompanhar a sua encomenda aqui: <a href='" + frontendUrl + "' target='_blank'>Acompanhar Encomenda</a></p>";
+                    String text = "O seu pedido foi concluído. Obrigado!\n\nPode acompanhar a sua encomenda aqui: " + frontendUrl;
+                    emailService.sendTransactionalEmail(customerEmail, subj, html, text);
                 }
             }
         } catch (Exception e) {

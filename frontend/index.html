@@ -18,13 +18,16 @@
     <!-- Swiper CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css">
     
-    <!-- AOS CSS -->
-    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    <!-- AOS removed: replaced by GSAP+ScrollTrigger -->
+    <!-- AOS removed: replaced by GSAP+ScrollTrigger -->
     
     <!-- Main CSS -->
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body class="page-home">
+    
+    <!-- Site Wrapper -->
+    <div class="site-wrapper">
     
     <!-- Header -->
     <header class="header" id="header">
@@ -35,7 +38,7 @@
                 </a>
                 
                 <ul class="nav-menu" id="navMenu">
-                    <li><a href="index.html" class="nav-link active">Início</a></li>
+                    <!-- Início link removed site-wide -->
                     <li><a href="livros.html" class="nav-link">Livros</a></li>
                     <li><a href="servicos.html" class="nav-link">Serviços</a></li>
                     <li><a href="sobre.html" class="nav-link">Sobre</a></li>
@@ -185,31 +188,29 @@
     </div>
 
     <!-- Main Content -->
-    <div>
-        <div>
-            <main class="transition-fade">
-                
-                <!-- Hero Section -->
-                <section class="hero">
+    <main class="site-container">
+        
+        <!-- Hero Section -->
+        <section class="hero">
             <div class="container">
-                <div class="hero-content" data-aos="fade-up">
+                <div class="hero-content">
                     <h1 class="hero-title">Descubra o Universo dos Livros</h1>
                     <p class="hero-subtitle">Uma seleção única de obras literárias cuidadosamente escolhidas para si</p>
                     <a href="livros.html" class="btn btn-primary btn-large">Explorar Catálogo</a>
                 </div>
             </div>
-            <div class="hero-decoration"></div>
+            <div class="hero-decoration" data-parallax="0.3"></div>
         </section>
 
         <!-- Featured Books Section -->
         <section class="section featured-books">
             <div class="container">
-                <div class="section-header" data-aos="fade-up">
+                <div class="section-header">
                     <h2 class="section-title">Livros em Destaque</h2>
                     <p class="section-subtitle">Descubra as nossas recomendações exclusivas</p>
                 </div>
 
-                <div class="swiper featured-swiper" data-aos="fade-up" data-aos-delay="100">
+                <div class="swiper featured-swiper">
                     <div class="swiper-wrapper" id="featuredBooks">
                         <!-- Books will be loaded dynamically -->
                     </div>
@@ -223,7 +224,7 @@
         <!-- Create Book Section -->
         <section class="section create-book-section">
             <div class="container">
-                <div class="create-book-content" data-aos="fade-up">
+                <div class="create-book-content">
                     <div class="create-book-icon">
                         <i class="fas fa-feather-alt"></i>
                     </div>
@@ -237,12 +238,12 @@
         <!-- Benefits Section -->
         <section class="section benefits-section">
             <div class="container">
-                <div class="section-header" data-aos="fade-up">
+                <div class="section-header">
                     <h2 class="section-title">Porquê Escolher a Escritores Nogueira?</h2>
                     <p class="section-subtitle">A sua satisfação é a nossa prioridade</p>
                 </div>
 
-                <div class="benefits-grid" data-aos="fade-up" data-aos-delay="100">
+                <div class="benefits-grid">
                     <div class="benefit-card">
                         <div class="benefit-icon">
                             <i class="fas fa-shipping-fast"></i>
@@ -292,24 +293,22 @@
         <!-- Latest Blog Posts -->
         <section class="section blog-preview">
             <div class="container">
-                <div class="section-header" data-aos="fade-up">
+                <div class="section-header">
                     <h2 class="section-title">Últimos Artigos</h2>
                     <p class="section-subtitle">Novidades e reflexões literárias</p>
                 </div>
 
-                <div class="blog-grid" id="latestPosts" data-aos="fade-up" data-aos-delay="100">
+                <div class="blog-grid" id="latestPosts">
                     <!-- Blog posts will be loaded dynamically -->
                 </div>
 
-                <div class="section-footer" data-aos="fade-up" data-aos-delay="200">
+                <div class="section-footer">
                     <a href="blog.html" class="btn btn-outline">Ver Todos os Artigos</a>
                 </div>
             </div>
         </section>
 
-            </main>
-        </div>
-    </div>
+    </main>
 
     <!-- Newsletter Section -->
     <section class="newsletter-section">
@@ -383,28 +382,40 @@
             </div>
         </div>
     </footer>
+    
+    </div> <!-- End Site Wrapper -->
 
     <!-- Overlay -->
     <div class="overlay" id="overlay"></div>
 
-    <!-- Scripts -->
+    <!-- GSAP for animations (pinned to 3.14.1 to avoid compatibility issues) -->
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.1/dist/gsap.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.1/dist/ScrollTrigger.min.js"></script>
+    <!-- Swiper JS (required for featured sliders) -->
     <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
-    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
     
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
     <script src="js/firebase-config.js"></script>
     
-    <script src="/js/runtime-config.js"></script>
+    <script src="js/runtime-config.js"></script>
     <script src="js/api.js"></script>
     <script src="js/utils.js"></script>
     <script src="js/cart.js"></script>
     <script src="js/auth.js"></script>
     <script src="js/themes.js"></script>
     <script>window.ThemeManager && window.ThemeManager.selectTheme('none');</script>
+    <script src="js/animations.js"></script>
     <script src="js/main.js"></script>
+    <script src="js/books.js"></script>
+    <script src="js/blog.js"></script>
+    <script src="js/apoio.js"></script>
+    <script src="js/article.js"></script>
+    <script src="js/book-detail.js"></script>
+    <script src="js/conta.js"></script>
+    <script src="js/formulario.js"></script>
+    <script src="js/pagamento.js"></script>
+    <script src="js/servicos.js"></script>
 </body>
 </html>

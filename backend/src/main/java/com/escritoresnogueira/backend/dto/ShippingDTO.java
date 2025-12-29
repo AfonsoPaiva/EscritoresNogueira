@@ -9,18 +9,16 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class UpdateProfileDTO {
+public class ShippingDTO {
     private String firstName;
     private String email;
     private String phone;
     private String address;
-    private String postalCode;
     private String city;
+    private String postalCode;
     private String country;
-    private String residenceType;
-    private String floor;
-    private String doorNumber;
+    private String residenceType; // "Casa" or "Apartamento"
+    private String floor; // Andar (optional, for Apartamento)
+    private String doorNumber; // Número da Porta (optional, for Apartamento)
     private String notes;
 }
-
-

@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Permissions-Policy" content="private-token=()">
     <title>Sobre Nós - Escritores Nogueira</title>
     <meta name="description" content="Conheça a história e os autores por trás da Escritores Nogueira">
     
@@ -15,13 +16,15 @@
     <!-- Swiper CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css">
     
-    <!-- AOS CSS -->
-    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    <!-- AOS removed: replaced by GSAP+ScrollTrigger -->
     
     <!-- Main CSS -->
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body class="page-sobre">
+    
+    <!-- Site Wrapper -->
+    <div class="site-wrapper">
     
     <!-- Header -->
     <header class="header" id="header">
@@ -32,7 +35,6 @@
                 </a>
                 
                 <ul class="nav-menu" id="navMenu">
-                    <li><a href="index.html" class="nav-link">Início</a></li>
                     <li><a href="livros.html" class="nav-link">Livros</a></li>
                     <li><a href="servicos.html" class="nav-link">Serviços</a></li>
                     <li><a href="sobre.html" class="nav-link active">Sobre</a></li>
@@ -159,22 +161,20 @@
     </div>
 
     <!-- Main Content -->
-    <div>
-        <div>
-            <main class="transition-fade">
-                
-                <!-- Page Header -->
-                <section class="page-header">
+    <main class="site-container">
+        
+        <!-- Page Header -->
+        <section class="page-header">
             <div class="container">
-                <h1 class="page-title" data-aos="fade-up">Sobre Nós</h1>
-                <p class="page-subtitle" data-aos="fade-up" data-aos-delay="100">A nossa história e missão</p>
+                <h1 class="page-title">Sobre Nós</h1>
+                <p class="page-subtitle">A nossa história e missão</p>
             </div>
         </section>
 
         <!-- Mission Section -->
         <section class="section about-mission">
             <div class="container">
-                <div class="mission-content" data-aos="fade-up">
+                <div class="mission-content">
                     <div class="mission-text">
                         <h2>A Nossa Missão</h2>
                         <p>A Escritores Nogueira nasceu da paixão pela literatura e do desejo de partilhar obras que tocam a alma e enriquecem o espírito. Somos mais do que uma livraria online – somos curadores de histórias, guardiões de palavras que atravessam gerações.</p>
@@ -193,12 +193,12 @@
         <!-- Values Section -->
         <section class="section values-section">
             <div class="container">
-                <div class="section-header" data-aos="fade-up">
+                <div class="section-header">
                     <h2 class="section-title">Os Nossos Valores</h2>
                 </div>
 
                 <div class="values-grid">
-                    <div class="value-card" data-aos="fade-up" data-aos-delay="0">
+                    <div class="value-card" data-aos-delay="0">
                         <div class="value-icon">
                             <i class="fas fa-star"></i>
                         </div>
@@ -206,7 +206,7 @@
                         <p>Selecionamos apenas obras de excelência literária reconhecida.</p>
                     </div>
 
-                    <div class="value-card" data-aos="fade-up" data-aos-delay="100">
+                    <div class="value-card" data-aos-delay="100">
                         <div class="value-icon">
                             <i class="fas fa-heart"></i>
                         </div>
@@ -214,7 +214,7 @@
                         <p>Cada livro é escolhido com amor e dedicação à literatura.</p>
                     </div>
 
-                    <div class="value-card" data-aos="fade-up" data-aos-delay="200">
+                    <div class="value-card" data-aos-delay="200">
                         <div class="value-icon">
                             <i class="fas fa-users"></i>
                         </div>
@@ -222,7 +222,7 @@
                         <p>Cultivamos uma comunidade de leitores apaixonados.</p>
                     </div>
 
-                    <div class="value-card" data-aos="fade-up" data-aos-delay="300">
+                    <div class="value-card" data-aos-delay="300">
                         <div class="value-icon">
                             <i class="fas fa-lightbulb"></i>
                         </div>
@@ -236,13 +236,13 @@
         <!-- Authors Section -->
         <section class="section authors-section">
             <div class="container">
-                <div class="section-header" data-aos="fade-up">
+                <div class="section-header">
                     <h2 class="section-title">Os Autores</h2>
                     <p class="section-subtitle">As vozes por trás da curadoria</p>
                 </div>
 
                 <div class="authors-grid">
-                    <div class="author-card" data-aos="fade-up" data-aos-delay="0">
+                    <div class="author-card" data-aos-delay="0">
                         <div class="author-image">
                             <div class="image-placeholder">
                                 <i class="fas fa-user"></i>
@@ -255,7 +255,7 @@
                         </div>
                     </div>
 
-                    <div class="author-card" data-aos="fade-up" data-aos-delay="100">
+                    <div class="author-card" data-aos-delay="100">
                         <div class="author-image">
                             <div class="image-placeholder">
                                 <i class="fas fa-user"></i>
@@ -274,12 +274,12 @@
         <!-- Timeline Section -->
         <section class="section timeline-section">
             <div class="container">
-                <div class="section-header" data-aos="fade-up">
+                <div class="section-header">
                     <h2 class="section-title">A Nossa Jornada</h2>
                 </div>
 
                 <div class="timeline">
-                    <div class="timeline-item" data-aos="fade-right">
+                    <div class="timeline-item" data-aos="slide-right">
                         <div class="timeline-marker"></div>
                         <div class="timeline-content">
                             <h4>2020</h4>
@@ -287,7 +287,7 @@
                         </div>
                     </div>
 
-                    <div class="timeline-item" data-aos="fade-left">
+                    <div class="timeline-item" data-aos="slide-left">
                         <div class="timeline-marker"></div>
                         <div class="timeline-content">
                             <h4>2021</h4>
@@ -295,7 +295,7 @@
                         </div>
                     </div>
 
-                    <div class="timeline-item" data-aos="fade-right">
+                    <div class="timeline-item" data-aos="slide-right">
                         <div class="timeline-marker"></div>
                         <div class="timeline-content">
                             <h4>2023</h4>
@@ -303,7 +303,7 @@
                         </div>
                     </div>
 
-                    <div class="timeline-item" data-aos="fade-left">
+                    <div class="timeline-item" data-aos="slide-left">
                         <div class="timeline-marker"></div>
                         <div class="timeline-content">
                             <h4>2025</h4>
@@ -314,9 +314,7 @@
             </div>
         </section>
 
-            </main>
-        </div>
-    </div>
+    </main>
 
     <!-- Footer -->
     <footer class="footer">
@@ -369,15 +367,16 @@
             </div>
         </div>
     </footer>
+    
+    </div> <!-- End Barba Wrapper -->
 
     <!-- Overlay -->
     <div class="overlay" id="overlay"></div>
 
-    <!-- Scripts -->
-    <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
-    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+    <!-- GSAP for animations (pinned to 3.14.1 to avoid compatibility issues) -->
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.1/dist/gsap.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.1/dist/ScrollTrigger.min.js"></script>
+    
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
@@ -386,6 +385,7 @@
     <script src="js/utils.js"></script>
     <script src="js/cart.js"></script>
     <script src="js/auth.js"></script>
+    <script src="js/animations.js"></script>
     <script src="js/main.js"></script>
 </body>
 

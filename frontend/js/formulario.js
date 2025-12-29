@@ -5,6 +5,56 @@
 let currentFormStep = 1;
 const totalSteps = 3;
 
+// Phone input formatting functions
+function formatPhoneInput(input) {
+    let value = input.value;
+
+    // If already in XXX XXX XXX format, keep it
+    if (/^\d{3} \d{3} \d{3}$/.test(value)) {
+        return;
+    }
+
+    // Remove non-digits
+    value = value.replace(/\D/g, '');
+
+    // Portugal formatting: 912 345 678
+    if (value.length <= 3) {
+        input.value = value;
+        return;
+    }
+    if (value.length <= 6) {
+        input.value = `${value.slice(0, 3)} ${value.slice(3)}`;
+        return;
+    }
+    input.value = `${value.slice(0, 3)} ${value.slice(3, 6)} ${value.slice(6, 9)}`;
+}
+
+function validatePhoneInput(input) {
+    const value = input.value.replace(/\D/g, '');
+    // Portugal: 9 digits
+    const isValid = value.length === 9;
+
+    // Update input styling
+    input.classList.toggle('invalid', !isValid && input.value.length > 0);
+    input.classList.toggle('valid', isValid);
+
+    return isValid;
+}
+
+// Initialize phone input formatting
+function initPhoneInput() {
+    const phoneInput = document.getElementById('authorPhone');
+    if (phoneInput) {
+        phoneInput.addEventListener('input', (e) => {
+            formatPhoneInput(e.target);
+        });
+
+        phoneInput.addEventListener('blur', (e) => {
+            validatePhoneInput(e.target);
+        });
+    }
+}
+
 // Initialize form page
 function initFormularioPage() {
     // Get plan from URL parameter
@@ -24,12 +74,16 @@ function initFormularioPage() {
     // Initialize plan selection highlighting
     initPlanSelection();
 
+    // Initialize phone input formatting
+    initPhoneInput();
+
     // Load reCAPTCHA script dynamically if site key provided
     const siteKeyMeta = document.querySelector('meta[name="recaptcha-site-key"]');
     const siteKey = siteKeyMeta ? siteKeyMeta.content : null;
-    if (siteKey && !window.grecaptcha) {
-        const script = document.createElement('script');
-        script.src = `https://www.google.com/recaptcha/api.js?render=${encodeURIComponent(siteKey)}`;
+        if (siteKey && !window.grecaptcha) {
+            const script = document.createElement('script');
+            const rk = encodeURIComponent(siteKey || 'explicit');
+            script.src = `https://www.google.com/recaptcha/api.js?onload=onRecaptchaLoad&render=${rk}&hl=pt`;
         script.async = true;
         script.defer = true;
         document.head.appendChild(script);
@@ -56,7 +110,9 @@ function ensureRecaptchaLoaded(siteKey) {
         }
 
         const script = document.createElement('script');
-        script.src = `https://www.google.com/recaptcha/api.js?render=${encodeURIComponent(siteKey)}`;
+        script.src = 'https://www.google.com/recaptcha/api.js?onload=onRecaptchaLoad&render=explicit&hl=pt';
+            const rk = encodeURIComponent(siteKey || 'explicit');
+            script.src = `https://www.google.com/recaptcha/api.js?onload=onRecaptchaLoad&render=${rk}&hl=pt`;
         script.async = true;
         script.defer = true;
         script.onload = () => {
@@ -289,18 +345,24 @@ function initFormSubmission() {
 
             if (configuredKey) {
                 try {
-                    // Wait for grecaptcha to be ready (wrap callback in Promise)
-                    await new Promise(resolve => grecaptcha.ready(resolve));
-                    const token = await grecaptcha.execute(configuredKey, { action: 'submit_form' });
-                    formData.recaptchaToken = token;
+                    // Use safeRecaptchaExecute to avoid triggering PAT/private-token flows on iOS
+                    if (typeof window.safeRecaptchaExecute === 'function') {
+                        const token = await window.safeRecaptchaExecute(configuredKey, { action: 'submit_form' });
+                        formData.recaptchaToken = token || '';
+                    } else {
+                        // Wait for grecaptcha to be ready (wrap callback in Promise)
+                        await new Promise(resolve => grecaptcha.ready(resolve));
+                        const token = await grecaptcha.execute(configuredKey, { action: 'submit_form' });
+                        formData.recaptchaToken = token;
+                    }
                 } catch (rcErr) {
                     console.warn('reCAPTCHA execute failed:', rcErr);
                     formData.recaptchaToken = '';
                 }
 
-                // If a siteKey is configured but we failed to obtain a token, abort and notify
+                // If a siteKey is configured but we failed to obtain a token, abort — v3 required
                 if (window.recaptchaSiteKey && !formData.recaptchaToken) {
-                    if (window.showNotification) window.showNotification('Verificação reCAPTCHA falhou. Tente novamente.', 'error');
+                    if (window.showNotification) window.showNotification('Erro reCAPTCHA. Tente novamente mais tarde.', 'error');
                     if (submitBtn) { submitBtn.disabled = false; submitBtn.classList.remove('loading'); }
                     if (loader) { loader.style.display = 'none'; loader.classList.add('hidden'); }
                     return;
@@ -362,7 +424,7 @@ function collectFormData() {
     return {
         name: formData.get('authorName'),
         email: formData.get('authorEmail'),
-        phone: formData.get('authorPhone'),
+        phone: formData.get('authorPhone').replace(/\D/g, ''), // Clean phone number
         message: formData.get('message') || '',
         plan: formData.get('plan'),
         bookTitle: formData.get('bookTitle'),

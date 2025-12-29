@@ -32,7 +32,8 @@ function initSupportTabs() {
 
                 // Refresh AOS for new content
                 if (typeof AOS !== 'undefined') {
-                    AOS.refresh();
+                    if (typeof initGSAPAnimations === 'function') { try { initGSAPAnimations(); } catch (e) { console.warn('initGSAPAnimations failed', e); } }
+                    if (typeof ScrollTrigger !== 'undefined') { try { ScrollTrigger.refresh(); } catch (e) { console.warn('ScrollTrigger.refresh failed', e); } }
                 }
             }
 

@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Permissions-Policy" content="private-token=()">
     <title>Pagamento - Escritores Nogueira</title>
     <meta name="description" content="Finalize sua compra de forma segura">
     
@@ -15,13 +16,15 @@
     <!-- Swiper CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css">
     
-    <!-- AOS CSS -->
-    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    <!-- AOS removed: replaced by GSAP+ScrollTrigger -->
     
     <!-- Main CSS -->
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body class="page-pagamento">
+    
+    <!-- Site Wrapper -->
+    <div class="site-wrapper">
     
     <!-- Header -->
     <header class="header" id="header">
@@ -31,7 +34,6 @@
                     <span class="logo-text">Escritores Nogueira</span>
                 </a>
                 <ul class="nav-menu" id="navMenu">
-                    <li><a href="index.html" class="nav-link">Início</a></li>
                     <li><a href="livros.html" class="nav-link">Livros</a></li>
                     <li><a href="servicos.html" class="nav-link">Serviços</a></li>
                     <li><a href="sobre.html" class="nav-link">Sobre</a></li>
@@ -161,16 +163,16 @@
     </div>
 
     <!-- Main Content -->
-    <main>
+    <main class="site-container">
         <div class="container">
             <!-- Page Header -->
-            <div class="page-header" data-aos="fade-up">
+            <div class="page-header">
                 <h1>Finalizar Compra</h1>
                 <p>Complete seus dados para finalizar o pedido</p>
             </div>
 
             <!-- Checkout Progress -->
-            <div class="checkout-progress" data-aos="fade-up">
+            <div class="checkout-progress">
                 <div class="progress-step active">
                     <div class="step-number">1</div>
                     <div class="step-label">Envio</div>
@@ -191,84 +193,41 @@
             <div class="checkout-container">
                 <!-- Checkout Form -->
                 <div class="checkout-form">
-                    <!-- Step 1: Shipping Information -->
+                    <!-- Step 1: Shipping Information Review -->
                     <div class="checkout-step active" id="step1">
-                        <h2 data-aos="fade-up">Informações de Envio</h2>
+                        <h2>Verifique a sua Morada de Envio</h2>
                         
-                        <form id="shippingForm">
-                            <div class="form-row" data-aos="fade-up">
-                                <div class="form-group">
-                                    <label for="firstName">Nome *</label>
-                                    <input type="text" id="firstName" name="firstName" required>
+                        <div class="shipping-review">
+                            <div class="shipping-address-card">
+                                <div class="address-header">
+                                    <i class="fas fa-map-marker-alt"></i>
+                                    <h3>Morada de Envio</h3>
                                 </div>
-                                <div class="form-group">
-                                    <label for="lastName">Apelido *</label>
-                                    <input type="text" id="lastName" name="lastName" required>
-                                </div>
-                            </div>
-
-                            <div class="form-group" data-aos="fade-up">
-                                <label for="email">E-mail *</label>
-                                <input type="email" id="email" name="email" required>
-                            </div>
-
-                            <div class="form-group" data-aos="fade-up">
-                                <label for="phone">Telefone *</label>
-                                <input type="tel" id="phone" name="phone" required>
-                            </div>
-
-                            <div class="form-group" data-aos="fade-up">
-                                <label for="address">Morada *</label>
-                                <input type="text" id="address" name="address" required>
-                            </div>
-
-                            <div class="form-row" data-aos="fade-up">
-                                <div class="form-group">
-                                    <label for="city">Cidade *</label>
-                                    <input type="text" id="city" name="city" required>
-                                </div>
-                                <div class="form-group">
-                                    <label for="postalCode">Código Postal *</label>
-                                    <input type="text" id="postalCode" name="postalCode" placeholder="0000-000" required>
+                                <div class="address-details" id="shippingAddressDisplay">
+                                    <p>Carregando...</p>
                                 </div>
                             </div>
-
-                            <div class="form-group" data-aos="fade-up">
-                                <label>Envios</label>
-                                <div class="alert alert-info" style="display:flex;align-items:center;gap:10px;">
-                                    <i class="fas fa-map-marker-alt" style="font-size:1.2rem;color:#0E1B4D;"></i>
-                                    <div>
-                                        <strong>Envios apenas para Portugal Continental</strong>
-                                        <div style="font-size:0.9rem;color:#555;">Se precisar de envio para ilhas ou outro país, contacte-nos antes de efetuar a compra.</div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="form-group" data-aos="fade-up">
-                                <label for="notes">Notas do Pedido (Opcional)</label>
-                                <textarea id="notes" name="notes" rows="4" placeholder="Alguma observação sobre a entrega?"></textarea>
-                            </div>
-
-                            <div class="form-actions" data-aos="fade-up">
-                                <button type="button" class="btn btn-secondary" onclick="window.location.href='livros.html'">
-                                    <i class="fas fa-arrow-left"></i> Continuar Comprando
+                            
+                            <div class="shipping-actions">
+                                <button type="button" class="btn btn-outline" onclick="window.location.href='conta.html'">
+                                    <i class="fas fa-edit"></i> Alterar Morada de Envio
                                 </button>
-                                <button type="button" class="btn btn-primary" onclick="nextStep(2)">
-                                    Continuar para Pagamento <i class="fas fa-arrow-right"></i>
+                                <button type="button" class="btn btn-primary" id="nextStepBtn">
+                                    Prosseguir para Compra <i class="fas fa-arrow-right"></i>
                                 </button>
                             </div>
-                        </form>
+                        </div>
                     </div>
 
                     <!-- Step 2: Payment Information -->
                     <div class="checkout-step" id="step2">
-                        <h2 data-aos="fade-up">Método de Pagamento</h2>
+                        <h2>Método de Pagamento</h2>
 
-                        <div class="payment-methods" data-aos="fade-up">
+                        <div class="payment-methods">
                             <p>Ao clicar em "Finalizar Pedido" será redirecionado para a página de pagamento segura da Stripe, onde poderá escolher o método de pagamento disponível.</p>
                         </div>
 
-                        <div id="cardPaymentForm" class="payment-form active" data-aos="fade-up">
+                        <div id="cardPaymentForm" class="payment-form active">
                             <div class="alert alert-success" style="display:flex;align-items:center;gap:10px;">
                                 <i class="fas fa-shield-alt" style="font-size:1.2rem;color:#0E1B4D;"></i>
                                 <div>
@@ -278,11 +237,11 @@
                             </div>
                         </div>
 
-                        <div class="form-actions" data-aos="fade-up">
-                            <button type="button" class="btn btn-secondary" onclick="prevStep(1)">
+                        <div class="form-actions">
+                            <button type="button" class="btn btn-secondary" id="prevStepBtn">
                                 <i class="fas fa-arrow-left"></i> Voltar
                             </button>
-                            <button type="button" class="btn btn-primary" onclick="processPayment()">
+                            <button type="button" class="btn btn-primary" id="processPaymentBtn">
                                 Finalizar Pedido <i class="fas fa-check"></i>
                             </button>
                         </div>
@@ -302,6 +261,10 @@
                                     <strong>Número do Pedido:</strong>
                                     <span id="orderNumber">#00000</span>
                                 </div>
+                                <div class="order-shipping">
+                                    <h4>Morada de envio</h4>
+                                    <div id="orderShippingAddress">Morada será carregada após confirmação</div>
+                                </div>
                                 <div class="order-email">
                                     <p>Enviámos um e-mail de confirmação para <strong id="confirmationEmail"></strong></p>
                                 </div>
@@ -316,7 +279,7 @@
                 </div>
 
                 <!-- Order Summary -->
-                <div class="order-summary" data-aos="fade-up">
+                <div class="order-summary">
                     <h3>Resumo do Pedido</h3>
                     
                     <div class="summary-items" id="summaryItems">
@@ -387,15 +350,17 @@
             </div>
         </div>
     </footer>
+    
+    </div> <!-- End Site Wrapper -->
 
     <!-- Overlay -->
     <div class="overlay" id="overlay"></div>
 
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
-    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+    <!-- AOS script removed -->
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.1/dist/gsap.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.1/dist/ScrollTrigger.min.js"></script>
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
@@ -404,6 +369,7 @@
     <script src="js/utils.js"></script>
     <script src="js/cart.js"></script>
     <script src="js/auth.js"></script>
+    <script src="js/animations.js"></script>
     <script src="js/main.js"></script>
     <script src="https://js.stripe.com/v3/"></script>
     <script src="js/pagamento.js"></script>

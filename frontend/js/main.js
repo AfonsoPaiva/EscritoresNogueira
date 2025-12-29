@@ -4,38 +4,115 @@
 
 // reCAPTCHA configuration
 window.recaptchaSiteKey = null;
+// Flag set when Google reCAPTCHA calls onload
+window.recaptchaReady = false;
+
+// Called by the reCAPTCHA script when ready (via ?onload=onRecaptchaLoad)
+window.onRecaptchaLoad = function() {
+    try {
+        console.log('recaptcha: onRecaptchaLoad called');
+        window.recaptchaReady = true;
+    } catch (e) { console.warn('onRecaptchaLoad handler error', e); }
+};
 
 // Initialize on first load
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('🚀 DOM carregado:', window.location.pathname);
+    // Initialize in correct order and wait for async library loads
+    (async function start() {
+        try {
+            await Promise.all([ensureGSAP(), ensureSwiper()]);
+            await initGSAPAnimations();
+        } catch (e) {
+            console.warn('Library load warning:', e);
+        }
 
-    // Initialize in correct order
-    initGSAP();
-    initLibraries();
-    loadRecaptchaConfig();
-    initApp();
-    runAnimations();
+        loadRecaptchaConfig();
+        initApp();
 
-    console.log('✅ Aplicação inicializada');
+        // Run animations after app init and after libraries are ready
+        if (typeof runAnimations === 'function') {
+            runAnimations();
+        }
+        if (typeof ScrollTrigger !== 'undefined') {
+            try { ScrollTrigger.refresh(); } catch (e) { console.warn('ScrollTrigger.refresh failed', e); }
+        }
+
+        // Initialize swipers for the initial page load
+        setTimeout(() => {
+            if (typeof initAllSwipers === 'function') {
+                initAllSwipers();
+            }
+        }, 100);
+    })();
 });
 
 // Initialize GSAP
 function initGSAP() {
     if (typeof gsap !== 'undefined' && typeof ScrollTrigger !== 'undefined') {
         gsap.registerPlugin(ScrollTrigger);
-        console.log('✅ GSAP registrado');
+        return true;
     }
+    return false;
 }
 
-// Initialize libraries
-function initLibraries() {
-    if (typeof AOS !== 'undefined') {
-        AOS.init({
-            duration: 800,
-            once: true,
-            offset: 100
+// Ensure GSAP and ScrollTrigger are available, load from CDN if missing
+function ensureGSAP() {
+    return new Promise((resolve, reject) => {
+        if (initGSAP()) return resolve(true);
+
+        const loadScript = (src) => new Promise((res, rej) => {
+            const s = document.createElement('script');
+            s.src = src;
+            s.async = true;
+            s.onload = res;
+            s.onerror = rej;
+            document.head.appendChild(s);
         });
+
+        // Load GSAP then ScrollTrigger sequentially
+        loadScript('https://cdn.jsdelivr.net/npm/gsap@3.14.1/dist/gsap.min.js')
+            .then(() => loadScript('https://cdn.jsdelivr.net/npm/gsap@3.14.1/dist/ScrollTrigger.min.js'))
+            .then(() => {
+                try {
+                    if (typeof gsap !== 'undefined' && typeof ScrollTrigger !== 'undefined') {
+                        gsap.registerPlugin(ScrollTrigger);
+                        return resolve(true);
+                    }
+                    return reject(new Error('GSAP or ScrollTrigger not available after load'));
+                } catch (e) {
+                    return reject(e);
+                }
+            })
+            .catch(err => reject(err));
+    });
+}
+
+// Ensure Swiper library is available (load from CDN if missing)
+function ensureSwiper() {
+    return new Promise((resolve, reject) => {
+        if (typeof Swiper !== 'undefined') return resolve(true);
+
+        const s = document.createElement('script');
+        s.src = 'https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js';
+        s.async = true;
+        s.onload = () => resolve(true);
+        s.onerror = (e) => reject(new Error('Failed to load Swiper'));
+        document.head.appendChild(s);
+    });
+}
+
+// Delegating wrapper for animations (moved to js/animations.js)
+function initGSAPAnimations() {
+    // Avoid calling itself if this global refers to this function
+    if (typeof window.initGSAPAnimations === 'function' && window.initGSAPAnimations !== initGSAPAnimations) {
+        try {
+            return window.initGSAPAnimations();
+        } catch (e) {
+            console.warn('window.initGSAPAnimations threw', e);
+            return Promise.resolve(false);
+        }
     }
+    return Promise.resolve(false);
 }
 
 // Load reCAPTCHA configuration
@@ -45,7 +122,6 @@ async function loadRecaptchaConfig() {
         if (response.ok) {
             const config = await response.json();
             window.recaptchaSiteKey = config.siteKey;
-            console.log('🔒 reCAPTCHA config loaded');
             loadRecaptchaScript();
         } else {
             console.warn('Failed to load reCAPTCHA config');
@@ -57,25 +133,201 @@ async function loadRecaptchaConfig() {
 
 // Load reCAPTCHA script
 function loadRecaptchaScript() {
-    if (!window.recaptchaSiteKey || document.querySelector('script[src*="recaptcha"]')) {
+    if (!window.recaptchaSiteKey || window.recaptchaSiteKey === 'test-site' || document.querySelector('script[src*="recaptcha"]')) {
         return;
     }
 
+    // Prepare a protective grecaptcha stub to intercept early render/execute calls
+    if (!window.__grecaptcha_stub_installed) {
+        window.__grecaptcha_stub_installed = true;
+        (function(){
+            const q = [];
+            function stubReady(cb){ q.push({type:'ready', cb}); }
+            function stubRender(container, opts){ q.push({type:'render', args:[container, opts]}); return null; }
+            function stubExecute(...args){ q.push({type:'execute', args}); return Promise.resolve(null); }
+            window.grecaptcha = window.grecaptcha || { render: stubRender, execute: stubExecute, ready: stubReady };
+            // Expose a flush method to replace stub with real grecaptcha later
+            window.__grecaptcha_stub_queue = q;
+        })();
+    }
+
+    // Load reCAPTCHA with the site key so grecaptcha.execute(siteKey) is valid (v3)
     const script = document.createElement('script');
-    script.src = `https://www.google.com/recaptcha/api.js?render=${window.recaptchaSiteKey}`;
+    const rk = window.recaptchaSiteKey ? encodeURIComponent(window.recaptchaSiteKey) : 'explicit';
+    script.src = `https://www.google.com/recaptcha/api.js?onload=onRecaptchaLoad&render=${rk}&hl=pt`;
     script.async = true;
     script.defer = true;
-    document.head.appendChild(script);
-
     script.onload = () => {
         console.log('🔒 reCAPTCHA script loaded');
+        // Do NOT auto-render an invisible v2 widget here. Modules that need a v2 challenge
+        // should render and execute it explicitly (auth.js handles that when backend requests a challenge).
+        // Start instrumentation to help debug recaptcha flows (wrapping grecaptcha and network)
+        (function instrumentRecaptcha() {
+            const start = Date.now();
+            let attempts = 0;
+            const maxAttempts = 50;
+            const interval = setInterval(() => {
+                attempts++;
+                    if (window.grecaptcha) {
+                    clearInterval(interval);
+                    try {
+                        // If a stub queue exists, flush queued calls, but intercept any render of invisible widgets
+                        const q = window.__grecaptcha_stub_queue || [];
+                        const real = window.grecaptcha;
+
+                        // Wrap real methods to add debug logging
+                        const origRender = real.render.bind(real);
+                        const origExecute = real.execute.bind(real);
+                        const origReady = real.ready.bind(real);
+
+                        real.render = function(container, opts) {
+                                                try {
+                                                    console.warn('recaptcha.debug: real grecaptcha.render called', { container, opts });
+                                                    // Log headers for debugging
+                                                    console.warn('recaptcha.debug: headers before render', {
+                                                        referer: document.referrer,
+                                                        origin: window.location.origin,
+                                                        ua: navigator.userAgent,
+                                                        href: window.location.href
+                                                    });
+                                                } catch(e){}
+                                                return origRender(container, opts);
+                                            };
+
+                        real.execute = function(...args) {
+                            console.warn('recaptcha.debug: real grecaptcha.execute called', { args });
+                            return origExecute(...args);
+                        };
+
+                        real.ready = function(cb) {
+                            console.log('recaptcha.debug: real grecaptcha.ready registered');
+                            return origReady(cb);
+                        };
+
+                        // Flush queued stub calls
+                        while (q.length) {
+                            const item = q.shift();
+                            try {
+                                if (item.type === 'render') {
+                                    real.render(item.args[0], item.args[1]);
+                                } else if (item.type === 'execute') {
+                                    real.execute(...item.args);
+                                } else if (item.type === 'ready') {
+                                    real.ready(item.cb);
+                                }
+                            } catch(e) {
+                                console.warn('recaptcha.debug: error flushing queued item', e);
+                            }
+                        }
+
+                        // Replace the stub queue reference
+                        window.__grecaptcha_stub_queue = [];
+
+                        // Expose debug flag
+                        window.__recaptcha_debug = true;
+                    } catch (e) {
+                        console.error('recaptcha.debug: instrumentation failed', e);
+                    }
+
+                    // Wrap fetch to detect recaptcha network calls
+                    if (window.fetch && !window.__recaptcha_fetch_wrapped) {
+                        const origFetch = window.fetch;
+                        window.fetch = function(resource, init) {
+                            try {
+                                const url = (typeof resource === 'string') ? resource : (resource && resource.url);
+                                if (url && url.includes('recaptcha')) {
+                                    console.warn('recaptcha.net: fetch ->', url, init && init.method, { time: new Date().toISOString(), ua: navigator.userAgent, href: window.location.href });
+                                }
+                            } catch (e) {}
+                            return origFetch.apply(this, arguments).then(resp => {
+                                try {
+                                    const url = (typeof resource === 'string') ? resource : (resource && resource.url);
+                                    if (url && url.includes('recaptcha')) {
+                                        console.warn('recaptcha.net: fetch response', { url, status: resp.status, time: new Date().toISOString() });
+                                    }
+                                } catch (e) {}
+                                return resp;
+                            });
+                        };
+                        window.__recaptcha_fetch_wrapped = true;
+                    }
+
+                    // Wrap XHR send to detect recaptcha requests (older internal libs)
+                    if (window.XMLHttpRequest && !window.__recaptcha_xhr_wrapped) {
+                        const XHR = window.XMLHttpRequest;
+                        const origOpen = XHR.prototype.open;
+                        const origSend = XHR.prototype.send;
+                        XHR.prototype.open = function(method, url) {
+                            this.__recaptcha_url = url;
+                            this.__recaptcha_method = method;
+                            return origOpen.apply(this, arguments);
+                        };
+                        XHR.prototype.send = function(body) {
+                            try {
+                                if (this.__recaptcha_url && this.__recaptcha_url.includes('recaptcha')) {
+                                    console.warn('recaptcha.net: XHR send ->', this.__recaptcha_method, this.__recaptcha_url, { time: new Date().toISOString(), ua: navigator.userAgent, href: window.location.href });
+                                    this.addEventListener('loadend', function() {
+                                        try { console.warn('recaptcha.net: XHR response', { url: this.__recaptcha_url, status: this.status, time: new Date().toISOString() }); } catch(e){}
+                                    });
+                                }
+                            } catch (e) {}
+                            return origSend.apply(this, arguments);
+                        };
+                        window.__recaptcha_xhr_wrapped = true;
+                    }
+                }
+                if (attempts >= maxAttempts) {
+                    clearInterval(interval);
+                    console.warn('recaptcha.debug: grecaptcha not found after polling attempts', { attempts, elapsedMs: Date.now() - start });
+                }
+            }, 200);
+        })();
     };
+    document.head.appendChild(script);
 }
+
+// Detect iOS devices (iPhone / iPad / iPod / iPadOS) and provide a safe execute wrapper
+function isIOSDevice() {
+    try {
+        const ua = navigator.userAgent || '';
+        if (/iP(hone|od|ad)/i.test(ua)) return true;
+        // iPadOS 13+ reports MacIntel
+        if (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1) return true;
+    } catch (e) {}
+    return false;
+}
+
+// Use this wrapper everywhere to avoid triggering Private-Token / PAT flows on iOS Safari
+window.safeRecaptchaExecute = async function(siteKey, opts) {
+    if (!siteKey) return null;
+    if (window.grecaptcha && typeof grecaptcha.execute === 'function') {
+        try {
+            await new Promise(resolve => grecaptcha.ready(resolve));
+            return await grecaptcha.execute(siteKey, opts || {});
+        } catch (e) {
+            console.warn('recaptcha.debug: safeRecaptchaExecute failed', e);
+            return null;
+        }
+    }
+    // grecaptcha not available
+    return null;
+};
+// Expose helper globally for other modules
+try { window.isIOSDevice = isIOSDevice; } catch (e) {}
+
+// Render a visible v2 reCAPTCHA (compact) and return a Promise resolving to the token
+// Note: v2 interactive fallback removed — use v3 execute() exclusively
 
 // Enhanced Swiper initialization utility
 function initSwiper(selector, config) {
     if (typeof Swiper === 'undefined') {
-        console.warn('Swiper library not loaded');
+        console.warn('Swiper library not loaded - attempting to load...');
+        // Try to load Swiper dynamically
+        ensureSwiper().then(() => {
+            initSwiper(selector, config);
+        }).catch(err => {
+            console.error('Failed to load Swiper:', err);
+        });
         return null;
     }
 
@@ -94,7 +346,6 @@ function initSwiper(selector, config) {
 
     const wrapper = container.querySelector('.swiper-wrapper');
     if (!wrapper || wrapper.children.length === 0) {
-        console.warn(`No slides found in ${selector}`);
         return null;
     }
 
@@ -108,14 +359,14 @@ function initSwiper(selector, config) {
             on: {
                 ...config.on,
                 init: function() {
-                    console.log(`📱 ${selector} Swiper initialized with ${this.slides.length} slides`);
                     container.classList.remove('swiper-loading');
                     if (config.on && config.on.init) config.on.init.call(this);
                 },
                 slideChange: function() {
                     // Refresh AOS for new visible slides
                     if (typeof AOS !== 'undefined') {
-                        AOS.refresh();
+                        if (typeof initGSAPAnimations === 'function') { try { initGSAPAnimations(); } catch (e) { console.warn('initGSAPAnimations failed', e); } }
+                        if (typeof ScrollTrigger !== 'undefined') { try { ScrollTrigger.refresh(); } catch (e) { console.warn('ScrollTrigger.refresh failed', e); } }
                     }
                     if (config.on && config.on.slideChange) config.on.slideChange.call(this);
                 }
@@ -129,164 +380,46 @@ function initSwiper(selector, config) {
 }
 
 // Run GSAP animations
-function runAnimations() {
-    if (typeof gsap === 'undefined') {
-        console.warn('⚠️ GSAP não disponível');
-        return;
-    }
 
-    console.log('🎨 Executando animações GSAP');
-
-    // Animate hero elements (de cima para baixo)
-    const heroTitle = document.querySelector('.hero-title');
-    const heroSubtitle = document.querySelector('.hero-subtitle');
-    const heroButtons = document.querySelectorAll('.hero-content .btn');
-
-    const heroElements = [heroTitle, heroSubtitle, ...heroButtons].filter(Boolean);
-
-    if (heroElements.length > 0) {
-        gsap.fromTo(heroElements,
-            { opacity: 0, y: -30 },
-            {
-                opacity: 1,
-                y: 0,
-                duration: 0.8,
-                stagger: 0.2,
-                ease: 'power3.out'
-                // clearProps: 'all' REMOVIDO - Mantém elementos visíveis após transição
-            }
-        );
-        console.log('✅ Hero animado');
-    }
-
-    // Animate page headers (de cima para baixo)
-    const pageHeaders = document.querySelectorAll('.page-header');
-    if (pageHeaders.length > 0) {
-        pageHeaders.forEach(header => {
-            gsap.fromTo(header,
-                { opacity: 0, y: -30 },
-                {
-                    opacity: 1,
-                    y: 0,
-                    duration: 0.8,
-                    ease: 'power3.out',
-                    scrollTrigger: {
-                        trigger: header,
-                        start: 'top 80%',
-                        once: true
-                    }
-                }
-            );
-        });
-        console.log('✅ Page headers animados');
-    }
-
-    // Animate sections
-    const sections = document.querySelectorAll('.section');
-    
-    // Pages that should animate on load (without scroll trigger)
-    const pagesWithLoadAnimation = ['page-conta', 'page-apoio', 'page-termos', 'page-privacidade'];
-    const useLoadAnimation = pagesWithLoadAnimation.some(pageClass => document.body.classList.contains(pageClass));
-    
-    if (sections.length > 0) {
-        if (useLoadAnimation) {
-            // Animate all sections on page load with stagger
-            sections.forEach((section, index) => {
-                gsap.fromTo(section,
-                    { opacity: 0, y: 50 },
-                    {
-                        opacity: 1,
-                        y: 0,
-                        duration: 0.8,
-                        delay: index * 0.1,
-                        ease: 'power3.out',
-                        onComplete: () => {
-                            section.classList.add('gsap-animated');
-                        }
-                    }
-                );
-            });
-            console.log(`✅ ${sections.length} seções animadas no carregamento`);
-        } else {
-            // Use ScrollTrigger for other pages
-            sections.forEach((section) => {
-                gsap.set(section, { opacity: 0, y: 30 });
-
-                ScrollTrigger.create({
-                    trigger: section,
-                    start: 'top 80%',
-                    onEnter: () => {
-                        gsap.to(section, {
-                            opacity: 1,
-                            y: 0,
-                            duration: 0.6,
-                            ease: 'power2.out',
-                            onComplete: () => {
-                                section.classList.add('gsap-animated');
-                            }
-                        });
-                    },
-                    once: true
-                });
-            });
-            console.log(`✅ ${sections.length} ScrollTriggers criados`);
-        }
-    }
-}
 
 // Initialize app functionality
 function initApp() {
-    console.log('⚙️ Inicializando aplicação');
     initMobileMenu();
     initHeaderScroll();
     initSearch();
     initPage();
     updateActiveNavLink();
     initNewsletter();
+    
+    // Remove loading class after initialization
+    document.body.classList.remove('loading');
 }
 
 // Mobile menu functionality
 function initMobileMenu() {
     const hamburger = document.getElementById('hamburger');
     const navMenu = document.getElementById('navMenu');
-    const overlay = document.getElementById('overlay');
-
-    console.log('🍔 Inicializando menu mobile', { hamburger: !!hamburger, navMenu: !!navMenu, overlay: !!overlay });
 
     if (hamburger) {
         hamburger.addEventListener('click', () => {
-            console.log('🍔 Hamburger clicado');
             hamburger.classList.toggle('active');
             navMenu.classList.toggle('active');
-            overlay.classList.toggle('active');
             document.body.style.overflow = navMenu.classList.contains('active') ? 'hidden' : '';
-        });
-    }
-
-    if (overlay) {
-        overlay.addEventListener('click', () => {
-            closeMobileMenu();
-            if (window.cart) window.cart.closeCart();
-            if (window.auth) window.auth.closeUserPanel();
         });
     }
 
     document.querySelectorAll('.nav-link').forEach(link => {
         link.addEventListener('click', closeMobileMenu);
     });
-
-    console.log('🍔 Menu mobile inicializado');
 }
 
 function closeMobileMenu() {
     const hamburger = document.getElementById('hamburger');
     const navMenu = document.getElementById('navMenu');
-    const overlay = document.getElementById('overlay');
 
     if (hamburger && hamburger.classList.contains('active')) {
         hamburger.classList.remove('active');
         navMenu.classList.remove('active');
-        overlay.classList.remove('active');
         document.body.style.overflow = '';
     }
 }
@@ -299,6 +432,13 @@ function initHeaderScroll() {
     let lastScrollTop = 0;
     let isHeaderHidden = false;
 
+    // Function to check if we should show fixed buttons based on screen size
+    const shouldShowFixedButtons = () => {
+        const width = window.innerWidth || document.documentElement.clientWidth;
+        // Show fixed buttons on mobile/tablet, hide on desktop
+        return width <= 768;
+    };
+
     window.addEventListener('scroll', () => {
         const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
 
@@ -309,36 +449,49 @@ function initHeaderScroll() {
             header.classList.remove('scrolled');
         }
 
-        // Hide/show header based on scroll direction
-        if (scrollTop > lastScrollTop && scrollTop > 100) {
-            // Scrolling down - hide header and show fixed buttons
-            if (!isHeaderHidden) {
-                gsap.to(header, {
-                    y: '-100%',
-                    duration: 0.3,
-                    ease: 'power2.out'
-                });
-                if (fixedButtons) {
-                    fixedButtons.classList.add('show');
+        // Hide/show header based on scroll direction, but only on mobile
+        if (shouldShowFixedButtons()) {
+            if (scrollTop > lastScrollTop && scrollTop > 100) {
+                // Scrolling down - hide header and show fixed buttons
+                if (!isHeaderHidden) {
+                    gsap.to(header, {
+                        y: '-100%',
+                        duration: 0.3,
+                        ease: 'power2.out'
+                    });
+                    if (fixedButtons) {
+                        fixedButtons.classList.add('show');
+                    }
+                    isHeaderHidden = true;
                 }
-                isHeaderHidden = true;
-            }
-        } else {
-            // Scrolling up - show header and hide fixed buttons
-            if (isHeaderHidden) {
-                gsap.to(header, {
-                    y: '0%',
-                    duration: 0.3,
-                    ease: 'power2.out'
-                });
-                if (fixedButtons) {
-                    fixedButtons.classList.remove('show');
+            } else {
+                // Scrolling up - show header and hide fixed buttons
+                if (isHeaderHidden) {
+                    gsap.to(header, {
+                        y: '0%',
+                        duration: 0.3,
+                        ease: 'power2.out'
+                    });
+                    if (fixedButtons) {
+                        fixedButtons.classList.remove('show');
+                    }
+                    isHeaderHidden = false;
                 }
-                isHeaderHidden = false;
             }
         }
 
         lastScrollTop = scrollTop <= 0 ? 0 : scrollTop;
+    });
+
+    // Handle window resize to adjust behavior
+    window.addEventListener('resize', () => {
+        if (!shouldShowFixedButtons() && fixedButtons) {
+            fixedButtons.classList.remove('show');
+            if (isHeaderHidden) {
+                gsap.to(header, { y: '0%', duration: 0.3, ease: 'power2.out' });
+                isHeaderHidden = false;
+            }
+        }
     });
 }
 
@@ -349,41 +502,121 @@ function initSearch() {
     const searchInput = document.getElementById('searchInput');
     const searchResults = document.getElementById('searchResults');
 
+    let booksData = [];
+    let blogPosts = [];
+
+    // Load data securely
+    const loadSearchData = async () => {
+        try {
+            if (booksData.length === 0) {
+                booksData = await api.getBooks();
+            }
+            if (blogPosts.length === 0) {
+                blogPosts = await api.getBlogPosts();
+            }
+        } catch (error) {
+            console.error('Error loading search data:', error);
+        }
+    };
+
+    const searchContainer = searchOverlay ? searchOverlay.querySelector('.search-container') : null;
     if (searchBtn) {
-        searchBtn.addEventListener('click', () => {
+        searchBtn.addEventListener('click', async () => {
+            try { searchOverlay.style.display = ''; } catch(e){}
+            // Show overlay immediately so background is visible
             searchOverlay.classList.add('active');
-            setTimeout(() => searchInput.focus(), 100);
+
+            // If GSAP is available, animate the overlay sliding down from top
+            if (typeof gsap !== 'undefined') {
+                gsap.set(searchOverlay, { y: '-100%' });
+                gsap.to(searchOverlay, {
+                    y: '0%',
+                    duration: 0.5,
+                    ease: 'power2.out'
+                });
+            }
+
+            setTimeout(() => searchInput && searchInput.focus(), 120);
+            await loadSearchData();
         });
     }
 
     if (closeSearch) {
         closeSearch.addEventListener('click', () => {
-            searchOverlay.classList.remove('active');
-            searchInput.value = '';
-            searchResults.innerHTML = '';
+            // Animate overlay sliding up and then hide
+            const hideOverlay = () => {
+                searchOverlay.classList.remove('active');
+                try { searchOverlay.style.display = 'none'; } catch(e){}
+            };
+
+            if (typeof gsap !== 'undefined') {
+                gsap.to(searchOverlay, {
+                    y: '-100%',
+                    duration: 0.4,
+                    ease: 'power2.in',
+                    onComplete: hideOverlay
+                });
+            } else {
+                searchOverlay.classList.remove('active');
+                setTimeout(() => searchOverlay.style.display = 'none', 550);
+            }
+
+            if (searchInput) searchInput.value = '';
+            if (searchResults) searchResults.innerHTML = '';
         });
     }
 
     if (searchInput) {
         searchInput.addEventListener('input', (e) => {
-            const query = e.target.value.toLowerCase();
+            const query = e.target.value.toLowerCase().trim();
             if (query.length < 2) {
                 searchResults.innerHTML = '';
                 return;
             }
 
-            const results = booksData.filter(book =>
-                book.title.toLowerCase().includes(query) ||
-                book.author.toLowerCase().includes(query) ||
-                book.category.toLowerCase().includes(query)
-            ).slice(0, 5);
+            const bookResults = booksData.filter(book =>
+                (book.title && book.title.toLowerCase().includes(query)) ||
+                (book.author && book.author.toLowerCase().includes(query)) ||
+                (book.category && book.category.toLowerCase().includes(query))
+            ).slice(0, 3).map(book => ({
+                type: 'book',
+                title: book.title,
+                subtitle: `${book.author} • ${book.category}`,
+                url: `livro.html?id=${book.id}`,
+                image: book.image
+            }));
 
-            searchResults.innerHTML = results.map(book =>
-                `<div class="search-result-item" onclick="window.location.href='livro.html?id=${book.id}'">
-                    <h4>${book.title}</h4>
-                    <p>${book.author} • ${book.category}</p>
+            const postResults = blogPosts.filter(post =>
+                (post.title && post.title.toLowerCase().includes(query)) ||
+                (post.excerpt && post.excerpt.toLowerCase().includes(query)) ||
+                (post.category && post.category.toLowerCase().includes(query))
+            ).slice(0, 3).map(post => ({
+                type: 'post',
+                title: post.title,
+                subtitle: post.excerpt ? post.excerpt.substring(0, 100) + '...' : post.category,
+                url: `artigo.html?id=${post.id}`,
+                image: post.image
+            }));
+
+            const allResults = [...bookResults, ...postResults];
+
+            if (allResults.length === 0) {
+                searchResults.innerHTML = '<p class="no-results">Nenhum resultado encontrado</p>';
+                return;
+            }
+
+            searchResults.innerHTML = allResults.map(result =>
+                `<div class="search-result-item" onclick="window.location.href='${result.url}'">
+                    <div class="search-result-image">
+                        ${result.image ? `<img src="${result.image}" alt="${result.title}" loading="lazy">` : '<i class="fas fa-book"></i>'}
+                    </div>
+                    <div class="search-result-content">
+                        <h4>${result.title}</h4>
+                        <p>${result.subtitle}</p>
+                        <span class="search-result-type">${result.type === 'book' ? 'Livro' : 'Artigo'}</span>
+                    </div>
                 </div>`
-            ).join('') || '<p class="no-results">Nenhum resultado encontrado</p>';
+            ).join('');
         });
     }
 }
@@ -402,7 +635,6 @@ function initPage() {
     } else if (path.includes('livro.html') && !path.includes('livros.html')) {
         // Book detail page - handled by book-detail.js
         // Do NOT redirect here - let book-detail.js handle it
-        console.log('📖 Main.js: On livro.html page, book-detail.js will handle initialization');
     } else if (path.includes('blog.html')) {
         // Code from blog.js
         loadBlogPosts();
@@ -422,8 +654,6 @@ async function loadFeaturedBooks() {
     const featuredBooksContainer = document.getElementById('featuredBooks');
     if (!featuredBooksContainer) return;
 
-    console.log('🔄 A carregar livros em destaque da API...');
-
     // Show loading skeleton
     featuredBooksContainer.innerHTML = Array(4).fill('').map(() => `
         <div class="swiper-slide">
@@ -439,21 +669,22 @@ async function loadFeaturedBooks() {
     `).join('');
 
     try {
-        // Fetch books from API - same approach as books.js
-        const booksFromApi = await api.getBooks();
-        console.log('📦 Resposta da API:', booksFromApi);
-        
-        const allBooks = transformBooks(booksFromApi);
-        console.log('📚 Livros transformados:', allBooks.length);
-        
-        // Filter featured books, or take first 8 if none are featured
-        let featuredBooks = allBooks.filter(b => b.featured).slice(0, 8);
-        if (featuredBooks.length === 0) {
-            featuredBooks = allBooks.slice(0, 8);
+        // Check if data is prefetched
+        let booksFromApi;
+        if (window.pageCache && window.pageCache['featured']) {
+            console.log('🏠 Using prefetched featured books data');
+            booksFromApi = window.pageCache['featured'];
+            delete window.pageCache['featured'];
+        } else {
+            // Fetch books from API - same approach as books.js
+            booksFromApi = await api.getBooks();
         }
-        
-        console.log('⭐ Livros em destaque:', featuredBooks.length);
-        
+
+        // Filter featured books, or take first 8 if none are featured
+        let featuredBooks = booksFromApi.filter(b => b.featured).slice(0, 8);
+        if (featuredBooks.length === 0) {
+            featuredBooks = booksFromApi.slice(0, 8);
+        }
         if (featuredBooks.length === 0) {
             featuredBooksContainer.innerHTML = `
                 <div class="swiper-slide" style="width: 100%;">
@@ -499,7 +730,7 @@ function displayFeaturedBooks(books, container) {
         <div class="swiper-slide">
             <div class="book-card" data-href="${bookUrl(book)}" data-book-id="${book.id}">
                 <div class="book-image">
-                    ${imageUrl ? `<img src="${imageUrl}" alt="${book.title}">` : '<i class="fas fa-book"></i>'}
+                    ${imageUrl ? `<img src="${imageUrl}" alt="${book.title}" width="280" height="350" loading="lazy">` : '<i class="fas fa-book"></i>'}
                     ${isPromo ? '<div class="book-badge">Promoção</div>' : ''}
                 </div>
                 <div class="book-info">
@@ -555,7 +786,19 @@ function displayFeaturedBooks(books, container) {
         }, 100);
     }
 
-    console.log('✅ Livros em destaque carregados');
+    // Refresh AOS for dynamically added elements
+    if (typeof AOS !== 'undefined') {
+        if (typeof initGSAPAnimations === 'function') { try { initGSAPAnimations(); } catch (e) { console.warn('initGSAPAnimations failed', e); } }
+        if (typeof ScrollTrigger !== 'undefined') { try { ScrollTrigger.refresh(); } catch (e) { console.warn('ScrollTrigger.refresh failed', e); } }
+    }
+    // Re-run animations to ensure dynamically added content is animated/revealed
+    try {
+        if (typeof runAnimations === 'function') {
+            runAnimations();
+        }
+    } catch (e) {
+        console.warn('Erro ao reexecutar animações após carregar livros em destaque', e);
+    }
 }
 
 // Attach click events to featured book cards
@@ -642,23 +885,34 @@ function initNewsletter() {
         btn.disabled = true;
         
         try {
-            // Try to obtain reCAPTCHA token (v3). If not available, proceed without it.
+            // Try to obtain a reCAPTCHA token (prefer v3). If not available, proceed without it.
             let recaptchaToken = null;
-            try {
-                if (window.recaptchaSiteKey && typeof grecaptcha !== 'undefined' && grecaptcha.execute) {
-                    // grecaptcha.ready expects a callback, wrap in a Promise to await it
-                    await new Promise(resolve => grecaptcha.ready(resolve));
-                    recaptchaToken = await grecaptcha.execute(window.recaptchaSiteKey, { action: 'subscribe' });
+            if (window.recaptchaSiteKey === 'test-site') {
+                recaptchaToken = 'test-token';
+            } else if (window.recaptchaSiteKey && typeof grecaptcha !== 'undefined') {
+                try {
+                    // Prefer v3-style execution: grecaptcha.execute(siteKey, {action})
+                        if (typeof window.safeRecaptchaExecute === 'function') {
+                            recaptchaToken = await window.safeRecaptchaExecute(window.recaptchaSiteKey, { action: 'newsletter' });
+                        } else if (typeof grecaptcha !== 'undefined' && typeof grecaptcha.execute === 'function') {
+                            await new Promise(resolve => grecaptcha.ready(resolve));
+                            try {
+                                recaptchaToken = await grecaptcha.execute(window.recaptchaSiteKey, { action: 'newsletter' });
+                            } catch (execErr) {
+                                console.warn('reCAPTCHA newsletter execute failed', execErr);
+                                recaptchaToken = null;
+                            }
+                        }
+                } catch (rcErr) {
+                    console.warn('reCAPTCHA flow failed:', rcErr);
+                    recaptchaToken = null;
                 }
-            } catch (rcErr) {
-                console.warn('reCAPTCHA execute failed:', rcErr);
             }
 
-            // If siteKey is configured but we failed to obtain a token, stop and show error
+            // If siteKey is configured but we failed to obtain a token, abort — always use reCAPTCHA v3
             if (window.recaptchaSiteKey && !recaptchaToken) {
-                if (window.showNotification) window.showNotification('Verificação reCAPTCHA falhou. Tente novamente.', 'error');
-                btn.innerHTML = originalText;
-                btn.disabled = false;
+                console.error('reCAPTCHA v3 token not obtained; aborting newsletter subscribe (v3 required)');
+                this.showNotification && this.showNotification('Erro reCAPTCHA. Tente novamente mais tarde.', 'error');
                 return;
             }
 
@@ -696,4 +950,72 @@ function initNewsletter() {
             btn.disabled = false;
         }
     });
+}
+
+// Wrapper function to initialize all swipers on the current page (for Barba transitions)
+function initAllSwipers() {
+    // Featured swiper (index.html)
+    if (document.querySelector('.featured-swiper')) {
+        initSwiper('.featured-swiper', {
+            slidesPerView: 1,
+            spaceBetween: 20,
+            loop: false,
+            grabCursor: true,
+            watchSlidesProgress: true,
+            pagination: {
+                el: '.swiper-pagination',
+                clickable: true,
+            },
+            navigation: {
+                nextEl: '.swiper-button-next',
+                prevEl: '.swiper-button-prev',
+            },
+            breakpoints: {
+                640: {
+                    slidesPerView: 2,
+                    spaceBetween: 20,
+                },
+                768: {
+                    slidesPerView: 3,
+                    spaceBetween: 30,
+                },
+                1024: {
+                    slidesPerView: 4,
+                    spaceBetween: 30,
+                },
+            }
+        });
+    }
+
+    // Related books swiper (book-detail pages)
+    if (document.querySelector('.related-swiper')) {
+        initSwiper('.related-swiper', {
+            slidesPerView: 1,
+            spaceBetween: 20,
+            loop: false,
+            grabCursor: true,
+            pagination: {
+                el: '.swiper-pagination',
+                clickable: true,
+            },
+            navigation: {
+                nextEl: '.swiper-button-next',
+                prevEl: '.swiper-button-prev',
+            },
+            breakpoints: {
+                640: {
+                    slidesPerView: 2,
+                    spaceBetween: 20,
+                },
+                768: {
+                    slidesPerView: 3,
+                    spaceBetween: 30,
+                },
+                1024: {
+                    slidesPerView: 4,
+                    spaceBetween: 30,
+                },
+            }
+        });
+    }
 }

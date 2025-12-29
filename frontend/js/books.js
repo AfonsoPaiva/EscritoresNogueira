@@ -19,6 +19,17 @@ async function loadBooks() {
     const booksGrid = document.getElementById('booksGrid');
     if (!booksGrid) return;
     
+    // Check if data is prefetched
+    if (window.pageCache && window.pageCache['books']) {
+        console.log('📚 Using prefetched books data');
+        allBooks = transformBooks(window.pageCache['books']);
+        currentBooks = [...allBooks];
+        displayBooks(currentBooks);
+        delete window.pageCache['books'];
+        isLoading = false;
+        return;
+    }
+    
     // Show loading skeleton
     isLoading = true;
     showLoadingSkeleton(booksGrid);
@@ -89,9 +100,9 @@ function displayBooks(books) {
         const bookUrl = book.slug ? `livro.html?slug=${book.slug}` : `livro.html?id=${book.id}`;
         
         return `
-        <div class="book-card" data-href="${bookUrl}" data-book-id="${book.id}" data-aos="fade-up">
+        <div class="book-card" data-href="${bookUrl}" data-book-id="${book.id}" data-aos="slide-up" data-aos-stagger-group="books">
             <div class="book-image">
-                ${imageUrl ? `<img src="${imageUrl}" alt="${book.title}">` : '<i class="fas fa-book"></i>'}
+                ${imageUrl ? `<img src="${imageUrl}" alt="${book.title}" width="280" height="350" loading="lazy">` : '<i class="fas fa-book"></i>'}
                 ${isPromo ? '<div class="book-badge">Promoção</div>' : ''}
             </div>
             <div class="book-info">
@@ -115,7 +126,8 @@ function displayBooks(books) {
     attachBookCardEvents(booksGrid);
     
     // Reinitialize AOS for new elements
-    AOS.refresh();
+    if (typeof initGSAPAnimations === 'function') { try { initGSAPAnimations(); } catch (e) { console.warn('initGSAPAnimations failed', e); } }
+    if (typeof ScrollTrigger !== 'undefined') { try { ScrollTrigger.refresh(); } catch (e) { console.warn('ScrollTrigger.refresh failed', e); } }
 }
 
 // Attach click events to book cards using event delegation

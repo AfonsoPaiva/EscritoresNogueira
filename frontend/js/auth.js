@@ -85,7 +85,9 @@ class AuthSystem {
         }
 
         const script = document.createElement('script');
-        script.src = `https://www.google.com/recaptcha/api.js?render=${window.recaptchaSiteKey}`;
+        // Use site key in render parameter so grecaptcha.execute(siteKey) works for v3
+        const rk = window.recaptchaSiteKey ? encodeURIComponent(window.recaptchaSiteKey) : 'explicit';
+        script.src = `https://www.google.com/recaptcha/api.js?onload=onRecaptchaLoad&render=${rk}&hl=pt`;
         script.async = true;
         script.defer = true;
         document.head.appendChild(script);
@@ -567,9 +569,14 @@ class AuthSystem {
 
             // 1) Run reCAPTCHA v3 silent token (if available)
             let v3Token = null;
-            if (window.grecaptcha && window.recaptchaSiteKey) {
+            if (window.recaptchaSiteKey) {
                 try {
-                    v3Token = await window.grecaptcha.execute(window.recaptchaSiteKey, { action: 'register' });
+                    if (typeof window.safeRecaptchaExecute === 'function') {
+                        v3Token = await window.safeRecaptchaExecute(window.recaptchaSiteKey, { action: 'register' });
+                    } else if (window.grecaptcha && typeof grecaptcha.execute === 'function') {
+                        await new Promise(resolve => grecaptcha.ready(resolve));
+                        v3Token = await grecaptcha.execute(window.recaptchaSiteKey, { action: 'register' });
+                    }
                 } catch (err) {
                     console.warn('reCAPTCHA v3 execute failed, will attempt invisible challenge if required', err);
                     v3Token = null;
@@ -607,27 +614,21 @@ class AuthSystem {
             if (initialResp.ok && !initialJson.challengeRequired) {
                 // success path
                 console.log('✅ Registration successful:', initialJson);
-                const needsVerification = initialJson.user && initialJson.user.authProvider === 'FIREBASE' && initialJson.user.enabled === false;
-                if (needsVerification) {
-                    // User must verify email before being enabled locally. Keep client Firebase session alive
+                
+                // Always check Firebase email verification status
+                if (!createdUser.emailVerified) {
+                    // User must verify email before being enabled. Show verification modal
                     this.showVerificationModal(email);
                     this.showNotification('Conta criada. Verifique o seu email para ativar a conta.', 'success');
                 } else {
-                    // Account enabled locally - but check if Firebase email is verified
-                    if (createdUser.emailVerified) {
-                        // Sync immediately
-                        try {
-                            await this.syncUserWithBackend(createdUser);
-                            this.showNotification('Conta criada com sucesso! Sessão iniciada.', 'success');
-                        } catch (e) {
-                            console.warn('Conta criada, mas falha ao criar sessão segura:', e);
-                            this.showNotification('Conta criada. Faça login para continuar.', 'success');
-                            this.showLoginForm();
-                        }
-                    } else {
-                        // Even if backend says enabled, if Firebase not verified, show modal
-                        this.showVerificationModal(email);
-                        this.showNotification('Conta criada. Verifique o seu email para ativar a conta.', 'success');
+                    // Email is verified, try to sync immediately
+                    try {
+                        await this.syncUserWithBackend(createdUser);
+                        this.showNotification('Conta criada com sucesso! Sessão iniciada.', 'success');
+                    } catch (e) {
+                        console.warn('Conta criada, mas falha ao criar sessão segura:', e);
+                        this.showNotification('Conta criada. Faça login para continuar.', 'success');
+                        this.showLoginForm();
                     }
                 }
                 form.reset();
@@ -642,65 +643,67 @@ class AuthSystem {
                 if (!container) {
                     container = document.createElement('div');
                     container.id = 'invisible-recaptcha-container';
-                    container.style.display = 'none';
                     document.body.appendChild(container);
                 }
 
-                // render widget and execute
-                const widgetId = grecaptcha.render(container, {
-                    sitekey: window.recaptchaSiteKey,
-                    size: 'invisible',
-                    callback: async function(token) {
-                        console.debug('auth: invisible challenge callback, token=', token);
-                        try {
-                                    console.debug('auth: retry register POST', { url: `${AUTH_API_URL}/auth/register`, challengeToken: token });
-                                        const retryResp = await fetch(`${AUTH_API_URL}/auth/register`, {
-                                            method: 'POST',
-                                            headers: { 'Content-Type': 'application/json' },
-                                            body: JSON.stringify({ name, email, idToken, recaptchaToken: token, challenge: true })
-                                        });
-                            const retryJson = await retryResp.json();
-                            if (!retryResp.ok) {
-                                throw new Error(retryJson.message || 'Erro ao registar');
-                            }
+                // Always use compact widget on small screens or on iOS devices to avoid overlay/PAT issues
+                const viewportWidth = (window.innerWidth || document.documentElement.clientWidth);
+                const isIOSUA = (typeof navigator !== 'undefined') && (/iP(hone|od|ad)/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1));
+                const isSmallScreen = viewportWidth <= 600 || (typeof window.isIOSDevice === 'function' && window.isIOSDevice()) || isIOSUA;
 
-                            // success on retry
-                            console.log('✅ Registration successful (after challenge):', retryJson);
-                            const needsVerification2 = retryJson.user && retryJson.user.authProvider === 'FIREBASE' && retryJson.user.enabled === false;
-                            if (needsVerification2) {
-                                this.showVerifyForm();
-                                const verifyEmailInput = document.getElementById('verifyEmailInput');
-                                if (verifyEmailInput) verifyEmailInput.value = email;
-                                this.showNotification('Conta criada. Foi enviado um código para o seu email.', 'success');
-                            } else {
-                                try {
-                                    await this.syncUserWithBackend(createdUser);
-                                    this.showNotification('Conta criada com sucesso! Sessão iniciada.', 'success');
-                                } catch (e) {
-                                    console.warn('Conta criada, mas falha ao criar sessão segura:', e);
-                                    this.showNotification('Conta criada. Faça login para continuar.', 'success');
-                                    this.showLoginForm();
-                                }
-                            }
-                            form.reset();
-                        } catch (err) {
-                            console.error('❌ Registration retry error after challenge:', err);
-                            this.showNotification(err.message || 'Erro ao criar conta', 'error');
-                        } finally {
-                            try { grecaptcha.reset(widgetId); } catch (e) {}
-                        }
-                    }.bind(this)
+                // render widget and execute (only auto-execute when not small screen)
+                console.warn('recaptcha.debug: preparing to render challenge', {
+                    siteKey: window.recaptchaSiteKey,
+                    isSmallScreen,
+                    host: window.location.hostname,
+                    href: window.location.href,
+                    ua: navigator.userAgent,
+                    time: new Date().toISOString()
                 });
 
-                // execute the invisible widget
+                // For challenges requested by backend, always use reCAPTCHA v3 execute
                 try {
-                    grecaptcha.execute(widgetId);
-                } catch (e) {
-                    console.error('Error executing invisible recaptcha widget', e);
-                    this.showNotification('Erro reCAPTCHA. Tente novamente mais tarde.', 'error');
+                    const token = await window.safeRecaptchaExecute(window.recaptchaSiteKey, { action: 'challenge' });
+                    if (!token) {
+                        this.showNotification('Verificação reCAPTCHA não concluída. Tente novamente.', 'error');
+                        watcher.destroy();
+                        return;
+                    }
+
+                    console.debug('auth: retry register POST (v3 challenge)', { url: `${AUTH_API_URL}/auth/register`, challengeToken: token });
+                    const retryResp = await fetch(`${AUTH_API_URL}/auth/register`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ name, email, idToken, recaptchaToken: token, challenge: true })
+                    });
+                    const retryJson = await retryResp.json();
+                    if (!retryResp.ok) {
+                        throw new Error(retryJson.message || 'Erro ao registar');
+                    }
+
+                    console.log('✅ Registration successful (after v3 challenge):', retryJson);
+                    if (!createdUser.emailVerified) {
+                        this.showVerificationModal(email);
+                        this.showNotification('Conta criada. Foi enviado um código para o seu email.', 'success');
+                    } else {
+                        try {
+                            await this.syncUserWithBackend(createdUser);
+                            this.showNotification('Conta criada com sucesso! Sessão iniciada.', 'success');
+                        } catch (e) {
+                            console.warn('Conta criada, mas falha ao criar sessão segura:', e);
+                            this.showNotification('Conta criada. Faça login para continuar.', 'success');
+                            this.showLoginForm();
+                        }
+                    }
+                    form.reset();
+                    watcher.destroy();
+                    return;
+                } catch (err) {
+                    console.error('❌ Registration retry error after v3 challenge:', err);
+                    this.showNotification(err.message || 'Erro ao criar conta', 'error');
+                    watcher.destroy();
+                    return;
                 }
-                watcher.destroy();
-                return;
             }
 
             // If we reach here, show error from initial attempt

@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.List;
+import com.escritoresnogueira.backend.dto.ShippingDTO;
 
 @Data
 @Builder
@@ -13,6 +14,7 @@ import java.util.List;
 @AllArgsConstructor
 public class CreatePaymentRequest {
     private List<PaymentItemDTO> items;
+    private ShippingDTO shipping;
     private String successUrl;
     private String cancelUrl;
     private String customerEmail;

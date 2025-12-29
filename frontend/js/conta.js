@@ -41,6 +41,35 @@ async function initContaPage() {
     initProfileForm();
     initPasswordForm();
     initSettings();
+
+    // If the page was opened with ?editProfile=1, open profile tab and focus form
+    handleEditProfileParam();
+}
+
+// If URL contains ?editProfile=1, switch to profile tab and focus firstName
+function handleEditProfileParam() {
+    try {
+        const params = new URLSearchParams(window.location.search);
+        if (params.get('editProfile') === '1') {
+            const profileTab = document.querySelector('[data-tab="profile"]');
+            if (profileTab) profileTab.click();
+            // focus first name input after a short delay
+            setTimeout(() => {
+                const firstNameEl = document.getElementById('firstName');
+                if (firstNameEl) {
+                    firstNameEl.focus();
+                    firstNameEl.classList.add('highlight-required');
+                }
+            }, 200);
+
+            // remove the param from the URL to keep it clean
+            const url = new URL(window.location);
+            url.searchParams.delete('editProfile');
+            window.history.replaceState({}, '', url);
+        }
+    } catch (e) {
+        console.warn('handleEditProfileParam failed', e);
+    }
 }
 
 // Initialize account tabs
@@ -66,7 +95,8 @@ function initAccountTabs() {
 
                 // Refresh AOS for new content
                 if (typeof AOS !== 'undefined') {
-                    AOS.refresh();
+                    if (typeof initGSAPAnimations === 'function') { try { initGSAPAnimations(); } catch (e) { console.warn('initGSAPAnimations failed', e); } }
+                    if (typeof ScrollTrigger !== 'undefined') { try { ScrollTrigger.refresh(); } catch (e) { console.warn('ScrollTrigger.refresh failed', e); } }
                 }
             }
 
@@ -87,7 +117,141 @@ function handleURLHash() {
     }
 }
 
+// ==================================
+// PHONE INPUT COMPONENT
+// ==================================
+
+// Initialize phone input component - Optimized version
+async function initPhoneInput() {
+    const phoneContainer = document.querySelector('.phone-input-container');
+    if (!phoneContainer) return;
+
+    // Setup phone input formatting
+    const phoneInput = document.getElementById('phone');
+    if (phoneInput) {
+        phoneInput.addEventListener('input', (e) => {
+            formatPhoneInput(e.target);
+        });
+
+        phoneInput.addEventListener('blur', (e) => {
+            validatePhoneInput(e.target);
+        });
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+// Format phone input as user types
+function formatPhoneInput(input) {
+    let value = input.value;
+
+    // If already in XXX XXX XXX format, keep it
+    if (/^\d{3} \d{3} \d{3}$/.test(value)) {
+        return;
+    }
+
+    // Remove non-digits
+    value = value.replace(/\D/g, '');
+
+    // Portugal formatting: 912 345 678
+    if (value.length <= 3) {
+        input.value = value;
+        return;
+    }
+    if (value.length <= 6) {
+        input.value = `${value.slice(0, 3)} ${value.slice(3)}`;
+        return;
+    }
+    input.value = `${value.slice(0, 3)} ${value.slice(3, 6)} ${value.slice(6, 9)}`;
+}
+
+// Validate phone input
+function validatePhoneInput(input) {
+    const value = input.value.replace(/\D/g, '');
+    // Portugal: 9 digits
+    const isValid = value.length === 9;
+
+    // Update input styling
+    input.classList.toggle('invalid', !isValid && input.value.length > 0);
+    input.classList.toggle('valid', isValid);
+
+    return isValid;
+}
+
+
+
+// Get formatted phone number for submission
+function getFormattedPhoneNumber() {
+    const phoneInput = document.getElementById('phone');
+    if (!phoneInput) return '';
+
+    const phoneValue = phoneInput.value.replace(/\D/g, '');
+    if (!phoneValue) return '';
+
+    return phoneValue; // Return only digits, no +351
+}
+
 // Load user profile data from backend
+// Function to update field visibility based on residence type and field values
+function updateFieldVisibility() {
+    const residenceTypeEl = document.getElementById('residenceType');
+    const doorNumberEl = document.getElementById('doorNumber');
+    const floorEl = document.getElementById('floor');
+    
+    const doorNumberField = document.getElementById('doorNumberField');
+    const floorField = document.getElementById('floorField');
+    
+    const residenceType = residenceTypeEl ? residenceTypeEl.value : '';
+    const doorNumber = doorNumberEl ? doorNumberEl.value.trim() : '';
+    const floor = floorEl ? floorEl.value.trim() : '';
+    
+    // Show door number field if residence type is selected OR door number has a value
+    if (doorNumberField) {
+        doorNumberField.style.display = (residenceType !== '' || doorNumber) ? 'block' : 'none';
+    }
+    
+    // Show floor field if residence type is "Apartamento" OR floor has a value
+    if (floorField) {
+        floorField.style.display = (residenceType === 'Apartamento' || floor) ? 'block' : 'none';
+    }
+}
+
+// Handler for residence type change
+function handleResidenceTypeChange(e) {
+    updateFieldVisibility();
+}
+
+function setupResidenceTypeListener() {
+    const residenceTypeEl = document.getElementById('residenceType');
+    const doorNumberEl = document.getElementById('doorNumber');
+    const floorEl = document.getElementById('floor');
+    
+    if (residenceTypeEl) {
+        // Remove existing listener to avoid duplicates
+        residenceTypeEl.removeEventListener('change', handleResidenceTypeChange);
+        residenceTypeEl.addEventListener('change', handleResidenceTypeChange);
+    }
+    
+    // Add listeners to door number and floor fields to show them when user types
+    if (doorNumberEl) {
+        doorNumberEl.removeEventListener('input', updateFieldVisibility);
+        doorNumberEl.addEventListener('input', updateFieldVisibility);
+    }
+    
+    if (floorEl) {
+        floorEl.removeEventListener('input', updateFieldVisibility);
+        floorEl.addEventListener('input', updateFieldVisibility);
+    }
+}
+
 async function loadUserProfile() {
     const user = window.auth.getCurrentUser();
 
@@ -125,7 +289,6 @@ async function loadUserProfile() {
                 
                 // Fill form fields
                 const firstNameEl = document.getElementById('firstName');
-                const lastNameEl = document.getElementById('lastName');
                 const emailEl = document.getElementById('email');
                 const phoneEl = document.getElementById('phone');
                 const addressEl = document.getElementById('address');
@@ -134,24 +297,42 @@ async function loadUserProfile() {
                 const countryEl = document.getElementById('country');
                 const memberSinceEl = document.getElementById('memberSince');
 
-                // Parse name from display name if firstName/lastName not set
-                let firstName = profileData.firstName || '';
-                let lastName = profileData.lastName || '';
-                
-                if (!firstName && profileData.name) {
-                    const nameParts = profileData.name.trim().split(/\s+/);
-                    firstName = nameParts[0] || '';
-                    lastName = nameParts.slice(1).join(' ') || '';
-                }
+                // Set firstName as the full name
+                let firstName = profileData.firstName || profileData.name || '';
 
                 if (firstNameEl) firstNameEl.value = firstName;
-                if (lastNameEl) lastNameEl.value = lastName;
                 if (emailEl) emailEl.value = profileData.email || '';
-                if (phoneEl) phoneEl.value = profileData.phone || '';
+                if (phoneEl) {
+                    const phoneValue = profileData.phone || '';
+                    phoneEl.value = phoneValue;
+
+                    // Store phone value to be processed after countries are loaded
+                    phoneEl.dataset.originalPhone = phoneValue;
+                }
                 if (addressEl) addressEl.value = profileData.address || '';
                 if (postalCodeEl) postalCodeEl.value = profileData.postalCode || '';
                 if (cityEl) cityEl.value = profileData.city || '';
                 if (countryEl) countryEl.value = profileData.country || 'Portugal';
+                
+                // Populate residence type and related fields
+                const residenceTypeEl = document.getElementById('residenceType');
+                const floorEl = document.getElementById('floor');
+                const doorNumberEl = document.getElementById('doorNumber');
+                const notesEl = document.getElementById('notes');
+                
+                if (residenceTypeEl) residenceTypeEl.value = profileData.residenceType || '';
+                if (floorEl) floorEl.value = profileData.floor || '';
+                if (doorNumberEl) doorNumberEl.value = profileData.doorNumber || '';
+                if (notesEl) notesEl.value = profileData.notes || '';
+                
+                // Trigger change event on residenceType to show/hide floor and door number fields
+                if (residenceTypeEl) residenceTypeEl.dispatchEvent(new Event('change'));
+                
+                // Update field visibility based on loaded values
+                updateFieldVisibility();
+                
+                // Setup residence type listener if not already done
+                setupResidenceTypeListener();
                 
                 // Set member since date - handle different date formats
                 if (memberSinceEl) {
@@ -286,14 +467,11 @@ function showVerificationError(message) {
 
 // Set default profile values
 function setDefaultProfileValues(user) {
-    const nameParts = (user.name || '').split(' ');
     const firstNameEl = document.getElementById('firstName');
-    const lastNameEl = document.getElementById('lastName');
     const countryEl = document.getElementById('country');
     const memberSinceEl = document.getElementById('memberSince');
 
-    if (firstNameEl) firstNameEl.value = nameParts[0] || '';
-    if (lastNameEl) lastNameEl.value = nameParts.slice(1).join(' ') || '';
+    if (firstNameEl) firstNameEl.value = user.name || '';
     if (countryEl) countryEl.value = 'Portugal';
     if (memberSinceEl) memberSinceEl.textContent = new Date().toLocaleDateString('pt-PT');
 }
@@ -327,14 +505,164 @@ async function loadUserStats() {
 
 // Initialize profile form
 function initProfileForm() {
+    // Initialize phone input component
+    initPhoneInput();
+
     const form = document.getElementById('profileForm');
     if (form) {
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
             await handleProfileUpdate(e.target);
         });
+
+        // Manual save button (user-triggered)
+        const saveBtn = document.getElementById('saveProfileBtn');
+        if (saveBtn) {
+            saveBtn.addEventListener('click', async () => {
+                try {
+                    await handleProfileUpdate(form);
+                } catch (e) {
+                    console.warn('Profile save failed', e);
+                }
+            });
+        }
+
+        // Optional reset button to rollback edits locally
+        const resetBtn = document.getElementById('resetProfileBtn');
+        if (resetBtn) {
+            resetBtn.addEventListener('click', (e) => {
+                // reload profile values from cached server profile
+                loadUserProfile();
+            });
+        }
+
+        // Function to setup residence type field visibility
+        // Attach realtime sync listeners: when profile inputs change, broadcast profile:updated
+        try {
+            const syncFields = ['firstName','phone','address','city','postalCode','country','residenceType','floor','doorNumber','notes'];
+            // suppress loop when applying remote updates
+            let isApplyingRemoteUpdate = false;
+            syncFields.forEach(f => {
+                const el = document.getElementById(f);
+                if (!el) return;
+                el.addEventListener('input', debounce(() => {
+                    if (isApplyingRemoteUpdate) return;
+                    // build partial profile to share (do not include email)
+                    const partial = {};
+                    syncFields.forEach(k => { const e = document.getElementById(k); partial[k] = e ? e.value : ''; });
+                    try {
+                        window.dispatchEvent(new CustomEvent('profile:updated', { detail: partial }));
+                    } catch (e) {}
+                    // persist for cross-tab
+                    try { localStorage.setItem('profile:shipping:update', JSON.stringify({ ts: Date.now(), data: partial })); } catch (e) {}
+                }, 200));
+            });
+
+            // When we receive shipping updates, we will programmatically set inputs — avoid looping
+            window.addEventListener('shipping:filled', (e) => {
+                const data = e && e.detail ? e.detail : null;
+                if (!data) return;
+                try {
+                    isApplyingRemoteUpdate = true;
+                    ['firstName','phone','address','city','postalCode','residenceType','floor','doorNumber','notes'].forEach(f => {
+                        const el = document.getElementById(f);
+                        if (el && data[f] !== undefined) el.value = data[f] || '';
+                    });
+                    // Trigger change on residenceType to show/hide fields
+                    const residenceTypeEl = document.getElementById('residenceType');
+                    if (residenceTypeEl) residenceTypeEl.dispatchEvent(new Event('change'));
+                } finally { setTimeout(() => { isApplyingRemoteUpdate = false; }, 50); }
+            });
+            // cross-tab: when payment page writes shipping updates, ignore loops handled above
+        } catch (e) { console.warn('Could not attach profile input listeners', e); }
     }
 }
+
+// Listen for profile updates from other pages and update profile form inputs
+window.addEventListener('profile:updated', (e) => {
+    const data = e && e.detail ? e.detail : null;
+    if (!data) return;
+    const fields = ['firstName','email','phone','address','postalCode','city','country','residenceType','floor','doorNumber','notes'];
+    fields.forEach(f => {
+        const el = document.getElementById(f);
+        if (el && data[f] !== undefined) el.value = data[f] || '';
+    });
+});
+
+// Listen for shipping form fills (instant, local-only sync) to update account inputs
+// NOTE: do NOT update the account email from shipping data — email is account-linked.
+window.addEventListener('shipping:filled', (e) => {
+    const data = e && e.detail ? e.detail : null;
+    if (!data) return;
+    ['firstName','phone','address','city','postalCode','residenceType','floor','doorNumber','notes'].forEach(f => {
+        const el = document.getElementById(f);
+        if (el) el.value = data[f] || '';
+    });
+});
+
+// Cross-tab synchronization: respond to storage events written by the payment page
+window.addEventListener('storage', (e) => {
+    if (!e.key) return;
+    if (e.key === 'shipping:profile:update' && e.newValue) {
+        try {
+            const parsed = JSON.parse(e.newValue);
+            const data = parsed && parsed.data ? parsed.data : null;
+            if (!data) return;
+            ['firstName','phone','address','city','postalCode','residenceType','floor','doorNumber','notes'].forEach(f => {
+                const el = document.getElementById(f);
+                if (el) el.value = data[f] || '';
+            });
+            // Trigger change on residenceType to show/hide fields
+            const residenceTypeEl = document.getElementById('residenceType');
+            if (residenceTypeEl) residenceTypeEl.dispatchEvent(new Event('change'));
+        } catch (err) { /* ignore parse errors */ }
+    }
+});
+
+// On page load, apply any persisted shipping update left in localStorage
+document.addEventListener('DOMContentLoaded', () => {
+    try {
+        const key = 'shipping:profile:update';
+        const raw = localStorage.getItem(key);
+        if (raw) {
+            const parsed = JSON.parse(raw);
+            const data = parsed && parsed.data ? parsed.data : null;
+            if (data) {
+                ['firstName','phone','address','city','postalCode','residenceType','floor','doorNumber','notes'].forEach(f => {
+                    const el = document.getElementById(f);
+                    if (el) el.value = data[f] || '';
+                });
+                // Trigger change on residenceType to show/hide fields
+                const residenceTypeEl = document.getElementById('residenceType');
+                if (residenceTypeEl) residenceTypeEl.dispatchEvent(new Event('change'));
+            }
+        }
+    } catch (e) {
+        // don't block page load on errors
+        console.warn('Could not apply persisted shipping update', e);
+    }
+});
+
+// Debounce helper (local to this file)
+function debounce(fn, wait) {
+    let t;
+    return function(...args) {
+        clearTimeout(t);
+        t = setTimeout(() => fn.apply(this, args), wait);
+    };
+}
+
+// Format postal code input (0000-000) on profile page
+document.addEventListener('DOMContentLoaded', () => {
+    const postal = document.getElementById('postalCode');
+    if (postal) {
+        postal.addEventListener('input', (e) => {
+            let v = e.target.value.replace(/\D/g, '');
+            if (v.length > 4) v = v.slice(0,4) + '-' + v.slice(4,7);
+            e.target.value = v;
+        });
+    }
+});
 
 // Handle profile update - save to backend
 async function handleProfileUpdate(form) {
@@ -343,12 +671,17 @@ async function handleProfileUpdate(form) {
     const formData = new FormData(form);
     const profileData = {
         firstName: formData.get('firstName'),
-        lastName: formData.get('lastName'),
-        phone: formData.get('phone'),
+        // Email is account-linked and not editable; always use authenticated email
+        email: (window.auth && window.auth.getCurrentUser && window.auth.getCurrentUser().email) || formData.get('email'),
+        phone: getFormattedPhoneNumber(),
         address: formData.get('address'),
         postalCode: formData.get('postalCode'),
         city: formData.get('city'),
-        country: formData.get('country')
+        country: formData.get('country'),
+        residenceType: formData.get('residenceType'),
+        floor: formData.get('floor'),
+        doorNumber: formData.get('doorNumber'),
+        notes: formData.get('notes')
     };
 
     try {
@@ -365,13 +698,27 @@ async function handleProfileUpdate(form) {
             const updatedProfile = await response.json();
             
             // Update local user name if changed
-            const newName = `${profileData.firstName} ${profileData.lastName}`.trim();
+            const newName = profileData.firstName || '';
             if (newName) {
                 window.auth.currentUser.name = newName;
                 window.auth.updateUI();
             }
 
+            // Email is account-linked; ensure UI shows the authoritative email
+            try {
+                const authEmail = (window.auth && window.auth.getCurrentUser && window.auth.getCurrentUser().email) || updatedProfile.email;
+                if (authEmail) {
+                    window.auth.currentUser.email = authEmail;
+                    window.auth.updateUI();
+                }
+            } catch (e) {}
+
+            // Update cached profile used by other pages
+            if (typeof userProfileCache !== 'undefined') userProfileCache = updatedProfile;
+
             window.showNotification('Perfil atualizado com sucesso!', 'success');
+            // notify other pages that profile changed
+            try { window.dispatchEvent(new CustomEvent('profile:updated', { detail: updatedProfile })); } catch(e){}
         } else {
             const error = await response.json();
             window.showNotification(error.message || 'Erro ao atualizar perfil', 'error');
@@ -559,9 +906,9 @@ async function loadUserOrders() {
                             if (typeof shipping === 'string') {
                                 if (shipping.trim()) shipLines.push(escapeHtml(shipping));
                             } else {
-                                // prefer combined first/last name
-                                const name = (shipping.firstName || shipping.name ? ((shipping.firstName ? escapeHtml(shipping.firstName) : '') + (shipping.lastName ? ' ' + escapeHtml(shipping.lastName) : '')) : (shipping.name || '') );
-                                if (name) shipLines.push(name);
+                                // use firstName or name
+                                const name = shipping.firstName || shipping.name || '';
+                                if (name) shipLines.push(escapeHtml(name));
                                 if (shipping.address) shipLines.push(escapeHtml(shipping.address));
                                 if (shipping.street) shipLines.push(escapeHtml(shipping.street));
                                 // city/postal

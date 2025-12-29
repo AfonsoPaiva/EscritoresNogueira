@@ -30,7 +30,7 @@ function renderBookCard(book, options = {}) {
     return `
         <${wrapper} class="${wrapperClass}" data-href="${bookUrl}" data-book-id="${book.id}"${aosAttr}>
             <div class="book-image">
-                ${imageUrl ? `<img src="${imageUrl}" alt="${book.title}">` : '<i class="fas fa-book"></i>'}
+                ${imageUrl ? `<img src="${imageUrl}" alt="${book.title}" width="280" height="350" loading="lazy">` : '<i class="fas fa-book"></i>'}
                 ${isPromo ? '<div class="book-badge">Promoção</div>' : ''}
             </div>
             <div class="book-info">
@@ -205,7 +205,8 @@ function initPageTabs(tabsSelector, contentsSelector, activeClass = 'active', on
 
                 // Trigger AOS refresh if available
                 if (typeof AOS !== 'undefined') {
-                    AOS.refresh();
+                    if (typeof initGSAPAnimations === 'function') { try { initGSAPAnimations(); } catch (e) { console.warn('initGSAPAnimations failed', e); } }
+                    if (typeof ScrollTrigger !== 'undefined') { try { ScrollTrigger.refresh(); } catch (e) { console.warn('ScrollTrigger.refresh failed', e); } }
                 }
 
                 // Call callback if provided

@@ -56,12 +56,15 @@ public class UserController {
                 .email(user.getEmail())
                 .name(user.getName())
                 .firstName(user.getFirstName())
-                .lastName(user.getLastName())
                 .phone(user.getPhone())
                 .address(user.getAddress())
                 .postalCode(user.getPostalCode())
                 .city(user.getCity())
                 .country(user.getCountry())
+                .residenceType(user.getResidenceType())
+                .floor(user.getFloor())
+                .doorNumber(user.getDoorNumber())
+                .notes(user.getNotes())
                 .photoUrl(user.getPhotoUrl())
                 .createdAt(user.getCreatedAt())
                 .authProvider(user.getAuthProvider())
@@ -93,8 +96,15 @@ public class UserController {
         if (updateDTO.getFirstName() != null) {
             user.setFirstName(updateDTO.getFirstName());
         }
-        if (updateDTO.getLastName() != null) {
-            user.setLastName(updateDTO.getLastName());
+        if (updateDTO.getEmail() != null) {
+            String candidate = updateDTO.getEmail().trim().toLowerCase();
+            if (!candidate.equals(user.getEmail())) {
+                // prevent email collision with another existing user
+                if (userRepository.findByEmail(candidate).isPresent()) {
+                    return ResponseEntity.status(400).body(Map.of("error", true, "message", "Email já em uso por outra conta"));
+                }
+                user.setEmail(candidate);
+            }
         }
         if (updateDTO.getPhone() != null) {
             user.setPhone(updateDTO.getPhone());
@@ -111,9 +121,21 @@ public class UserController {
         if (updateDTO.getCountry() != null) {
             user.setCountry(updateDTO.getCountry());
         }
+        if (updateDTO.getResidenceType() != null) {
+            user.setResidenceType(updateDTO.getResidenceType());
+        }
+        if (updateDTO.getFloor() != null) {
+            user.setFloor(updateDTO.getFloor());
+        }
+        if (updateDTO.getDoorNumber() != null) {
+            user.setDoorNumber(updateDTO.getDoorNumber());
+        }
+        if (updateDTO.getNotes() != null) {
+            user.setNotes(updateDTO.getNotes());
+        }
         
         // Update display name if first/last name changed
-        String newName = buildDisplayName(updateDTO.getFirstName(), updateDTO.getLastName());
+        String newName = buildDisplayName(updateDTO.getFirstName());
         if (newName != null && !newName.isBlank()) {
             user.setName(newName);
         }
@@ -125,12 +147,15 @@ public class UserController {
                 .email(user.getEmail())
                 .name(user.getName())
                 .firstName(user.getFirstName())
-                .lastName(user.getLastName())
                 .phone(user.getPhone())
                 .address(user.getAddress())
                 .postalCode(user.getPostalCode())
                 .city(user.getCity())
                 .country(user.getCountry())
+                .residenceType(user.getResidenceType())
+                .floor(user.getFloor())
+                .doorNumber(user.getDoorNumber())
+                .notes(user.getNotes())
                 .photoUrl(user.getPhotoUrl())
                 .createdAt(user.getCreatedAt())
                 .build();
@@ -267,20 +292,10 @@ public class UserController {
     }
     
     /**
-     * Build display name from first and last name
+     * Build display name from first name (which is now the full name)
      */
-    private String buildDisplayName(String firstName, String lastName) {
-        StringBuilder sb = new StringBuilder();
-        if (firstName != null && !firstName.isBlank()) {
-            sb.append(firstName.trim());
-        }
-        if (lastName != null && !lastName.isBlank()) {
-            if (sb.length() > 0) {
-                sb.append(" ");
-            }
-            sb.append(lastName.trim());
-        }
-        return sb.toString();
+    private String buildDisplayName(String firstName) {
+        return firstName != null && !firstName.isBlank() ? firstName.trim() : "";
     }
 }
 

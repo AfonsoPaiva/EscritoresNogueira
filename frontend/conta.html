@@ -15,15 +15,18 @@
     <!-- Swiper CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css">
 
-    <!-- AOS CSS -->
-    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    <!-- AOS removed: replaced by GSAP+ScrollTrigger -->
 
     <!-- Main CSS -->
     <link rel="stylesheet" href="css/style.css">
     <!-- GSAP for modal animations -->
-    <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.2/dist/gsap.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.1/dist/gsap.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.1/dist/ScrollTrigger.min.js"></script>
 </head>
 <body class="page-conta">
+
+    <!-- Site Wrapper -->
+    <div class="site-wrapper">
 
     <!-- Header -->
     <header class="header" id="header">
@@ -34,7 +37,7 @@
                 </a>
 
                 <ul class="nav-menu" id="navMenu">
-                    <li><a href="index.html" class="nav-link">Início</a></li>
+                    
                     <li><a href="livros.html" class="nav-link">Livros</a></li>
                     <li><a href="servicos.html" class="nav-link">Serviços</a></li>
                     <li><a href="sobre.html" class="nav-link">Sobre</a></li>
@@ -178,13 +181,13 @@
     </div>
 
     <!-- Main Content -->
-    <main>
+    <main class="site-container">
         <div class="container">
             <!-- Page Header -->
             <section class="section page-header-full">
                 <div class="container-small">
-                    <h1 class="page-title" data-aos="fade-up">Minha Conta</h1>
-                    <p class="page-subtitle" data-aos="fade-up" data-aos-delay="100">
+                    <h1 class="page-title">Minha Conta</h1>
+                    <p class="page-subtitle">
                         Gerencie suas informações pessoais e visualize seu histórico de pedidos
                     </p>
                 </div>
@@ -201,7 +204,7 @@
 
             <!-- Account Navigation -->
             <section class="section account-nav">
-                <div class="account-tabs" data-aos="fade-up">
+                <div class="account-tabs">
                     <button class="account-tab active" data-tab="profile">
                         <i class="fas fa-user"></i>
                         Perfil
@@ -218,7 +221,7 @@
             </section>
 
             <!-- Profile Section -->
-            <section class="section account-content active" id="profile" data-aos="fade-up">
+            <section class="section account-content active" id="profile">
                 <div class="account-header">
                     <h2 class="section-title">Informações Pessoais</h2>
                     <p class="section-subtitle">Atualize suas informações de contato e preferências</p>
@@ -243,18 +246,20 @@
                                 <label for="firstName">Nome</label>
                                 <input type="text" id="firstName" name="firstName" required>
                             </div>
-                            <div class="form-group">
-                                <label for="lastName">Apelido</label>
-                                <input type="text" id="lastName" name="lastName">
-                            </div>
                         </div>
                         <div class="form-group">
                             <label for="email">Email</label>
-                            <input type="email" id="email" name="email" required>
+                            <input type="email" id="email" name="email" required readonly aria-readonly="true" tabindex="-1" class="readonly-field">
                         </div>
                         <div class="form-group">
                             <label for="phone">Telefone</label>
-                            <input type="tel" id="phone" name="phone">
+                            <div class="phone-input-container">
+                                <div class="country-fixed">
+                                    <img src="https://flagcdn.com/w40/pt.png" alt="Portugal" class="country-flag">
+                                    <span class="country-code">+351</span>
+                                </div>
+                                <input type="tel" id="phone" name="phone" placeholder="912 345 678" maxlength="15">
+                            </div>
                         </div>
                         <div class="form-row">
                             <div class="form-group">
@@ -263,7 +268,27 @@
                             </div>
                             <div class="form-group">
                                 <label for="postalCode">Código Postal</label>
-                                <input type="text" id="postalCode" name="postalCode">
+                                <input type="text" id="postalCode" name="postalCode" placeholder="0000-000" required pattern="^\d{4}-\d{3}$">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="residenceType">Tipo de Residência</label>
+                            <select id="residenceType" name="residenceType">
+                                <option value="">Selecionar</option>
+                                <option value="Casa">Casa</option>
+                                <option value="Apartamento">Apartamento</option>
+                            </select>
+                        </div>
+                        <div id="doorNumberField" style="display: none;">
+                            <div class="form-group">
+                                <label for="doorNumber">Número da Porta</label>
+                                <input type="text" id="doorNumber" name="doorNumber" placeholder="Ex: 5A">
+                            </div>
+                        </div>
+                        <div id="floorField" style="display: none;">
+                            <div class="form-group">
+                                <label for="floor">Andar</label>
+                                <input type="text" id="floor" name="floor" placeholder="Ex: 3º">
                             </div>
                         </div>
                         <div class="form-row">
@@ -275,18 +300,24 @@
                                 <label for="country">País</label>
                                 <select id="country" name="country">
                                     <option value="Portugal">Portugal</option>
-                                    <option value="Espanha">Espanha</option>
-                                    <option value="França">França</option>
                                 </select>
                             </div>
                         </div>
-                        <button type="submit" class="btn btn-primary">Atualizar Perfil</button>
+                        <div class="form-group">
+                            <label for="notes">Notas (Opcional)</label>
+                            <textarea id="notes" name="notes" rows="3" placeholder="Observações sobre o endereço"></textarea>
+                        </div>
+                        <div style="display:flex;align-items:center;gap:12px;margin-top:12px;">
+                            <button type="button" id="saveProfileBtn" class="btn btn-primary">Atualizar Perfil</button>
+                            <button type="reset" id="resetProfileBtn" class="btn btn-secondary">Cancelar</button>
+                            <span style="color:#666;margin-left:8px;font-size:0.95em;">Clique em "Atualizar Perfil" para guardar as alterações.</span>
+                        </div>
                     </form>
                 </div>
             </section>
 
             <!-- Orders Section -->
-            <section class="section account-content" id="orders" data-aos="fade-up">
+            <section class="section account-content" id="orders">
                 <div class="account-header">
                     <h2 class="section-title">Meus Pedidos</h2>
                     <p class="section-subtitle">Histórico completo dos seus pedidos</p>
@@ -311,7 +342,7 @@
             </section>
 
             <!-- Settings Section -->
-            <section class="section account-content" id="settings" data-aos="fade-up">
+            <section class="section account-content" id="settings">
                 <div class="account-header">
                     <h2 class="section-title">Configurações da Conta</h2>
                     <p class="section-subtitle">Gerencie suas preferências e configurações de segurança</p>
@@ -405,6 +436,8 @@
             </div>
         </div>
     </footer>
+    
+    </div> <!-- End Site Wrapper -->
 
     <!-- Overlay -->
     <div class="overlay" id="overlay"></div>
@@ -431,9 +464,9 @@
 
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
-    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+    <!-- AOS script removed -->
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.1/dist/gsap.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.1/dist/ScrollTrigger.min.js"></script>
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
@@ -442,6 +475,7 @@
     <script src="js/utils.js"></script>
     <script src="js/cart.js"></script>
     <script src="js/auth.js"></script>
+    <script src="js/animations.js"></script>
     <script src="js/main.js"></script>
     <script src="js/conta.js"></script>
 </body>

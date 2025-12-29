@@ -74,8 +74,8 @@ public class FormSubmissionService {
             content.append("</ul>");
             content.append("<p style='margin-top:16px;'>Iremos responder em breve.<br/>Cumprimentos,<br/>Equipe Escritores Nogueira</p>");
 
-            // Use sendNewsletterEmail which will add a greeting using the name parameter
-            emailService.sendNewsletterEmail(saved.getEmail(), subject, content.toString(), saved.getName(), null);
+            // Send acknowledgement as transactional (no-reply) email
+            emailService.sendTransactionalEmail(saved.getEmail(), subject, content.toString(), null);
         } catch (Exception e) {
             log.error("Erro ao enviar email de confirmação: {}", e.getMessage(), e);
         }

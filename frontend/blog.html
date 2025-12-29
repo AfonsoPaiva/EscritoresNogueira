@@ -15,13 +15,15 @@
     <!-- Swiper CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css">
     
-    <!-- AOS CSS -->
-    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    <!-- AOS removed: replaced by GSAP+ScrollTrigger -->
     
     <!-- Main CSS -->
     <link rel="stylesheet" href="css/style.css">
 </head>
-<body class="page-blog loading">
+<body class="page-blog">
+    
+    <!-- Site Wrapper -->
+    <div class="site-wrapper">
     
     <!-- Header -->
     <header class="header" id="header">
@@ -32,7 +34,6 @@
                 </a>
                 
                 <ul class="nav-menu" id="navMenu">
-                    <li><a href="index.html" class="nav-link">Início</a></li>
                     <li><a href="livros.html" class="nav-link">Livros</a></li>
                     <li><a href="servicos.html" class="nav-link">Serviços</a></li>
                     <li><a href="sobre.html" class="nav-link">Sobre</a></li>
@@ -159,30 +160,26 @@
     </div>
 
     <!-- Main Content -->
-    <div>
-        <div>
-            <main class="transition-fade">
-                
-                <!-- Page Header -->
-                <section class="page-header">
+    <main class="site-container">
+        
+        <!-- Page Header -->
+        <section class="page-header">
             <div class="container">
-                <h1 class="page-title" data-aos="fade-up">Blog Literário</h1>
-                <p class="page-subtitle" data-aos="fade-up" data-aos-delay="100">Artigos, reflexões e novidades do mundo dos livros</p>
+                <h1 class="page-title">Blog Literário</h1>
+                <p class="page-subtitle">Artigos, reflexões e novidades do mundo dos livros</p>
             </div>
         </section>
 
         <!-- Blog Posts Section -->
         <section class="section blog-section">
             <div class="container">
-                <div class="blog-posts-grid" id="blogPosts" data-aos="fade-up">
+                <div class="blog-posts-grid" id="blogPosts">
                     <!-- Blog posts will be loaded dynamically -->
                 </div>
             </div>
         </section>
 
-            </main>
-        </div>
-    </div>
+    </main>
 
     <!-- Footer -->
     <footer class="footer">
@@ -235,15 +232,16 @@
             </div>
         </div>
     </footer>
+    
+    </div> <!-- End Barba Wrapper -->
 
     <!-- Overlay -->
     <div class="overlay" id="overlay"></div>
 
-    <!-- Scripts -->
-    <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
-    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+    <!-- GSAP for animations -->
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.1/dist/gsap.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.1/dist/ScrollTrigger.min.js"></script>
+    
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
@@ -252,7 +250,16 @@
     <script src="js/utils.js"></script>
     <script src="js/cart.js"></script>
     <script src="js/auth.js"></script>
+    <script src="js/animations.js"></script>
     <script src="js/main.js"></script>
     <script src="js/blog.js"></script>
+    <script src="js/books.js"></script>
+    <script src="js/apoio.js"></script>
+    <script src="js/article.js"></script>
+    <script src="js/book-detail.js"></script>
+    <script src="js/conta.js"></script>
+    <script src="js/formulario.js"></script>
+    <script src="js/pagamento.js"></script>
+    <script src="js/servicos.js"></script>
 </body>
 </html>

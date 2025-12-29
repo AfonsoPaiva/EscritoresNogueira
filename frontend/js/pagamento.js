@@ -8,6 +8,8 @@ let paymentData = {};
 let orderTotal = 0;
 // in-memory user profile fetched from backend (avoid localStorage)
 let userProfileCache = null;
+// Prevent feedback loops when applying remote updates
+let isApplyingRemoteUpdate = false;
 
 // Initialize payment page
 async function initPagamentoPage() {
@@ -25,7 +27,7 @@ async function initPagamentoPage() {
         // initialize other UI pieces but do not force sign-in
         initPaymentMethods();
         initFormValidation();
-        initCardFormatting();
+        // initCardFormatting(); // Removed as no card inputs exist
         return;
     }
 
@@ -48,33 +50,116 @@ async function initPagamentoPage() {
 
     // Initialize payment method selection
     initPaymentMethods();
-
-    // Initialize form validation
+            // If profile contains address fields, prefill shipping form so the
+            // user doesn't have to re-type them. Only fill form inputs that
+            // are currently empty so user edits are preserved.
     initFormValidation();
 
-    // Pre-fill shipping data if user is logged in
     if (auth.isLoggedIn()) {
         console.debug('pagamento:initPagamentoPage - auth sessionToken=', auth.sessionToken, 'currentUser=', auth.getCurrentUser());
-        await prefillShippingData(auth.getCurrentUser());
+        await loadProfileAndDisplayShipping(auth.getCurrentUser());
     }
-
-    // Card inputs removed — Stripe Checkout will collect card data securely
-    // initCardFormatting(); (no-op)
 
     // If redirected from Stripe Checkout success, confirm the session and show confirmation
     try {
         const params = new URLSearchParams(window.location.search);
         if (params.get('checkout') === 'success' && params.get('session_id')) {
             const sessionId = params.get('session_id');
+            // populate shippingData with address fields from profile if available
+            const profileData = userProfileCache || {};
+            shippingData.address = profileData.address || shippingData.address || '';
+            shippingData.city = profileData.city || shippingData.city || '';
+            shippingData.postalCode = profileData.postalCode || shippingData.postalCode || '';
+            shippingData.country = profileData.country || shippingData.country || 'Portugal';
             // remove query params from URL to keep UI clean
             if (window.history && window.history.replaceState) {
                 const cleanUrl = window.location.origin + window.location.pathname;
                 window.history.replaceState({}, document.title, cleanUrl);
             }
             handleCheckoutSuccess(sessionId);
+            // Note: profile updates from shipping are manual now. No automatic profile updates.
         }
     } catch (e) {
         console.warn('Error parsing URL params for checkout success', e);
+    }
+
+    // Attach realtime sync listeners: when shipping inputs change, dispatch shipping:filled
+    try {
+        const syncFields = ['firstName','phone','address','city','postalCode','country','residenceType','floor','doorNumber','notes'];
+        syncFields.forEach(f => {
+            const el = document.getElementById(f);
+            if (!el) return;
+            const eventType = el.tagName === 'SELECT' ? 'change' : 'input';
+            el.addEventListener(eventType, debounce(() => {
+                if (isApplyingRemoteUpdate) return;
+                try { saveShippingData(); } catch (e) { console.warn('saveShippingData failed on ' + eventType, e); }
+            }, 200));
+        });
+    } catch (e) { console.warn('Could not attach shipping input listeners', e); }
+
+    // Listen for profile updates from account page and apply to shipping form
+    window.addEventListener('profile:updated', (e) => {
+        const data = e && e.detail ? e.detail : null;
+        if (!data) return;
+        try {
+            isApplyingRemoteUpdate = true;
+            ['firstName','phone','address','city','postalCode','country','residenceType','floor','doorNumber','notes'].forEach(f => {
+                const el = document.getElementById(f);
+                if (el && data[f] !== undefined) el.value = data[f] || '';
+            });
+            // Trigger change on residenceType to show/hide fields
+            const residenceTypeEl = document.getElementById('residenceType');
+            if (residenceTypeEl) residenceTypeEl.dispatchEvent(new Event('change'));
+            // update in-memory and persist via saveShippingData
+            try { saveShippingData(); } catch(e){}
+        } finally {
+            // schedule unset to allow any triggered input events to be ignored
+            setTimeout(() => { isApplyingRemoteUpdate = false; }, 50);
+        }
+    });
+
+    // Cross-tab: apply profile updates written by account page
+    window.addEventListener('storage', (e) => {
+        if (!e.key) return;
+        if (e.key === 'profile:shipping:update' && e.newValue) {
+            try {
+                const parsed = JSON.parse(e.newValue);
+                const data = parsed && parsed.data ? parsed.data : null;
+                if (!data) return;
+                isApplyingRemoteUpdate = true;
+                ['firstName','phone','address','city','postalCode','country','residenceType','floor','doorNumber','notes'].forEach(f => {
+                    const el = document.getElementById(f);
+                    if (el && data[f] !== undefined) el.value = data[f] || '';
+                });
+                // Trigger change on residenceType to show/hide fields
+                const residenceTypeEl = document.getElementById('residenceType');
+                if (residenceTypeEl) residenceTypeEl.dispatchEvent(new Event('change'));
+                try { saveShippingData(); } catch(e){}
+            } catch (err) { console.warn('Could not apply profile:shipping:update', err); }
+            setTimeout(() => { isApplyingRemoteUpdate = false; }, 50);
+        }
+    });
+
+    // Add event listener for next step button
+    const nextStepBtn = document.getElementById('nextStepBtn');
+    if (nextStepBtn) {
+        nextStepBtn.addEventListener('click', () => {
+            nextStep(2);
+        });
+    }
+
+    // Add event listener for prev step button
+    const prevStepBtn = document.getElementById('prevStepBtn');
+    if (prevStepBtn) {
+        prevStepBtn.addEventListener('click', () => {
+            prevStep(1);
+        });
+    }
+
+    // Add event listener for process payment button
+    const processPaymentBtn = document.getElementById('processPaymentBtn');
+    if (processPaymentBtn) {
+        processPaymentBtn.addEventListener('click', processPayment);
     }
 }
 
@@ -158,31 +243,16 @@ function initPaymentMethods() {
 
 // Initialize basic form validation and formatting (postal code, etc.)
 function initFormValidation() {
-    const postalCodeInput = document.getElementById('postalCode');
-    if (postalCodeInput) {
-        postalCodeInput.addEventListener('input', (e) => {
-            let value = e.target.value.replace(/\D/g, '');
-            if (value.length > 4) {
-                value = value.slice(0, 4) + '-' + value.slice(4, 7);
-            }
-            e.target.value = value;
-        });
-    }
-
-    // Basic required field highlighting on blur
-    const requiredFields = document.querySelectorAll('#shippingForm [required]');
-    requiredFields.forEach(el => {
-        el.addEventListener('blur', () => {
-            if (!el.checkValidity()) el.classList.add('invalid'); else el.classList.remove('invalid');
-        });
-    });
+    // Form validation is no longer needed since there's no shipping form on the payment page
+    // Shipping data comes directly from the user profile
+    return;
 }
 
-// Pre-fill shipping data for logged-in users
-async function prefillShippingData(user) {
+// Load profile and display shipping address for review
+async function loadProfileAndDisplayShipping(user) {
     const auth = window.auth || new AuthSystem();
     let profileData = null;
-    console.debug('pagamento:prefillShippingData start - user=', user, 'sessionToken=', auth.sessionToken);
+    console.debug('pagamento:loadProfileAndDisplayShipping start - user=', user, 'sessionToken=', auth.sessionToken);
 
     try {
         const token = auth.sessionToken || null;
@@ -198,7 +268,6 @@ async function prefillShippingData(user) {
                 profileData = userProfileCache;
             }
         } else if (user && user.email) {
-            // If we have a user object (from auth) but no session token, try in-memory cache
             profileData = getUserProfileData(user.email) || userProfileCache;
         } else {
             profileData = userProfileCache;
@@ -207,44 +276,111 @@ async function prefillShippingData(user) {
         console.warn('Erro ao obter perfil do backend', e);
         profileData = userProfileCache || (user && user.email ? getUserProfileData(user.email) : null);
     }
-    console.debug('pagamento:prefillShippingData - profileData=', profileData);
+    console.debug('pagamento:loadProfileAndDisplayShipping - profileData=', profileData);
 
+    // Prefer explicit display element, but fall back gracefully if missing
+    let displayEl = document.getElementById('shippingAddressDisplay');
+    if (!displayEl) {
+        // Try confirmation section element
+        displayEl = document.getElementById('orderShippingAddress') || document.querySelector('.shipping-review .address-details') || null;
+    }
+    if (!displayEl) {
+        console.warn('shippingAddressDisplay element not found; skipping display update');
+        return;
+    }
     if (profileData) {
-        const firstNameEl = document.getElementById('firstName');
-        const lastNameEl = document.getElementById('lastName');
-        const phoneEl = document.getElementById('phone');
-        const addressEl = document.getElementById('address');
-        const cityEl = document.getElementById('city');
-        const postalEl = document.getElementById('postalCode');
-        const countryEl = document.getElementById('country');
-        const emailEl = document.getElementById('email');
-
-        if (firstNameEl) firstNameEl.value = profileData.firstName || '';
-        if (lastNameEl) lastNameEl.value = profileData.lastName || '';
-        if (phoneEl) phoneEl.value = profileData.phone || '';
-        if (addressEl) addressEl.value = profileData.address || '';
-        if (cityEl) cityEl.value = profileData.city || '';
-        if (postalEl) postalEl.value = profileData.postalCode || '';
-        if (countryEl) countryEl.value = profileData.country || 'PT';
-        if (emailEl) emailEl.value = profileData.email || (user && user.email ? user.email : '');
-        // update in-memory shippingData
+        // Set shippingData to profile data
         shippingData = {
             firstName: profileData.firstName || '',
-            lastName: profileData.lastName || '',
             email: profileData.email || (user && user.email ? user.email : ''),
             phone: profileData.phone || '',
             address: profileData.address || '',
             city: profileData.city || '',
             postalCode: profileData.postalCode || '',
-            country: profileData.country || 'PT',
-            notes: ''
+            country: profileData.country || 'Portugal',
+            residenceType: profileData.residenceType || '',
+            floor: profileData.floor || '',
+            doorNumber: profileData.doorNumber || '',
+            notes: profileData.notes || ''
         };
-    } else if (user && user.email) {
-        const emailEl = document.getElementById('email');
-        if (emailEl) emailEl.value = user.email;
-        shippingData.email = user.email;
+
+        // Display the address
+        let addressHtml = '';
+        if (profileData.firstName) {
+            addressHtml += `<p><strong>${profileData.firstName}</strong></p>`;
+        }
+        if (profileData.address) {
+            addressHtml += `<p>${profileData.address}</p>`;
+        }
+        if (profileData.residenceType === 'Apartamento' && profileData.floor) {
+            addressHtml += `<p>Andar: ${profileData.floor}</p>`;
+        }
+        if (profileData.doorNumber) {
+            addressHtml += `<p>Número da Porta: ${profileData.doorNumber}</p>`;
+        }
+        if (profileData.city || profileData.postalCode) {
+            addressHtml += `<p>${profileData.city || ''} ${profileData.postalCode || ''}</p>`;
+        }
+        addressHtml += `<p>Portugal</p>`;
+        if (profileData.phone) {
+            addressHtml += `<p>Telefone: ${profileData.phone}</p>`;
+        }
+        if (profileData.email) {
+            addressHtml += `<p>E-mail: ${profileData.email}</p>`;
+        }
+
+        displayEl.innerHTML = addressHtml || '<p>Morada não definida. Clique em "Alterar Morada de Envio" para adicionar.</p>';
+    } else {
+        displayEl.innerHTML = '<p>Carregando morada...</p>';
+        shippingData = {};
     }
-    console.debug('pagamento:prefillShippingData end - shippingData=', shippingData);
+    console.debug('pagamento:loadProfileAndDisplayShipping end - shippingData=', shippingData);
+}
+
+// Debounce helper
+function debounce(fn, wait) {
+    let t;
+    return function(...args) {
+        clearTimeout(t);
+        t = setTimeout(() => fn.apply(this, args), wait);
+    };
+}
+
+// Update shipping form inputs when profile changes elsewhere
+window.addEventListener('profile:updated', (e) => {
+    const p = e && e.detail ? e.detail : null;
+    if (!p) return;
+    const map = {
+        firstName: 'firstName',
+        email: 'email',
+        phone: 'phone',
+        address: 'address',
+        city: 'city',
+        postalCode: 'postalCode',
+        country: 'country'
+    };
+    Object.keys(map).forEach(k => {
+        const el = document.getElementById(map[k]);
+        if (el && p[k] !== undefined && (el.value === '' || el.value !== String(p[k]))) {
+            el.value = p[k] || '';
+        }
+    });
+    // update in-memory shippingData
+    shippingData = Object.assign({}, shippingData, p);
+});
+
+// Auto-save profile changes from checkout to backend and sync - REMOVED: No longer needed without shipping form
+function attachShippingAutoSync() {
+    // This function is no longer needed since there's no shipping form on the payment page
+    // Profile updates should be done on the account page only
+    return;
+}
+
+// Ensure auto-sync is attached after DOM load if on pagamento page
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => { attachShippingAutoSync(); });
+} else {
+    attachShippingAutoSync();
 }
 
 // Get user profile data
@@ -282,7 +418,8 @@ function nextStep(step) {
     
     // Refresh AOS
     if (typeof AOS !== 'undefined') {
-        AOS.refresh();
+        if (typeof initGSAPAnimations === 'function') { try { initGSAPAnimations(); } catch (e) { console.warn('initGSAPAnimations failed', e); } }
+        if (typeof ScrollTrigger !== 'undefined') { try { ScrollTrigger.refresh(); } catch (e) { console.warn('ScrollTrigger.refresh failed', e); } }
     }
 }
 
@@ -303,49 +440,91 @@ function prevStep(step) {
     
     // Refresh AOS
     if (typeof AOS !== 'undefined') {
-        AOS.refresh();
+        if (typeof initGSAPAnimations === 'function') { try { initGSAPAnimations(); } catch (e) { console.warn('initGSAPAnimations failed', e); } }
+        if (typeof ScrollTrigger !== 'undefined') { try { ScrollTrigger.refresh(); } catch (e) { console.warn('ScrollTrigger.refresh failed', e); } }
     }
 }
 
 // Validate current step
 function validateStep(step) {
     if (step === 1) {
-        const form = document.getElementById('shippingForm');
-        if (!form.checkValidity()) {
-            form.reportValidity();
-            return false;
-        }
-        
-        // Validate postal code format (Portugal)
-        const postalCode = document.getElementById('postalCode').value;
-        const postalCodePattern = /^\d{4}-\d{3}$/;
-        if (!postalCodePattern.test(postalCode)) {
-            alert('Por favor, insira um código postal válido (0000-000)');
+        // Check if user is logged in
+        const auth = window.auth || new AuthSystem();
+        if (!auth.isLoggedIn()) {
+            try { auth.toggleUserPanel(); } catch (e) { console.warn(e); }
+            if (window.showNotification) window.showNotification('Precisa de iniciar sessão antes de realizar uma compra.', 'warning');
             return false;
         }
 
-        // If user is logged in, ensure shipping info matches user profile
-        const auth = window.auth || new AuthSystem();
-        if (auth.isLoggedIn()) {
-                const profile = getUserProfileData(auth.getCurrentUser().email);
-                if (profile) {
-                    const fieldsToCheck = ['firstName', 'lastName', 'phone', 'address', 'postalCode'];
-                    for (let f of fieldsToCheck) {
-                        const formVal = (document.getElementById(f)?.value || '').toString().trim();
-                        const profileVal = (profile[f] || '').toString().trim();
-                        if (formVal !== profileVal) {
-                            alert('Os dados de envio têm de corresponder aos detalhes do utilizador. Atualize o formulário ou o perfil antes de continuar.');
-                            return false;
-                        }
-                    }
-                } else {
-                    alert('Não foram encontrados detalhes do utilizador. Atualize o seu perfil antes de continuar.');
-                    return false;
+        // Require the user to have basic personal profile fields filled (name/email/phone).
+        // The profile is used for both personal info and shipping address.
+        const profile = (typeof userProfileCache !== 'undefined' && userProfileCache) ? userProfileCache : null;
+        const requiredProfileFields = ['firstName', 'email'];
+        let missingProfile = [];
+        if (!profile) {
+            missingProfile = requiredProfileFields.slice();
+        } else {
+            for (const f of requiredProfileFields) {
+                if (!profile[f] || profile[f].toString().trim() === '') missingProfile.push(f);
+            }
+        }
+        if (missingProfile.length > 0) {
+            showProfileRequiredModal(missingProfile);
+            return false;
+        }
+
+        // Check if shipping address is available from profile and validate all required fields
+        const requiredShippingFields = ['firstName', 'phone', 'address', 'city', 'postalCode'];
+        let missingShippingFields = [];
+
+        if (!shippingData) {
+            missingShippingFields = requiredShippingFields.slice();
+        } else {
+            for (const field of requiredShippingFields) {
+                if (!shippingData[field] || shippingData[field].toString().trim() === '') {
+                    missingShippingFields.push(field);
                 }
-            } else {
-            // Not logged in: prevent advancing and prompt login panel
-            try { auth.toggleUserPanel(); } catch (e) { console.warn(e); }
-            if (window.showNotification) window.showNotification('Precisa de iniciar sessão antes de realizar uma compra.', 'warning');
+            }
+
+            // Additional validation for residence type specific fields
+            if (shippingData.residenceType === 'Apartamento') {
+                if (!shippingData.floor || shippingData.floor.toString().trim() === '') {
+                    missingShippingFields.push('floor');
+                }
+                if (!shippingData.doorNumber || shippingData.doorNumber.toString().trim() === '') {
+                    missingShippingFields.push('doorNumber');
+                }
+            }
+        }
+
+        if (missingShippingFields.length > 0) {
+            const fieldNames = {
+                'firstName': 'Nome',
+                'phone': 'Telefone',
+                'address': 'Morada',
+                'city': 'Cidade',
+                'postalCode': 'Código Postal',
+                'floor': 'Andar',
+                'doorNumber': 'Número da Porta'
+            };
+            const missingNames = missingShippingFields.map(field => fieldNames[field] || field);
+            if (window.showNotification) {
+                window.showNotification(`Morada de envio incompleta. Faltam: ${missingNames.join(', ')}. Atualize seu perfil.`, 'warning');
+            }
+            return false;
+        }
+
+        // Validate postal code format (Portugal)
+        const postalCodePattern = /^\d{4}-\d{3}$/;
+        if (!postalCodePattern.test(shippingData.postalCode)) {
+            if (window.showNotification) window.showNotification('Código postal inválido. Deve estar no formato 0000-000.', 'warning');
+            return false;
+        }
+
+        // Validate phone number (Portugal - 9 digits)
+        const cleanPhone = shippingData.phone.replace(/\D/g, '');
+        if (cleanPhone.length !== 9) {
+            if (window.showNotification) window.showNotification('Número de telefone inválido. Deve ter 9 dígitos.', 'warning');
             return false;
         }
     }
@@ -353,19 +532,138 @@ function validateStep(step) {
     return true;
 }
 
-// Save shipping data
-function saveShippingData() {
-    shippingData = {
-        firstName: document.getElementById('firstName').value,
-        lastName: document.getElementById('lastName').value,
-        email: document.getElementById('email').value,
-        phone: document.getElementById('phone').value,
-        address: document.getElementById('address').value,
-        city: document.getElementById('city').value,
-        postalCode: document.getElementById('postalCode').value,
-        country: (document.getElementById('country') ? document.getElementById('country').value : 'PT'),
-        notes: document.getElementById('notes').value
+// Show modal prompting user to complete their profile; navigates to conta.html?editProfile=1
+function showProfileRequiredModal(missingFields) {
+    // If a modal already exists, don't recreate
+    if (document.getElementById('profileRequiredModal')) return;
+
+    const modal = document.createElement('div');
+    modal.id = 'profileRequiredModal';
+    modal.style.position = 'fixed';
+    modal.style.left = 0;
+    modal.style.top = 0;
+    modal.style.right = 0;
+    modal.style.bottom = 0;
+    modal.style.background = 'rgba(0,0,0,0.5)';
+    modal.style.display = 'flex';
+    modal.style.alignItems = 'center';
+    modal.style.justifyContent = 'center';
+    modal.style.zIndex = 9999;
+
+    const box = document.createElement('div');
+    box.style.background = '#fff';
+    box.style.padding = '20px';
+    box.style.borderRadius = '8px';
+    box.style.maxWidth = '420px';
+    box.style.width = '100%';
+    box.style.boxShadow = '0 6px 24px rgba(0,0,0,0.2)';
+
+    const title = document.createElement('h3');
+    title.textContent = 'Atualize o seu perfil';
+    title.style.marginTop = '0';
+
+    const p = document.createElement('p');
+    p.style.marginBottom = '16px';
+    p.textContent = 'Antes de finalizar a compra, complete as suas informações pessoais no perfil (nome, e-mail).';
+
+    const actions = document.createElement('div');
+    actions.style.display = 'flex';
+    actions.style.gap = '8px';
+    actions.style.justifyContent = 'flex-end';
+
+    const btnCancel = document.createElement('button');
+    btnCancel.className = 'btn btn-secondary';
+    btnCancel.textContent = 'Cancelar';
+    btnCancel.onclick = () => { modal.remove(); };
+
+    const btnUpdate = document.createElement('button');
+    btnUpdate.className = 'btn btn-primary';
+    btnUpdate.textContent = 'Atualizar Perfil';
+    btnUpdate.onclick = () => {
+        // Navigate to account page with editProfile flag so the UI opens profile tab
+        window.location.href = window.location.origin + '/frontend/conta.html#orders';
     };
+
+    actions.appendChild(btnCancel);
+    actions.appendChild(btnUpdate);
+
+    box.appendChild(title);
+    box.appendChild(p);
+    box.appendChild(actions);
+    modal.appendChild(box);
+    document.body.appendChild(modal);
+}
+
+// Save shipping data - now handled by loadProfileAndDisplayShipping
+function saveShippingData() {
+    // Shipping data is now loaded from profile and doesn't need to be saved from form inputs
+    // The shippingData object is already populated by loadProfileAndDisplayShipping()
+    return;
+}
+
+// Show loading overlay
+function showLoader(message = 'Processando pedido...') {
+    // Remove existing loader if any
+    hideLoader();
+    
+    const loaderHtml = `
+        <div id="paymentLoader" class="payment-loader-overlay">
+            <div class="payment-loader-content">
+                <div class="payment-loader-spinner">
+                    <i class="fas fa-spinner fa-spin"></i>
+                </div>
+                <div class="payment-loader-message">${message}</div>
+            </div>
+        </div>
+    `;
+    
+    document.body.insertAdjacentHTML('beforeend', loaderHtml);
+    
+    // Add CSS if not already present
+    if (!document.getElementById('payment-loader-styles')) {
+        const style = document.createElement('style');
+        style.id = 'payment-loader-styles';
+        style.textContent = `
+            .payment-loader-overlay {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.8);
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                z-index: 9999;
+            }
+            .payment-loader-content {
+                background: white;
+                padding: 2rem;
+                border-radius: 10px;
+                text-align: center;
+                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            }
+            .payment-loader-spinner {
+                font-size: 3rem;
+                color: #0E1B4D;
+                margin-bottom: 1rem;
+            }
+            .payment-loader-message {
+                font-size: 1.1rem;
+                color: #333;
+                font-weight: 500;
+            }
+        `;
+        document.head.appendChild(style);
+    }
+}
+
+// Hide loading overlay
+function hideLoader() {
+    const loader = document.getElementById('paymentLoader');
+    if (loader) {
+        loader.remove();
+    }
 }
 
 // Process payment
@@ -391,9 +689,12 @@ function processPayment() {
         return;
     }
 
+    // Show loading immediately
+    showLoader('Processando o seu pedido...');
+
     // Always use Stripe Checkout: create a session and redirect
 
-    // Show loading
+    // Show loading on button too
     const btn = event?.target || document.querySelector('.btn-primary.process-payment');
     const originalText = btn ? btn.innerHTML : null;
     if (btn) {
@@ -403,16 +704,35 @@ function processPayment() {
 
     // Handle real payment flows
     (async () => {
-        try {
+            try {
+                // Ensure shipping form values are captured before creating session
+                try { saveShippingData(); } catch (e) { console.warn('saveShippingData failed in processPayment', e); }
+
+                // Profile updates are manual; do not auto-update profile here.
+
             const items = cart.items.map(i => ({ bookId: i.id, quantity: i.quantity }));
             // Create Checkout session on backend (Stripe will handle payment method selection)
+            const payload = {
+                items,
+                shipping: shippingData || {},
+                customerEmail: shippingData?.email || (window.auth?.getCurrentUser?.()?.email) || null,
+                successUrl: window.location.origin + window.location.pathname + '?checkout=success&session_id={CHECKOUT_SESSION_ID}',
+                cancelUrl: window.location.href
+            };
+            try {
+                console.log('create-checkout-session payload (object):', payload);
+                console.log('create-checkout-session payload (json):', JSON.stringify(payload));
+            } catch (e) { console.warn('Could not stringify payload', e); }
+
             const resp = await fetch('http://localhost:8080/api/payments/create-checkout-session', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ items, successUrl: window.location.origin + window.location.pathname + '?checkout=success&session_id={CHECKOUT_SESSION_ID}', cancelUrl: window.location.href })
+                body: JSON.stringify(payload)
             });
             const data = await resp.json();
             if (resp.ok && data.url) {
+                // Hide loader before redirecting to Stripe
+                hideLoader();
                 window.location.href = data.url;
                 return;
             } else {
@@ -420,6 +740,7 @@ function processPayment() {
             }
         } catch (err) {
             console.error('Payment error', err);
+            hideLoader();
             alert('Erro ao processar pagamento: ' + (err.message || err));
         } finally {
             if (btn) {
@@ -433,6 +754,12 @@ function processPayment() {
 // Handle Stripe Checkout success redirect: confirm session and show confirmation
 async function handleCheckoutSuccess(sessionId) {
     if (!sessionId) return;
+    console.log('handleCheckoutSuccess called with sessionId:', sessionId);
+    console.log('Current shippingData:', shippingData);
+    
+    // Show loader while confirming the session
+    showLoader('Finalizando pedido...');
+    
     try {
         const headers = { 'Content-Type': 'application/json' };
         if (window.auth && window.auth.sessionToken) headers['X-Session-Token'] = window.auth.sessionToken;
@@ -451,12 +778,15 @@ async function handleCheckoutSuccess(sessionId) {
             // clear cart and show confirmation
             const cart = window.cart || new ShoppingCart();
             cart.clearCart();
+            hideLoader();
             showConfirmation(order);
         } else {
             console.warn('Failed to confirm session', data);
+            hideLoader();
         }
     } catch (e) {
         console.error('Error confirming checkout session', e);
+        hideLoader();
     }
 }
 
@@ -529,6 +859,7 @@ function saveOrder(order) {
 
 // Show confirmation
 function showConfirmation(order) {
+    console.log('showConfirmation called with order:', order);
     // If confirmation elements are not present (page might not include the markup), create the confirmation block
     if (!document.getElementById('orderNumber') || !document.getElementById('confirmationEmail')) {
         const confirmationHtml = `
@@ -544,12 +875,16 @@ function showConfirmation(order) {
                             <strong>Número do Pedido:</strong>
                             <span id="orderNumber">#${order.orderNumber}</span>
                         </div>
+                        <div class="order-shipping">
+                            <h4>Morada de envio</h4>
+                            <div>${formatShippingAddress(shippingData)}</div>
+                        </div>
                         <div class="order-email">
                             <p>Enviámos um e-mail de confirmação para <strong id="confirmationEmail">${shippingData.email || ''}</strong></p>
                         </div>
                     </div>
                     <div class="confirmation-actions">
-                        <a href="conta.html" class="btn btn-primary">Ver Meus Pedidos</a>
+                        <a href="conta.html" class="btn btn-primary">Ver os Meus Pedidos</a>
                         <a href="livros.html" class="btn btn-secondary">Continuar Comprando</a>
                     </div>
                 </div>
@@ -561,6 +896,11 @@ function showConfirmation(order) {
     } else {
         document.getElementById('orderNumber').textContent = `#${order.orderNumber}`;
         document.getElementById('confirmationEmail').textContent = shippingData.email || '';
+        // Add shipping address if there's a container for it
+        const shippingContainer = document.getElementById('orderShippingAddress');
+        if (shippingContainer) {
+            shippingContainer.innerHTML = formatShippingAddress(shippingData);
+        }
     }
 
     // Update transfer reference if needed
@@ -570,24 +910,88 @@ function showConfirmation(order) {
     }
 
     // Advance to confirmation step
-    try { nextStep(3); } catch (e) { // if nextStep fails because progress UI isn't present, scroll to confirmation
-        console.warn('nextStep failed showing confirmation, fallback to scroll', e);
-        const step3 = document.getElementById('step3');
-        if (step3) {
-            step3.scrollIntoView({ behavior: 'smooth' });
-        }
+    // Directly activate step3 without using nextStep to avoid validation issues
+    document.querySelectorAll('.checkout-step').forEach(step => step.classList.remove('active'));
+    const step3 = document.getElementById('step3');
+    if (step3) {
+        step3.classList.add('active');
+        step3.scrollIntoView({ behavior: 'smooth' });
+    }
+    currentStep = 3; // Update current step
+    // Update progress if available
+    try {
+        document.querySelectorAll('.progress-step').forEach((ps, index) => {
+            ps.classList.remove('active');
+            if (index < 2) ps.classList.add('completed');
+        });
+        document.querySelectorAll('.progress-step')[2]?.classList.add('active');
+    } catch (e) {
+        console.warn('Could not update progress for confirmation', e);
     }
 }
 
-// Initialize on page load
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => {
-        if (window.location.pathname.includes('pagamento.html')) {
-            initPagamentoPage();
-        }
-    });
-} else {
-    if (window.location.pathname.includes('pagamento.html')) {
-        initPagamentoPage();
+// Format shipping address for display
+function formatShippingAddress(shipping) {
+    if (!shipping) return 'Morada não disponível';
+
+    let address = '';
+    if (shipping.firstName) {
+        address += `${shipping.firstName}<br>`;
     }
+    if (shipping.address) {
+        address += `${shipping.address}<br>`;
+    }
+    if (shipping.residenceType) {
+        address += `Tipo: ${shipping.residenceType}<br>`;
+    }
+    if (shipping.residenceType === 'Apartamento' && shipping.floor) {
+        address += `Andar: ${shipping.floor}<br>`;
+    }
+    if (shipping.doorNumber) {
+        address += `Número da Porta: ${shipping.doorNumber}<br>`;
+    }
+    if (shipping.city || shipping.postalCode) {
+        address += `${shipping.city || ''} ${shipping.postalCode || ''}<br>`;
+    }
+    address += 'Portugal';
+    if (shipping.phone) {
+        address += `<br>Telefone: ${shipping.phone}`;
+    }
+    if (shipping.notes) {
+        address += `<br><br>Observações: ${shipping.notes}`;
+    }
+
+    return address || 'Morada não disponível';
+}
+
+// Only initialize payment logic on the payment page (or when a checkout form is present)
+function isPagamentoPage() {
+    try {
+        if (document && document.body && document.body.classList) {
+            if (document.body.classList.contains('page-pagamento')) return true;
+        }
+        // Also allow initialization if we have a checkout-form or an element with id 'step1'
+        if (document.getElementById('shippingAddressDisplay') || document.querySelector('.checkout-form') || document.getElementById('processPaymentBtn')) return true;
+        // Default: not payment page
+        return false;
+    } catch (e) { return false; }
+}
+
+function onDomReadyForPagamento() {
+    // Remove stray shipping display elements on non-pagamento pages
+    try {
+        const el = document.getElementById('shippingAddressDisplay');
+        if (el && !isPagamentoPage()) {
+            el.remove();
+            console.info('Removed stray #shippingAddressDisplay from non-pagamento page');
+        }
+    } catch (e) {}
+
+    if (isPagamentoPage()) initPagamentoPage();
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', onDomReadyForPagamento);
+} else {
+    onDomReadyForPagamento();
 }

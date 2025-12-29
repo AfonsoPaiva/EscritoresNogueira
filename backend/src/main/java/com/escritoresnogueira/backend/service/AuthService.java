@@ -17,6 +17,7 @@ import com.escritoresnogueira.backend.model.UserSession;
 import com.escritoresnogueira.backend.repository.NewsletterClientRepository;
 import com.escritoresnogueira.backend.repository.UserRepository;
 import com.escritoresnogueira.backend.repository.NewsletterMessageRepository;
+import com.escritoresnogueira.backend.repository.OrderRepository;
 import org.springframework.stereotype.Service;
 import com.escritoresnogueira.backend.service.EmailService;
 
@@ -38,6 +39,7 @@ public class AuthService {
     private final UserRepository userRepository;
     private final NewsletterClientRepository newsletterClientRepository;
     private final NewsletterMessageRepository newsletterMessageRepository;
+    private final OrderRepository orderRepository;
     private final UserSessionService sessionService;
     private final EmailService emailService;
     private final NewsletterService newsletterService;
@@ -89,14 +91,10 @@ public class AuthService {
             user.setName(name != null ? name : user.getName());
             user.setPhotoUrl(photoUrl != null ? photoUrl : user.getPhotoUrl());
             
-            // Update firstName/lastName if not set (for existing users)
+            // Update firstName if not set (for existing users)
             if (name != null && !name.isBlank()) {
                 if (user.getFirstName() == null || user.getFirstName().isBlank()) {
-                    String[] nameParts = name.trim().split("\\s+", 2);
-                    user.setFirstName(nameParts[0]);
-                    if (nameParts.length > 1 && (user.getLastName() == null || user.getLastName().isBlank())) {
-                        user.setLastName(nameParts[1]);
-                    }
+                    user.setFirstName(name.trim());
                 }
             }
             
@@ -355,21 +353,14 @@ public class AuthService {
                                String photoUrl, AuthProvider provider) {
         log.info("🆕 Criando novo usuário: {}", email);
         
-        // Parse first name and last name from display name
-        String firstName = null;
-        String lastName = null;
-        if (name != null && !name.isBlank()) {
-            String[] nameParts = name.trim().split("\\s+", 2);
-            firstName = nameParts[0];
-            lastName = nameParts.length > 1 ? nameParts[1] : null;
-        }
+        // Set first name as the full name
+        String firstName = name != null && !name.isBlank() ? name.trim() : null;
         
         User newUser = User.builder()
             .authProviderId(firebaseUid)
             .email(email)
             .name(name != null ? name : email.split("@")[0])
             .firstName(firstName)
-            .lastName(lastName)
             .photoUrl(photoUrl)
             .authProvider(provider)
             .enabled(true)
@@ -408,8 +399,22 @@ public class AuthService {
         // 1. Delete all user sessions first (to avoid foreign key constraint violation)
         sessionService.deleteAllUserSessions(user.getId(), firebaseUid);
         log.info("✅ Sessões do usuário eliminadas");
-        
-        // 2. Delete from PostgreSQL
+
+        // 2. Disassociate orders referencing this user to avoid FK constraint
+        try {
+            List<com.escritoresnogueira.backend.model.Order> orders = orderRepository.findAllByUserId(user.getId());
+            if (orders != null && !orders.isEmpty()) {
+                for (com.escritoresnogueira.backend.model.Order o : orders) {
+                    o.setUser(null);
+                }
+                orderRepository.saveAll(orders);
+                log.info("✅ Orders disassociated from user (user_id set to null): {} orders", orders.size());
+            }
+        } catch (Exception e) {
+            log.warn("⚠️ Could not disassociate orders before user deletion: {}", e.getMessage());
+        }
+
+        // 3. Delete from PostgreSQL
         userRepository.delete(user);
         log.info("✅ Usuário eliminado com sucesso do banco de dados");
 

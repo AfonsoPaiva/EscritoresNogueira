@@ -96,6 +96,12 @@ firebase:
 # Stripe Configuration
 stripe:
   api-key: ${STRIPE_API_KEY:test-key}
+  publishable-key: ${STRIPE_PUBLISHABLE_KEY:}
+  # If `STRIPE_ALLOWED_METHODS` is not set, the server will leave
+  # `payment_method_types` unset when creating Checkout Sessions so
+  # Stripe Checkout shows all payment methods enabled in your
+  # Stripe Dashboard for the currency/region.
+  allowed-methods: ${STRIPE_ALLOWED_METHODS:}
   webhook-secret: ${STRIPE_WEBHOOK_SECRET:test-secret}
   currency: ${STRIPE_CURRENCY:BRL}
 

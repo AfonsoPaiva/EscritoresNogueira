@@ -35,9 +35,6 @@ public class User extends BaseEntity implements UserDetails {
     @Column(name = "first_name")
     private String firstName;
     
-    @Column(name = "last_name")
-    private String lastName;
-    
     @Column(name = "phone")
     private String phone;
     
@@ -53,6 +50,18 @@ public class User extends BaseEntity implements UserDetails {
     @Column(name = "country")
     @Builder.Default
     private String country = "Portugal";
+    
+    @Column(name = "residence_type")
+    private String residenceType;
+    
+    @Column(name = "floor")
+    private String floor;
+    
+    @Column(name = "door_number")
+    private String doorNumber;
+    
+    @Column(name = "notes")
+    private String notes;
     
     @Enumerated(EnumType.STRING)
     @Column(name = "auth_provider")
