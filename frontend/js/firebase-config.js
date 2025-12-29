@@ -17,6 +17,39 @@ async function initializeFirebase() {
         return;
     }
 
+    // Wait for Klaro to be available and check consent
+    if (typeof klaro === 'undefined') {
+        // Klaro not loaded yet - retry once Klaro is available
+        if (!window._tryInitFirebaseInterval) {
+            window._tryInitFirebaseInterval = setInterval(() => {
+                if (typeof klaro !== 'undefined') {
+                    clearInterval(window._tryInitFirebaseInterval);
+                    window._tryInitFirebaseInterval = null;
+                    // Only initialize if user already consented to firebase
+                    try {
+                        if (klaro.getManager && klaro.getManager().consents && klaro.getManager().consents.firebase) {
+                            initializeFirebase();
+                        }
+                    } catch (e) {
+                        // ignore and wait for explicit consent via Klaro callback
+                    }
+                }
+            }, 250);
+        }
+        return;
+    }
+
+    // Check Klaro consent for firebase
+    try {
+        if (!klaro.getManager().consents.firebase) {
+            console.log('🔥 Firebase consent not given, skipping initialization');
+            return;
+        }
+    } catch (e) {
+        console.log('🔥 Klaro manager not ready, skipping Firebase init');
+        return;
+    }
+
     try {
         console.log('🔥 Fetching Firebase configuration from backend...');
         

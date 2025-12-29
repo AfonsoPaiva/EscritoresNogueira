@@ -266,7 +266,7 @@ async function loadUserProfile() {
         const avatarContainer = document.querySelector('.profile-avatar-large');
         if (avatarContainer) {
             if (user.photoUrl) {
-                avatarContainer.innerHTML = `<img src="${user.photoUrl}" alt="${user.name}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">`;
+                avatarContainer.innerHTML = `<img src="${user.photoUrl}" alt="${user.name}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;" onerror='this.style.display="none"; this.parentElement.innerHTML="<i class=\"fas fa-user\"></i>";'>`;
             } else {
                 avatarContainer.innerHTML = '<i class="fas fa-user"></i>';
             }

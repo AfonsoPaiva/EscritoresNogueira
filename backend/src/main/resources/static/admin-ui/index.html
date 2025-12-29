@@ -34,6 +34,7 @@
           <li data-view="orders">Orders</li>
           <li data-view="forms">Form Submissions</li>
           <li data-view="newsletters">Newsletters</li>
+          <li data-view="services">Services</li>
           <li data-view="users">Users</li>
         </ul>
       </aside>
@@ -204,6 +205,18 @@
               <textarea name="content" id="newsletterContent" placeholder="HTML content" rows="6"></textarea>
               <button class="btn primary" type="submit">Send</button>
             </form>
+          </div>
+        </div>
+        
+        <!-- Services -->
+        <div id="services" class="view" style="display:none">
+          <div class="card">
+            <h3>Service Pricing Management</h3>
+            <p class="info-message">Apenas os 3 planos de serviço padrão podem ser gerenciados. Use os botões "Editar" para modificar preços e configurações de promoção.</p>
+            <div style="margin-bottom: 15px;">
+              <button id="refreshServicesBtn" class="btn">Atualizar Lista</button>
+            </div>
+            <div id="servicesList">Loading...</div>
           </div>
         </div>
         

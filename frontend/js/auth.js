@@ -1180,7 +1180,7 @@ class AuthSystem {
 
             // Update avatar with photo if available
             if (profileAvatar && this.currentUser.photoUrl) {
-                profileAvatar.innerHTML = `<img src="${this.currentUser.photoUrl}" alt="${this.currentUser.name || ''}" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover; display:block;">`;
+                profileAvatar.innerHTML = `<img src="${this.currentUser.photoUrl}" alt="${this.currentUser.name || ''}" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover; display:block;" onerror='this.style.display="none"; this.parentElement.innerHTML="<i class=\"fas fa-user\"></i>";'>`;
             } else if (profileAvatar) {
                 profileAvatar.innerHTML = '<i class="fas fa-user"></i>';
             }

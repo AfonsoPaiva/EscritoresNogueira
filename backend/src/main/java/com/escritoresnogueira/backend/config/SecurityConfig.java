@@ -98,6 +98,9 @@ public class SecurityConfig {
                 // PUBLIC: Form submissions (frontend posts here without auth)
                 .requestMatchers("/form-submissions", "/form-submissions/**").permitAll()
                 
+                // PUBLIC: Service pricing (for frontend dynamic pricing)
+                .requestMatchers("/public/servicos-precos", "/public/servicos-precos/**").permitAll()
+                
                     // ADMIN ONLY: Administração (API)
                     .requestMatchers("/admin/**").hasRole("ADMIN")
                     // Admin UI (static) - serve UI files publicly, protect APIs instead

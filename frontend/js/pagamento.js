@@ -195,23 +195,14 @@ function loadOrderSummary() {
     
     // Calculate totals
     const subtotal = cart.getTotal();
-    const shipping = calculateShipping(subtotal);
+    const shipping = 0; // Removed shipping
     const total = subtotal + shipping;
     
     orderTotal = total;
     
     // Update summary
     document.getElementById('summarySubtotal').textContent = `${subtotal.toFixed(2)}€`;
-    document.getElementById('summaryShipping').textContent = `${shipping.toFixed(2)}€`;
     document.getElementById('summaryTotal').textContent = `${total.toFixed(2)}€`;
-}
-
-// Calculate shipping cost
-function calculateShipping(subtotal) {
-    // Free shipping over 50€
-    if (subtotal >= 50) return 0;
-    // Standard shipping 5€
-    return 5.00;
 }
 
 // Initialize payment method selection

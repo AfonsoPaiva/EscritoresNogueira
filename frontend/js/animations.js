@@ -168,7 +168,7 @@
             for (let wave = 0; wave < waves; wave++) {
                 const waveElements = sortedElements.slice(wave * 3, (wave + 1) * 3);
                 waveElements.forEach((element, index) => {
-                    gsap.fromTo(element, { opacity: 0, y: 40 }, {
+                    gsap.fromTo(element, { opacity: 0, y: 80 }, {
                         opacity: 1,
                         y: 0,
                         duration: 0.6,
@@ -212,6 +212,12 @@
             }
 
             console.log('🎨 Iniciando initGSAPAnimations');
+
+            // Clear any existing inline transforms on benefit-cards to prevent conflicts
+            const benefitCards = document.querySelectorAll('.benefit-card');
+            benefitCards.forEach(card => {
+                gsap.set(card, { clearProps: 'transform' });
+            });
 
             // Handle data-aos elements - immediate animation
             const aosElems = Array.from(document.querySelectorAll('[data-aos]:not(.gsap-animated)'));
@@ -479,7 +485,7 @@
             });
         });
 
-        // Enhanced benefits grid with wave effect
+        // Enhanced benefits grid with responsive effects
         try {
             const benefitGrids = document.querySelectorAll('.benefits-grid:not(.gsap-animated)');
             benefitGrids.forEach(grid => {
@@ -487,34 +493,55 @@
                 const cards = Array.from(grid.querySelectorAll('.benefit-card'));
                 if (cards.length === 0) { grid.classList.add('gsap-animated'); return; }
 
-                // Wave animation with more dynamic effects
-                const waves = Math.ceil(cards.length / 3);
-                for (let wave = 0; wave < waves; wave++) {
-                    const waveCards = cards.slice(wave * 3, (wave + 1) * 3);
-                    waveCards.forEach((card, index) => {
-                        const random = Math.random();
-                        let fromProps = {
-                            opacity: 0,
-                            y: 40
-                        };
-                        let toProps = {
-                            opacity: 1,
-                            y: 0,
-                            duration: 0.6,
-                            delay: wave * 0.15 + index * 0.08,
-                            ease: 'power2.out'
-                        };
-
-                        // Simple animation without random effects
-                        gsap.fromTo(card, fromProps, {
-                            ...toProps,
-                            scrollTrigger: {
-                                trigger: card,
-                                start: 'top 85%',
-                                once: true
-                            },
-                            onComplete: () => card.classList.add('gsap-animated')
-                        });
+                const isMobile = window.innerWidth < 768;
+                if (isMobile) {
+                    // Mobile: slide from right to center, starting higher
+                    cards.forEach((card, index) => {
+                        if (card.classList.contains('gsap-animated')) return;
+                        gsap.fromTo(card,
+                            { opacity: 0, x: 60, y: 80 },
+                            {
+                                opacity: 1,
+                                x: 0,
+                                y: 0,
+                                duration: 0.6,
+                                delay: index * 0.1,
+                                ease: 'power2.out',
+                                scrollTrigger: {
+                                    trigger: card,
+                                    start: 'top 85%',
+                                    once: true
+                                },
+                                onComplete: () => {
+                                    card.classList.add('gsap-animated');
+                                    gsap.set(card, { clearProps: 'all' });
+                                }
+                            }
+                        );
+                    });
+                } else {
+                    // Desktop: stack (sequential appearance), starting higher
+                    cards.forEach((card, index) => {
+                        if (card.classList.contains('gsap-animated')) return;
+                        gsap.fromTo(card,
+                            { opacity: 0, y: 80 },
+                            {
+                                opacity: 1,
+                                y: 0,
+                                duration: 0.6,
+                                delay: index * 0.15,
+                                ease: 'power2.out',
+                                scrollTrigger: {
+                                    trigger: card,
+                                    start: 'top 85%',
+                                    once: true
+                                },
+                                onComplete: () => {
+                                    card.classList.add('gsap-animated');
+                                    gsap.set(card, { clearProps: 'all' });
+                                }
+                            }
+                        );
                     });
                 }
                 grid.classList.add('gsap-animated');
@@ -526,14 +553,43 @@
             const createBookEls = document.querySelectorAll('.create-book-content:not(.gsap-animated)');
             createBookEls.forEach(el => {
                 if (el.classList.contains('gsap-animated')) return;
-                gsap.fromTo(el,
-                    { opacity: 0, y: 60 },
+                const isMobile = window.innerWidth < 768;
+                let fromProps = { opacity: 0 };
+                let toProps = {
+                    opacity: 1,
+                    duration: 0.7,
+                    ease: 'power3.out',
+                    onComplete: () => el.classList.add('gsap-animated')
+                };
+                if (isMobile) {
+                    // Mobile: from left to right
+                    fromProps.x = -60;
+                    toProps.x = 0;
+                } else {
+                    // Desktop: swipe up from bottom with ScrollTrigger
+                    fromProps.y = 60;
+                    toProps.y = 0;
+                    toProps.scrollTrigger = {
+                        trigger: el,
+                        start: 'top 85%',
+                        once: true
+                    };
+                }
+                gsap.fromTo(el, fromProps, toProps);
+            });
+
+            // Section header for "Porquê Escolher" - just lift and appear
+            const sectionHeaders = document.querySelectorAll('.section-header:not(.gsap-animated)');
+            sectionHeaders.forEach(header => {
+                if (header.classList.contains('gsap-animated')) return;
+                gsap.fromTo(header,
+                    { opacity: 0, y: 30 },
                     {
                         opacity: 1,
                         y: 0,
-                        duration: 0.7,
-                        ease: 'power3.out',
-                        onComplete: () => el.classList.add('gsap-animated')
+                        duration: 0.6,
+                        ease: 'power2.out',
+                        onComplete: () => header.classList.add('gsap-animated')
                     }
                 );
             });
@@ -703,6 +759,11 @@
         // Add intersection observer for performance
         initIntersectionObserver();
 
+        // Page-specific animations
+        if (document.body.classList.contains('page-sobre')) {
+            initSobrePageAnimations();
+        }
+
         // universal reveal removed to keep previous animations smooth
 
         // Create advanced ScrollTrigger animations
@@ -819,15 +880,15 @@
                     if (element.classList.contains('benefit-card') && !element.hasAttribute('data-continuous')) {
                         element.setAttribute('data-continuous', 'true');
 
-                        // Simple subtle animation
-                        gsap.to(element, {
-                            y: '+=2',
-                            duration: 2,
-                            ease: 'power1.inOut',
-                            yoyo: true,
-                            repeat: -1,
-                            delay: Math.random() * 1.5
-                        });
+                        // Disable continuous animation for benefit-card to prevent position changes
+                        // gsap.to(element, {
+                        //     y: '+=2',
+                        //     duration: 2,
+                        //     ease: 'power1.inOut',
+                        //     yoyo: true,
+                        //     repeat: -1,
+                        //     delay: Math.random() * 1.5
+                        // });
                     }
 
                     if (element.classList.contains('icon') && !element.hasAttribute('data-continuous')) {
@@ -1019,17 +1080,34 @@
         // Plans section stacked animation
         const plansSection = document.querySelector('.plans-section-final');
         if (plansSection) {
-            gsap.set(".plan-card-new", { opacity: 0, y: 50 });
-            ScrollTrigger.create({
-                trigger: plansSection,
-                start: "top 80%",
-                once: true,
-                onEnter: () => {
-                    gsap.to(".plan-card-new:nth-child(1)", { opacity: 1, y: 0, duration: 0.8, delay: 0.2 });
-                    gsap.to(".plan-card-new:nth-child(3)", { opacity: 1, y: 0, duration: 0.8, delay: 0.6 });
-                    gsap.to(".plan-card-new:nth-child(2)", { opacity: 1, y: 0, duration: 0.8, delay: 1.0 });
-                }
-            });
+            const isMobile = window.innerWidth < 768;
+            if (isMobile) {
+                // Mobile: slide from left to right
+                gsap.set(".plan-card-new", { opacity: 0, x: -60 });
+                ScrollTrigger.create({
+                    trigger: plansSection,
+                    start: "top 80%",
+                    once: true,
+                    onEnter: () => {
+                        gsap.to(".plan-card-new:nth-child(1)", { opacity: 1, x: 0, duration: 0.8, delay: 0.2 });
+                        gsap.to(".plan-card-new:nth-child(2)", { opacity: 1, x: 0, duration: 0.8, delay: 0.6 });
+                        gsap.to(".plan-card-new:nth-child(3)", { opacity: 1, x: 0, duration: 0.8, delay: 1.0 });
+                    }
+                });
+            } else {
+                // Desktop: stacked animation
+                gsap.set(".plan-card-new", { opacity: 0, y: 50 });
+                ScrollTrigger.create({
+                    trigger: plansSection,
+                    start: "top 80%",
+                    once: true,
+                    onEnter: () => {
+                        gsap.to(".plan-card-new:nth-child(1)", { opacity: 1, y: 0, duration: 0.8, delay: 0.2 });
+                        gsap.to(".plan-card-new:nth-child(3)", { opacity: 1, y: 0, duration: 0.8, delay: 0.6 });
+                        gsap.to(".plan-card-new:nth-child(2)", { opacity: 1, y: 0, duration: 0.8, delay: 1.0 });
+                    }
+                });
+            }
         }
 
         // Process steps horizontal animation
@@ -1091,5 +1169,130 @@
             });
         }
     };
+
+    // Page-specific animations for Sobre page
+    function initSobrePageAnimations() {
+        if (typeof gsap === 'undefined' || typeof ScrollTrigger === 'undefined') {
+            console.warn('GSAP or ScrollTrigger not loaded, skipping sobre animations');
+            return;
+        }
+
+        // Register ScrollTrigger if not already
+        if (!gsap.plugins.ScrollTrigger) {
+            gsap.registerPlugin(ScrollTrigger);
+        }
+
+        // Mission text animation - slide from left
+        const missionText = document.querySelector('.mission-text');
+        if (missionText && !missionText.classList.contains('gsap-animated')) {
+            gsap.fromTo(missionText, 
+                { x: -100, opacity: 0 },
+                {
+                    x: 0,
+                    opacity: 1,
+                    duration: 1,
+                    ease: 'power2.out',
+                    scrollTrigger: {
+                        trigger: missionText,
+                        start: 'top 80%',
+                        end: 'bottom 20%',
+                        toggleActions: 'play none none reverse'
+                    },
+                    onComplete: () => missionText.classList.add('gsap-animated')
+                }
+            );
+        }
+
+        // Mission image animation - slide from right
+        const missionImage = document.querySelector('.mission-image .image-placeholder');
+        if (missionImage && !missionImage.classList.contains('gsap-animated')) {
+            gsap.fromTo(missionImage,
+                { x: 100, opacity: 0 },
+                {
+                    x: 0,
+                    opacity: 1,
+                    duration: 1,
+                    ease: 'power2.out',
+                    scrollTrigger: {
+                        trigger: missionImage,
+                        start: 'top 80%',
+                        end: 'bottom 20%',
+                        toggleActions: 'play none none reverse'
+                    },
+                    onComplete: () => missionImage.classList.add('gsap-animated')
+                }
+            );
+        }
+
+        // Values grid animation - sequential appearance
+        const valueCards = document.querySelectorAll('.value-card:not(.gsap-animated)');
+        if (valueCards.length > 0) {
+            gsap.fromTo(valueCards,
+                { y: 50, opacity: 0 },
+                {
+                    y: 0,
+                    opacity: 1,
+                    duration: 0.8,
+                    ease: 'power2.out',
+                    stagger: 0.2,
+                    scrollTrigger: {
+                        trigger: '.values-section',
+                        start: 'top 85%',
+                        end: 'bottom 15%',
+                        toggleActions: 'play none none reverse'
+                    },
+                    onComplete: () => {
+                        valueCards.forEach(card => card.classList.add('gsap-animated'));
+                    }
+                }
+            );
+        }
+
+        // Authors grid animation - sequential appearance
+        const authorCards = document.querySelectorAll('.author-card:not(.gsap-animated)');
+        if (authorCards.length > 0) {
+            gsap.fromTo(authorCards,
+                { y: 50, opacity: 0 },
+                {
+                    y: 0,
+                    opacity: 1,
+                    duration: 0.8,
+                    ease: 'power2.out',
+                    stagger: 0.2,
+                    scrollTrigger: {
+                        trigger: '.authors-section',
+                        start: 'top 85%',
+                        end: 'bottom 15%',
+                        toggleActions: 'play none none reverse'
+                    },
+                    onComplete: () => {
+                        authorCards.forEach(card => card.classList.add('gsap-animated'));
+                    }
+                }
+            );
+        }
+
+        // Timeline animation - each item slides in alternately
+        const timelineItems = document.querySelectorAll('.timeline-item:not(.gsap-animated)');
+        timelineItems.forEach((item, index) => {
+            const direction = index % 2 === 0 ? -100 : 100; // alternate left/right
+            gsap.fromTo(item,
+                { x: direction, opacity: 0 },
+                {
+                    x: 0,
+                    opacity: 1,
+                    duration: 1,
+                    ease: 'power2.out',
+                    scrollTrigger: {
+                        trigger: item,
+                        start: 'top 80%',
+                        end: 'bottom 20%',
+                        toggleActions: 'play none none reverse'
+                    },
+                    onComplete: () => item.classList.add('gsap-animated')
+                }
+            );
+        });
+    }
 
 })();
