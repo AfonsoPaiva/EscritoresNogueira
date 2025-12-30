@@ -1,25 +1,25 @@
 steps:
 - name: "maven:3.9.6-eclipse-temurin-21"
-	entrypoint: "bash"
-	args:
-	- "-c"
-	- |
-		cd backend
-		chmod +x mvnw
-		./mvnw -B -DskipTests compile jib:build -Djib.to.image=gcr.io/$PROJECT_ID/escritores-backend:$COMMIT_SHA -Djib.to.tags=latest
+  entrypoint: "bash"
+  args:
+  - "-c"
+  - |
+    cd backend
+    chmod +x mvnw
+    ./mvnw -B -DskipTests compile jib:build -Djib.to.image=gcr.io/$PROJECT_ID/escritores-backend:$COMMIT_SHA -Djib.to.tags=latest
 
 - name: "gcr.io/cloud-builders/gcloud"
-	entrypoint: "bash"
-	args:
-	- "-c"
-	- |
-		gcloud run deploy escritores-backend \
-			--image=gcr.io/$PROJECT_ID/escritores-backend:latest \
-			--region=europe-southwest1 \
-			--platform=managed \
-			--allow-unauthenticated \
-			--set-env-vars=SPRING_PROFILES_ACTIVE=prod
+  entrypoint: "bash"
+  args:
+  - "-c"
+  - |
+    gcloud run deploy escritores-backend \
+      --image=gcr.io/$PROJECT_ID/escritores-backend:latest \
+      --region=europe-southwest1 \
+      --platform=managed \
+      --allow-unauthenticated \
+      --set-env-vars=SPRING_PROFILES_ACTIVE=prod
 
 options:
-	logging: CLOUD_LOGGING_ONLY
+  logging: CLOUD_LOGGING_ONLY
 timeout: "1200s"
