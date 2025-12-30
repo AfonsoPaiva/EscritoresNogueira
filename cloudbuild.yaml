@@ -1,18 +1,12 @@
 steps:
-- name: 'maven:3.9.6-openjdk-21'
+- name: 'maven:3.9.6-eclipse-temurin-21'
   entrypoint: 'bash'
   args:
   - '-c'
   - |
     cd backend
     chmod +x mvnw
-    ./mvnw clean package -DskipTests
-- name: 'gcr.io/cloud-builders/docker'
-  args:
-  - 'build'
-  - '--tag=gcr.io/$PROJECT_ID/escritores-backend:$COMMIT_SHA'
-  - '--tag=gcr.io/$PROJECT_ID/escritores-backend:latest'
-  - './backend'
+    ./mvnw clean compile jib:build -DskipTests -Djib.to.image=gcr.io/$PROJECT_ID/escritores-backend:$COMMIT_SHA -Djib.to.tags=latest
 - name: 'gcr.io/cloud-builders/gcloud'
   args:
   - 'run'
@@ -22,8 +16,8 @@ steps:
   - '--region=europe-southwest1'
   - '--allow-unauthenticated'
   - '--platform=managed'
-  - '--set-env-vars=SPRING_PROFILES_ACTIVE=prod'
-  # Adicione outras env vars aqui
+  - '--set-env-vars=SPRING_PROFILES_ACTIVE=prod,COCKROACH_DB_URL=${_COCKROACH_DB_URL},COCKROACH_DB_USERNAME=${_COCKROACH_DB_USERNAME},COCKROACH_DB_PASSWORD=${_COCKROACH_DB_PASSWORD},FIREBASE_CREDENTIALS_PATH=${_FIREBASE_CREDENTIALS_PATH},FIREBASE_PROJECT_ID=${_FIREBASE_PROJECT_ID},FIREBASE_WEB_API_KEY=${_FIREBASE_WEB_API_KEY},FIREBASE_AUTH_DOMAIN=${_FIREBASE_AUTH_DOMAIN},STRIPE_API_KEY=${_STRIPE_API_KEY},STRIPE_WEBHOOK_SECRET=${_STRIPE_WEBHOOK_SECRET},RECAPTCHA_SECRET_KEY=${_RECAPTCHA_SECRET_KEY},APP_API_KEY=${_APP_API_KEY}'
+  # Add other env vars as needed
 
 options:
   logging: CLOUD_LOGGING_ONLY
