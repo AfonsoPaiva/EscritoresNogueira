@@ -18,10 +18,12 @@ steps:
   - "backend"
 
 - name: "gcr.io/cloud-builders/docker"
+  entrypoint: "bash"
   args:
-  - "push"
-  - "gcr.io/$PROJECT_ID/escritores-backend:$COMMIT_SHA"
-  - "gcr.io/$PROJECT_ID/escritores-backend:latest"
+  - "-c"
+  - |
+    docker push gcr.io/$PROJECT_ID/escritores-backend:$COMMIT_SHA
+    docker push gcr.io/$PROJECT_ID/escritores-backend:latest
 
 - name: "gcr.io/cloud-builders/gcloud"
   args:
