@@ -1,5 +1,5 @@
 steps:
-- name: 'gcr.io/cloud-builders/docker'
+- name: 'maven:3.9.6-openjdk-21'
   entrypoint: 'bash'
   args:
   - '-c'
