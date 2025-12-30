@@ -6,19 +6,32 @@ steps:
   - |
     cd backend
     chmod +x mvnw
-    ./mvnw -B -DskipTests compile jib:build -Djib.to.image=gcr.io/$PROJECT_ID/escritores-backend:$COMMIT_SHA -Djib.to.tags=latest
+    ./mvnw -B -DskipTests package
+
+- name: "gcr.io/cloud-builders/docker"
+  args:
+  - "build"
+  - "-t"
+  - "gcr.io/$PROJECT_ID/escritores-backend:$COMMIT_SHA"
+  - "-t"
+  - "gcr.io/$PROJECT_ID/escritores-backend:latest"
+  - "backend"
+
+- name: "gcr.io/cloud-builders/docker"
+  args:
+  - "push"
+  - "gcr.io/$PROJECT_ID/escritores-backend:$COMMIT_SHA"
 
 - name: "gcr.io/cloud-builders/gcloud"
-  entrypoint: "bash"
   args:
-  - "-c"
-  - |
-    gcloud run deploy escritores-backend \
-      --image=gcr.io/$PROJECT_ID/escritores-backend:latest \
-      --region=europe-southwest1 \
-      --platform=managed \
-      --allow-unauthenticated \
-      --set-env-vars=SPRING_PROFILES_ACTIVE=prod
+  - "run"
+  - "deploy"
+  - "escritores-backend"
+  - "--image=gcr.io/$PROJECT_ID/escritores-backend:latest"
+  - "--region=europe-southwest1"
+  - "--platform=managed"
+  - "--allow-unauthenticated"
+  - "--set-env-vars=SPRING_PROFILES_ACTIVE=prod"
 
 options:
   logging: CLOUD_LOGGING_ONLY
