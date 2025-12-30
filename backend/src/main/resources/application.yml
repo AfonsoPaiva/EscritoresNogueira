@@ -163,3 +163,16 @@ mailgun:
   api-key: ${MAILGUN_API_KEY:}
   domain: ${MAILGUN_DOMAIN:}
 
+---
+spring:
+  config:
+    activate:
+      on-profile: prod
+  logging:
+    level:
+      root: WARN
+      com.escritoresnogueira: INFO
+      org.springframework.security: WARN
+      org.springframework.web: WARN
+      org.hibernate.SQL: WARN
+

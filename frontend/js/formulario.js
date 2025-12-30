@@ -74,6 +74,9 @@ function initFormularioPage() {
     // Initialize plan selection highlighting
     initPlanSelection();
 
+    // Load pricing from API
+    loadPricing();
+
     // Initialize phone input formatting
     initPhoneInput();
 
@@ -500,6 +503,29 @@ function showSuccessMessage(data) {
     
     // Scroll to top
     document.querySelector('.formulario-wrapper').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+// Load service pricing from API
+async function loadPricing() {
+    try {
+        const pricingData = await api.getServicePricing();
+        updatePricing(pricingData);
+    } catch (error) {
+        console.warn('Erro ao carregar preços dos serviços:', error);
+    }
+}
+
+// Update pricing in the DOM
+function updatePricing(pricingData) {
+    pricingData.forEach(pricing => {
+        const planOption = document.querySelector(`input[name="plan"][value="${pricing.plano}"]`);
+        if (planOption) {
+            const priceSpan = planOption.closest('.plan-option').querySelector('.plan-option-price');
+            if (priceSpan) {
+                priceSpan.textContent = `€${pricing.precoAtual}`;
+            }
+        }
+    });
 }
 
 // Initialize on page load

@@ -168,6 +168,14 @@ const api = {
         return this.request(`/books/comments/${commentId}/helpful`, {
             method: 'PUT'
         });
+    },
+
+    /**
+     * Get service pricing
+     * @returns {Promise<Array>} - Array of pricing data
+     */
+    async getServicePricing() {
+        return this.request('/public/servicos-precos');
     }
 };
 

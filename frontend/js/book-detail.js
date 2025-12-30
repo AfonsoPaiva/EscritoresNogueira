@@ -203,10 +203,10 @@ function displayBookDetail() {
     const language = currentBook.language || 'Português';
     const description = currentBook.description || 'Descrição não disponível.';
     
-    bookDetail.innerHTML = `
+    bookDetail.innerHTML = DOMPurify.sanitize(`
         <div class="book-detail-image" data-aos="fade-right">
             <div class="book-detail-image-wrapper">
-                ${imageUrl ? `<img src="${imageUrl}" alt="${currentBook.title}">` : '<i class="fas fa-book"></i>'}
+                ${imageUrl ? `<img src="${imageUrl}" alt="${currentBook.title}" class="book-detail-main-image" width="420" height="560" loading="lazy">` : '<i class="fas fa-book"></i>'}
                 ${isPromo ? '<div class="book-badge promo-badge">Promoção</div>' : ''}
             </div>
         </div>
@@ -288,7 +288,25 @@ function displayBookDetail() {
                 </div>
             </div>
         </div>
-    `;
+    `);
+}
+
+// Preload an image and return a promise that resolves when loaded (or rejects)
+function preloadImage(url) {
+    return new Promise((resolve, reject) => {
+        if (!url) return reject(new Error('No URL'));
+        const img = new Image();
+        img.src = url;
+        img.onload = () => {
+            // Try to decode the image so it's ready to paint — improves swap smoothness
+            if (img.decode) {
+                img.decode().then(() => resolve(img)).catch(() => resolve(img));
+            } else {
+                resolve(img);
+            }
+        };
+        img.onerror = (e) => reject(e);
+    });
 }
 
 // Update quantity
@@ -317,6 +335,21 @@ async function loadRelatedBooks() {
     const relatedBooksContainer = document.getElementById('relatedBooks');
     if (!relatedBooksContainer || !currentBook) return;
     
+    // Show skeleton slides while fetching to reserve layout space
+    relatedBooksContainer.innerHTML = '';
+    const parentSwiper = document.querySelector('.related-swiper');
+    if (parentSwiper) {
+        parentSwiper.classList.add('skeleton');
+        const wrapper = parentSwiper.querySelector('.swiper-wrapper');
+        if (wrapper) {
+            wrapper.innerHTML = `
+                <div class="swiper-slide"><div class="related-skeleton"></div></div>
+                <div class="swiper-slide"><div class="related-skeleton"></div></div>
+                <div class="swiper-slide"><div class="related-skeleton"></div></div>
+            `;
+        }
+    }
+
     try {
         // Fetch all books if not cached
         if (allBooksCache.length === 0) {
@@ -352,11 +385,14 @@ async function loadRelatedBooks() {
             displayRelatedBooks(relatedBooks, relatedBooksContainer);
         }
     }
+    // Remove skeleton class from parent swiper if present (displayRelatedBooks will init swiper)
+    const parentSwiper2 = document.querySelector('.related-swiper');
+    if (parentSwiper2) parentSwiper2.classList.remove('skeleton');
 }
 
 // Display related books in swiper
 function displayRelatedBooks(books, container) {
-    container.innerHTML = books.map(book => {
+    container.innerHTML = DOMPurify.sanitize(books.map(book => {
         // Handle both API format (category as object) and static data format (category as string)
         const categoryName = typeof book.category === 'object' ? (book.category?.name || 'Geral') : (book.category || 'Geral');
         // Handle image field (API uses coverImage/coverUrl, static uses image)
@@ -390,7 +426,7 @@ function displayRelatedBooks(books, container) {
                 </div>
             </div>
         </div>
-    `}).join('');
+    `}).join(''));
     
     // Attach click events
     attachRelatedBookEvents(container);
@@ -719,11 +755,14 @@ function openBookPreview() {
     modal.classList.add('active');
     document.body.style.overflow = 'hidden';
 
-    // Add event listeners
-    overlay.addEventListener('click', closeBookPreview);
-    document.getElementById('bookPreviewClose').addEventListener('click', closeBookPreview);
-    document.getElementById('prevPage').addEventListener('click', prevPage);
-    document.getElementById('nextPage').addEventListener('click', nextPage);
+    // Add event listeners (use once for close handlers to avoid duplicate listeners)
+    overlay.addEventListener('click', closeBookPreview, { once: true });
+    const closeBtn = document.getElementById('bookPreviewClose');
+    if (closeBtn) closeBtn.addEventListener('click', closeBookPreview, { once: true });
+    const prevBtn = document.getElementById('prevPage');
+    const nextBtn = document.getElementById('nextPage');
+    if (prevBtn) prevBtn.addEventListener('click', prevPage);
+    if (nextBtn) nextBtn.addEventListener('click', nextPage);
 
     // Close on Escape key
     document.addEventListener('keydown', handlePreviewKeydown);
@@ -737,9 +776,20 @@ function updatePageDisplay() {
     const prevBtn = document.getElementById('prevPage');
     const nextBtn = document.getElementById('nextPage');
 
-    // Update image
-    pageImage.src = currentBookPages[currentPageIndex];
+    // Update image asynchronously: preload to avoid blocking main thread and reduce INP/CLS
+    const newSrc = currentBookPages[currentPageIndex];
     pageImage.alt = `Página ${currentPageIndex + 1} do livro ${currentBook.title}`;
+    // Clear src immediately only if different to avoid unnecessary reloads
+    if (pageImage.src !== newSrc) {
+        // set a lightweight placeholder (transparent) to keep dimensions while loading
+        // then preload and swap once ready
+        preloadImage(newSrc).then(() => {
+            pageImage.src = newSrc;
+        }).catch((err) => {
+            console.warn('Preview page image failed to load', err);
+            // leave previous src or set a fallback
+        });
+    }
 
     // Update page numbers
     currentPageNumber.textContent = currentPageIndex + 1;
@@ -757,7 +807,8 @@ function updatePageDisplay() {
 function prevPage() {
     if (currentPageIndex > 0) {
         currentPageIndex--;
-        updatePageDisplay();
+        // Schedule UI update so click handler stays short (improves INP)
+        requestAnimationFrame(updatePageDisplay);
     }
 }
 
@@ -765,7 +816,14 @@ function prevPage() {
 function nextPage() {
     if (currentPageIndex < currentBookPages.length - 1) {
         currentPageIndex++;
-        updatePageDisplay();
+        // Schedule UI update so click handler stays short (improves INP)
+        requestAnimationFrame(updatePageDisplay);
+        // Preload following page to make subsequent navigation instant
+        const nextIndex = Math.min(currentPageIndex + 1, currentBookPages.length - 1);
+        if (currentBookPages[nextIndex]) {
+            const _ = new Image();
+            _.src = currentBookPages[nextIndex];
+        }
     }
 }
 

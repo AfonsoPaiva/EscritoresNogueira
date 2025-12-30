@@ -32,6 +32,7 @@ public class SecurityConfig {
 
     private final AdminAuthenticationProvider adminAuthenticationProvider;
     private final AdminIapFilter adminIapFilter;
+    private final RateLimitFilter rateLimitFilter;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -50,6 +51,7 @@ public class SecurityConfig {
                 "/admin/**" // Admin API endpoints used by SPA (session token auth handled separately)
             )
 )
+            .requiresChannel(channel -> channel.anyRequest().requiresSecure()) // Force HTTPS
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
             .headers(headers -> headers
@@ -113,6 +115,8 @@ public class SecurityConfig {
             .authenticationProvider(adminAuthenticationProvider)
             // Allow IAP header-based auth (when behind Google IAP)
             .addFilterBefore(adminIapFilter, UsernamePasswordAuthenticationFilter.class)
+            // Add rate limiting filter
+            .addFilterBefore(rateLimitFilter, UsernamePasswordAuthenticationFilter.class)
             // Use Spring Security form login for admin (stateful session)
             .formLogin(form -> form
                 .loginProcessingUrl("/admin/api/login")

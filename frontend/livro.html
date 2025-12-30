@@ -588,8 +588,11 @@ window.klaroConfig = {
                     </div>
                 </div>
 
-                <div class="reviews-list">
-                    <!-- Comments loaded dynamically from API by commentsModule -->
+                <div class="reviews-list skeleton">
+                    <!-- Initial skeletons to reserve space and avoid CLS -->
+                    <div class="review-skeleton"></div>
+                    <div class="review-skeleton"></div>
+                    <div class="review-skeleton"></div>
                 </div>
             </div>
         </section>
@@ -602,9 +605,13 @@ window.klaroConfig = {
                     <p class="section-subtitle">Também pode gostar</p>
                 </div>
 
-                <div class="swiper related-swiper">
+                <div class="swiper related-swiper skeleton">
                     <div class="swiper-wrapper" id="relatedBooks">
-                        <!-- Related books will be loaded dynamically -->
+                        <!-- Initial skeleton slides to reserve space and avoid CLS -->
+                        <div class="swiper-slide"><div class="related-skeleton"></div></div>
+                        <div class="swiper-slide"><div class="related-skeleton"></div></div>
+                        <div class="swiper-slide"><div class="related-skeleton"></div></div>
+                        <div class="swiper-slide"><div class="related-skeleton"></div></div>
                     </div>
                     <div class="swiper-pagination"></div>
                     <div class="swiper-button-next"></div>
@@ -617,7 +624,7 @@ window.klaroConfig = {
         </div>
     </div>
 
-    <!-- Footer -->
+     <!-- Footer -->
     <footer class="footer">
         <div class="container">
             <div class="footer-content">
@@ -625,10 +632,11 @@ window.klaroConfig = {
                     <h3>Escritores Nogueira</h3>
                     <p>A sua livraria online de referência para obras literárias de qualidade.</p>
                     <div class="social-links">
-                        <a href="#" aria-label="Facebook"><i class="fab fa-facebook"></i></a>
-                        <a href="#" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
-                        <a href="#" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
-                        <a href="#" aria-label="LinkedIn"><i class="fab fa-linkedin"></i></a>
+                        <a href="https://www.facebook.com/escritoresnogueira" aria-label="Facebook"><i class="fab fa-facebook"></i></a>
+                        <a href="https://www.instagram.com/escritoresnogueira/" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+                        <a href="https://x.com/EscNogueira" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
+                        <a href="https://www.youtube.com/@EscritoresNogueira" aria-label="Youtube"><i class="fab fa-youtube"></i></a>
+                        <a href="https://www.tiktok.com/@escritoresnogueira" aria-label="Tiktok"><i class="fab fa-tiktok"></i></a>
                     </div>
                 </div>
 
@@ -656,15 +664,15 @@ window.klaroConfig = {
                 <div class="footer-section">
                     <h4>Contactos</h4>
                     <ul class="contact-info">
-                        <li><i class="fas fa-envelope"></i> info@escritoresnogueira.pt</li>
-                        <li><i class="fas fa-phone"></i> +351 123 456 789</li>
-                        <li><i class="fas fa-map-marker-alt"></i> Lisboa, Portugal</li>
+                        <li><i class="fas fa-envelope"></i> geral@escritoresnogueira.pt</li>
+                        <li><i class="fas fa-phone"></i> +351 967 733 272</li>
+                        <li><i class="fas fa-map-marker-alt"></i> Porto, Portugal</li>
                     </ul>
                 </div>
             </div>
 
             <div class="footer-bottom">
-                <p>&copy; 2025 Escritores Nogueira. Todos os direitos reservados.</p>
+                <p>&copy; 2025 Escritores Nogueira. Todos os direitos reservados. | Desenvolvido por <a href="https://github.com/AfonsoPaiva">Afonso Paiva</a></p>
             </div>
         </div>
     </footer>
@@ -690,7 +698,7 @@ window.klaroConfig = {
                         <i class="fas fa-chevron-left"></i>
                     </button>
                     <div class="book-page-viewer">
-                        <img id="currentPageImage" src="" alt="Página do livro" class="book-page-image">
+                        <img id="currentPageImage" src="" alt="Página do livro" class="book-page-image" width="800" height="1100" loading="lazy">
                         <div class="page-indicator">
                             <span id="currentPageNumber">1</span> de <span id="totalPages">5</span>
                         </div>

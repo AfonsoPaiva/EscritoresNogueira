@@ -20,7 +20,19 @@ const commentsModule = {
     async init(bookId) {
         console.log('📝 Comments module initializing for book ID:', bookId);
         this.currentBookId = bookId;
+        // Render skeletons immediately to reserve space and avoid layout shift
+        const reviewsList = document.querySelector('.reviews-list');
+        if (reviewsList) {
+            reviewsList.classList.add('skeleton');
+            reviewsList.innerHTML = `
+                <div class="review-skeleton"></div>
+                <div class="review-skeleton"></div>
+                <div class="review-skeleton"></div>
+            `;
+        }
+
         await this.loadComments();
+        if (reviewsList) reviewsList.classList.remove('skeleton');
         this.render();
         console.log('📝 Comments module initialized, comments count:', this.comments.length);
     },

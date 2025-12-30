@@ -732,6 +732,31 @@ ul {
     display: flex;
 }
 
+/* Reserve vertical space for related books to avoid CLS when slides are injected */
+.related-swiper {
+    min-height: 360px; /* adjusts to expected slide height */
+}
+.related-swiper .swiper-wrapper {
+    align-items: stretch;
+    min-height: 320px;
+}
+.related-swiper .swiper-slide {
+    min-height: 320px;
+}
+
+/* Skeleton slide for related books while loading */
+.related-skeleton {
+    background: linear-gradient(90deg, rgba(0,0,0,0.04) 0%, rgba(0,0,0,0.02) 50%, rgba(0,0,0,0.04) 100%);
+    border-radius: 12px;
+    height: 320px;
+    margin: 0 10px;
+    box-shadow: var(--shadow-sm);
+}
+.related-swiper.skeleton .related-skeleton {
+    background-size: 200% 100%;
+    animation: skeletonShimmer 1.4s linear infinite;
+}
+
 .swiper-pagination {
     bottom: 10px !important;
     text-align: center;
@@ -852,6 +877,50 @@ ul {
     100% { transform: translate(-50%, -50%) rotate(360deg); }
 }
 
+/* ===================================
+   SWIPER CUSTOMIZATION
+   =================================== */
+
+.featured-swiper,
+.related-swiper {
+    padding: 20px 0 60px;
+    overflow: hidden;
+}
+
+.featured-swiper .swiper-wrapper,
+.related-swiper .swiper-wrapper {
+    align-items: stretch;
+}
+
+.featured-swiper .swiper-slide,
+.related-swiper .swiper-slide {
+    height: auto;
+    display: flex;
+}
+
+/* Reserve larger vertical space for related books to avoid CLS when slides are injected */
+.related-swiper {
+    min-height: 480px; /* larger reserved height to match final content and reduce CLS */
+}
+.related-swiper .swiper-wrapper {
+    align-items: stretch;
+    min-height: 440px;
+}
+.related-swiper .swiper-slide {
+    min-height: 440px;
+}
+/* Skeleton slide for related books while loading */
+.related-skeleton {
+    background: linear-gradient(90deg, rgba(0,0,0,0.04) 0%, rgba(0,0,0,0.02) 50%, rgba(0,0,0,0.04) 100%);
+    border-radius: 12px;
+    height: 420px; /* match updated slide size */
+    margin: 0 10px;
+    box-shadow: var(--shadow-sm);
+}
+.related-swiper.skeleton .related-skeleton {
+    background-size: 200% 100%;
+    animation: skeletonShimmer 1.4s linear infinite;
+}
 /* ===================================
    BENEFITS SECTION
    =================================== */
@@ -1952,8 +2021,8 @@ body.loading .footer {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
     gap: 30px;
-    /* Avoid forcing a large reserved height; let content define height to prevent huge gaps */
-    min-height: 2000px;
+    /* Let content define height (removed large forced min-height) */
+    min-height: 0;
     /* Prevent layout shifts */
     contain: layout style;
 }
@@ -1986,6 +2055,11 @@ body.loading .footer {
 .books-grid.list-view .book-card {
     display: flex;
     flex-direction: row;
+    align-items: center;
+    gap: 16px;
+    padding: 12px 14px;
+    box-shadow: var(--shadow-sm);
+    border-radius: 10px;
 }
 
 /* Mobile: always show info overlay (no hover) and keep image visible */
@@ -2007,10 +2081,20 @@ body.loading .footer {
 }
 
 .books-grid.list-view .book-image {
-    width: 200px;
-    /* Always vertical rectangular book proportion in list view */
-    aspect-ratio: 1 / 2;
-    max-height: none;
+    width: 140px;
+    /* In list view keep image compact and let the img scale */
+    aspect-ratio: auto;
+    max-height: 180px;
+    padding: 8px;
+    flex: 0 0 140px;
+}
+
+.books-grid.list-view .book-image img {
+    max-width: 100%;
+    max-height: 100%;
+    width: auto;
+    height: auto;
+    object-fit: contain;
 }
 
 /* Responsive tweaks: keep book-card proportional on small screens */
@@ -2153,6 +2237,13 @@ body.loading .footer {
     width: 100%;
     height: 100%;
     object-fit: cover;
+}
+
+.book-detail-image-wrapper img.book-detail-main-image {
+    /* Use contain for main image to avoid cropping and preserve aspect while reserving space */
+    object-fit: contain;
+    width: 100%;
+    height: 100%;
 }
 
 .book-detail-image-wrapper i {
@@ -3517,36 +3608,36 @@ body.loading .footer {
     background: var(--secondary-color);
     color: var(--white);
     border-radius: 20px;
-    padding: 40px 30px;
+    padding: 20px 15px;
     text-align: center;
     margin-top: 20px;
-    margin-bottom: 60px;
+    margin-bottom: 30px;
     position: relative;
     overflow: hidden;
 }
 
 .contact-support .support-header {
-    margin-bottom: 50px;
+    margin-bottom: 30px;
     position: relative;
     z-index: 1;
 }
 
 .contact-support .section-title {
     color: var(--white);
-    font-size: 2.2rem;
+    font-size: 1.8rem;
     margin-bottom: 10px;
 }
 
 .contact-support .section-subtitle {
     color: rgba(255, 255, 255, 0.95);
-    font-size: 18px;
+    font-size: 16px;
 }
 
 .contact-options {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 30px;
-    margin-top: 50px;
+    gap: 20px;
+    margin-top: 30px;
     position: relative;
     z-index: 1;
 }
@@ -3556,7 +3647,7 @@ body.loading .footer {
     backdrop-filter: blur(15px);
     border: 1px solid rgba(255, 255, 255, 0.3);
     border-radius: 16px;
-    padding: 35px 25px;
+    padding: 20px 15px;
     transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     position: relative;
     overflow: hidden;
@@ -3569,8 +3660,8 @@ body.loading .footer {
 }
 
 .contact-item i {
-    font-size: 36px;
-    margin-bottom: 20px;
+    font-size: 28px;
+    margin-bottom: 15px;
     color: var(--white);
     transition: transform 0.3s ease;
 }
@@ -3580,16 +3671,16 @@ body.loading .footer {
 }
 
 .contact-item h4 {
-    margin-bottom: 15px;
-    font-size: 20px;
+    margin-bottom: 10px;
+    font-size: 18px;
     font-weight: 600;
 }
 
 .contact-item p {
-    margin: 6px 0;
+    margin: 4px 0;
     opacity: 0.95;
-    font-size: 15px;
-    line-height: 1.6;
+    font-size: 14px;
+    line-height: 1.5;
 }
 
 /* Mobile Responsiveness */
@@ -3686,6 +3777,8 @@ body.loading .footer {
     grid-template-columns: 1fr 1fr;
     gap: 60px;
     margin-bottom: 60px;
+    /* Reserve vertical space to avoid layout shifts while ratings and form load */
+    min-height: 320px;
 }
 
 .rating-overview {
@@ -3832,6 +3925,25 @@ body.loading .footer {
 
 .reviews-list {
     margin-bottom: 40px;
+    /* Reserve space for comments to reduce CLS while they load */
+    min-height: 600px; /* reserves space for multiple review items to prevent shifts */
+}
+
+/* Skeleton styles for comments loading state */
+.review-skeleton {
+    background: linear-gradient(90deg, rgba(0,0,0,0.04) 0%, rgba(0,0,0,0.02) 50%, rgba(0,0,0,0.04) 100%);
+    border-radius: 12px;
+    height: 180px; /* increased to match typical rendered review height */
+    margin-bottom: 16px;
+    box-shadow: var(--shadow-sm);
+}
+.reviews-list.skeleton .review-skeleton {
+    background-size: 200% 100%;
+    animation: skeletonShimmer 1.4s linear infinite;
+}
+@keyframes skeletonShimmer {
+    from { background-position: 200% 0; }
+    to { background-position: -200% 0; }
 }
 
 .review-item {
@@ -4839,6 +4951,7 @@ body.loading .footer {
     gap: 24px;
     cursor: pointer;
     font-weight: normal;
+    position: relative;
 }
 
 /* Utility class for screen-reader-only labels */
@@ -4855,27 +4968,27 @@ body.loading .footer {
 }
 
 .checkbox-label input[type="checkbox"] {
-    /* Keep the native checkbox accessible and focusable but visually hidden.
-       Avoid `display:none` to prevent 'invalid form control not focusable' errors. */
     position: absolute;
-    width: 1px;
-    height: 1px;
+    width: 50px;
+    height: 50px;
     padding: 0;
-    margin: -1px;
-    overflow: hidden;
-    clip: rect(0 0 0 0);
-    white-space: nowrap;
-    border: 0;
+    margin: 0;
     opacity: 0;
+    cursor: pointer;
 }
 
 .checkmark {
-    width: 40px;
-    height: 40px;
+    width: 20px;
+    height: 20px;
     border: 2px solid var(--border-color);
+    padding: 2px;
+    top: 5px;
     border-radius: 8px;
     position: relative;
     transition: var(--transition);
+    background: var(--white);
+    flex-shrink: 0;
+    display: inline-block;
 }
 
 .checkbox-label input[type="checkbox"]:checked + .checkmark {
@@ -4890,7 +5003,7 @@ body.loading .footer {
     left: 50%;
     transform: translate(-50%, -50%);
     color: var(--white);
-    font-size: 20px;
+    font-size: 24px;
     font-weight: 700;
 }
 
@@ -5036,6 +5149,15 @@ body.loading .footer {
     flex-shrink: 0;
 }
 
+
+    .footer a {
+    color: var(--white) !important;
+}
+
+.footer h3 {
+    color: var(--white) !important;
+}
+
 /* ===================================
    RESPONSIVE - MOBILE SMALL
    =================================== */
@@ -5060,6 +5182,10 @@ body.loading .footer {
     .logo-text {
         font-size: 1rem;
     }
+
+    .footer h3 {
+    color: var(--white) !important;
+}
     
     .logo-img {
         height: 30px;
@@ -5162,6 +5288,10 @@ body.loading .footer {
     .footer {
         padding: 40px 0 20px;
     }
+
+    .footer a {
+    color: var(--white) !important;
+}
 
     .footer-grid {
         grid-template-columns: 1fr;
@@ -6950,7 +7080,7 @@ body.loading .footer {
 
 .faq-item h4 {
     color: var(--primary-color);
-    font-size: 1.15rem;
+    font-size: 3rem;
     margin-bottom: 1rem;
     display: flex;
     align-items: flex-start;
@@ -6975,7 +7105,6 @@ body.loading .footer {
 .faq-item p {
     color: var(--text-gray);
     line-height: 1.7;
-    margin-left: 2.75rem;
 }
 
 /* ===================================

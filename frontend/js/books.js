@@ -7,6 +7,63 @@ let currentBooks = [];
 let currentView = 'grid';
 let isLoading = false;
 
+// Helper: slugify a string for option values
+function slugify(str) {
+    if (!str) return '';
+    return String(str).toLowerCase().trim().replace(/\s+/g, '-').replace(/[^a-z0-9\-]/g, '');
+}
+
+// Helper: get readable category name from book
+function getBookCategoryName(book) {
+    const c = book.category;
+    if (!c) return 'Geral';
+    if (typeof c === 'object') {
+        return c.name || c.title || c.label || String(c) || 'Geral';
+    }
+    return String(c);
+}
+
+// Helper: get a normalized category slug for book (used in option values and filtering)
+function getBookCategorySlug(book) {
+    const c = book.category;
+    if (!c) return 'geral';
+    if (typeof c === 'object') {
+        return slugify(c.slug || c.name || c.title || JSON.stringify(c));
+    }
+    return slugify(c);
+}
+
+// Populate category select from unique categories in `allBooks`
+function populateCategoryFilter() {
+    const select = document.getElementById('categoryFilter');
+    if (!select) return;
+
+    // Keep the default "all" option first
+    const defaultOption = '<option value="">Todas as Categorias</option>';
+
+    // Build map slug -> display name
+    const map = new Map();
+    allBooks.forEach(b => {
+        const name = getBookCategoryName(b) || 'Geral';
+        const slug = getBookCategorySlug(b) || 'geral';
+        if (!map.has(slug)) map.set(slug, name);
+    });
+
+    // Sort categories alphabetically by display name
+    const opts = Array.from(map.entries()).sort((a, b) => a[1].localeCompare(b[1]));
+
+    // Preserve any previously selected value
+    const prev = select.value || '';
+
+    select.innerHTML = defaultOption + opts.map(([slug, name]) => `\n        <option value="${slug}">${name}</option>`).join('');
+
+    // Restore previous selection if still available
+    if (prev) {
+        const opt = Array.from(select.options).find(o => o.value === prev);
+        if (opt) select.value = prev;
+    }
+}
+
 // Initialize books page
 async function initBooksPage() {
     await loadBooks();
@@ -24,6 +81,7 @@ async function loadBooks() {
         console.log('📚 Using prefetched books data');
         allBooks = transformBooks(window.pageCache['books']);
         currentBooks = [...allBooks];
+        populateCategoryFilter();
         displayBooks(currentBooks);
         delete window.pageCache['books'];
         isLoading = false;
@@ -39,7 +97,7 @@ async function loadBooks() {
         const booksFromApi = await api.getBooks();
         allBooks = transformBooks(booksFromApi);
         currentBooks = [...allBooks];
-        
+        populateCategoryFilter();
         displayBooks(currentBooks);
     } catch (error) {
         console.error('Error loading books:', error);
@@ -198,10 +256,7 @@ function filterBooks(category) {
     if (category === '' || category === 'all') {
         currentBooks = [...allBooks];
     } else {
-        currentBooks = allBooks.filter(book => 
-            book.category?.toLowerCase() === category.toLowerCase() ||
-            book.categorySlug === category
-        );
+        currentBooks = allBooks.filter(book => getBookCategorySlug(book) === category);
     }
     
     // Apply current sort

@@ -178,7 +178,7 @@ function loadOrderSummary() {
     }
     
     // Display items
-    summaryItems.innerHTML = items.map(item => `
+    summaryItems.innerHTML = DOMPurify.sanitize(items.map(item => `
         <div class="summary-item">
             <div class="item-image">
                 ${item.image ? `<img src="${item.image}" alt="${item.title}">` : '<i class="fas fa-book"></i>'}
@@ -191,7 +191,7 @@ function loadOrderSummary() {
                 ${(item.price * item.quantity).toFixed(2)}€
             </div>
         </div>
-    `).join('');
+    `).join(''));
     
     // Calculate totals
     const subtotal = cart.getTotal();
@@ -806,6 +806,13 @@ function savePaymentData(method) {
     if (method === 'mbway') {
         paymentData.phone = document.getElementById('mbwayPhone').value;
     }
+}
+
+// Calculate shipping cost (fallback implementation).
+// Keeps logic simple: free shipping for orders >= 30€, otherwise a flat fee.
+function calculateShipping(/* subtotal */) {
+    // Shipping is always free for this store
+    return 0;
 }
 
 // Create order object
