@@ -622,8 +622,8 @@ ul {
     padding: 5px 12px;
     border-radius: 20px;
     font-size: 0.8rem;
-    font-weight: 600;
-}
+    z-index: 2;
+    font-weight: 600;}
 
 .book-info {
     padding: 12px;
@@ -2383,6 +2383,14 @@ body.loading .footer {
     color: var(--border-color);
 }
 
+/* Ensure images inside .mission-image keep aspect ratio and never stretch */
+.mission-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 12px;
+    display: block;
+}
 .values-section {
     background: var(--light-gray);
 }
@@ -2456,6 +2464,19 @@ body.loading .footer {
 .author-image i {
     font-size: 5rem;
     color: var(--border-color);
+}
+
+/* Author images: preserve aspect ratio, avoid stretching, and add full border */
+.author-image img,
+.author-image .image-placeholder img,
+.authors-section img.gsap-animated {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border: 3px solid var(--border-color);
+    border-radius: 12px;
+    box-sizing: border-box;
+    display: block;
 }
 
 .author-info {
@@ -8055,6 +8076,7 @@ body.loading .footer {
     position: absolute;
     top: 10px;
     right: 10px;
+    padding: 7px;
 }
 
 .discount-badge {
@@ -8062,7 +8084,7 @@ body.loading .footer {
     color: var(--primary-color);
     padding: 8px 14px;
     border-radius: 6px;
-    font-size: 14px;
+    font-size: 12px;
     font-weight: bold;
     text-transform: uppercase;
     letter-spacing: 0.5px;
@@ -8816,6 +8838,35 @@ body.loading .footer {
         color: var(--primary-color);
     }
 
+    /* Ensure .country-fixed behaves like .country-btn on small screens */
+    .country-fixed {
+        width: 100%;
+        min-width: 0; /* allow shrinking inside flex-column */
+        padding: 16px 18px;
+        background: var(--white);
+        border: 2px solid var(--border-color);
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        box-sizing: border-box;
+        margin-bottom: 8px;
+        min-height: 56px;
+        justify-content: flex-start;
+    }
+
+    .country-fixed .country-flag {
+        width: 24px;
+        height: 18px;
+        flex-shrink: 0;
+    }
+
+    .country-fixed .country-code {
+        font-size: 16px;
+        font-weight: 700;
+        white-space: nowrap;
+    }
+
     .country-dropdown {
         position: absolute;
         top: 100%;
@@ -9127,39 +9178,30 @@ html.is-changing .hero-content {
 }
 
 .discount-badge {
-    background: linear-gradient(135deg, #ffb100, #ff8c00);
-    color: #0E1B4D;
-    padding: 10px 16px;
-    border-radius: 25px;
-    font-size: 0.95em;
-    font-weight: bold;
+    /* Use a solid site color (no gradient) and keep contrast consistent */
+    background: var(--secondary-color);
+    color: var(--primary-color);
+    padding: 14px 24px;
+    border-radius: 20px;
+    font-size: 0.75em;
+    font-weight: 700;
     display: inline-block;
     margin-bottom: 12px;
-    box-shadow: 0 4px 12px rgba(255, 177, 0, 0.4);
-    border: 2px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 0 3px 10px rgba(14,27,77,0.06);
+    border: 1px solid rgba(0,0,0,0.04);
     text-transform: uppercase;
-    letter-spacing: 0.5px;
+    letter-spacing: 0.6px;
     position: relative;
     overflow: hidden;
 }
 
-.discount-badge::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-    transition: left 0.5s;
-}
-
-.discount-badge:hover::before {
-    left: 100%;
-}
+/* Remove shimmer/gradient pseudo-element */
+.discount-badge::before { display: none !important; }
+.discount-badge:hover::before { left: auto !important; }
 
 .promotion-description {
-    background: linear-gradient(135deg, rgba(255, 177, 0, 0.15), rgba(255, 177, 0, 0.08));
+    /* No gradient — use a subtle solid tint so mobile/desktop match */
+    background: rgba(255,177,0,0.06);
     color: var(--primary-color);
     padding: 12px 16px;
     border-radius: 12px;
@@ -9167,7 +9209,7 @@ html.is-changing .hero-content {
     border-left: 4px solid var(--secondary-color);
     margin-bottom: 12px;
     line-height: 1.5;
-    box-shadow: 0 2px 8px rgba(255, 177, 0, 0.15);
+    box-shadow: none;
     position: relative;
     max-width: 280px;
     display: inline-block;
@@ -9175,13 +9217,8 @@ html.is-changing .hero-content {
     margin-left: 15px;
 }
 
-.promotion-description::before {
-    content: '💡';
-    position: absolute;
-    left: 8px;
-    top: 12px;
-    font-size: 1.2em;
-}
+/* Remove emoji/pseudo icon */
+.promotion-description::before { content: none; }
 
 .plan-price-new {
     display: flex;
@@ -9241,6 +9278,10 @@ html.is-changing .hero-content {
         font-size: 0.85em;
         padding: 8px 14px;
         margin-bottom: 10px;
+        /* ensure mobile shows the same solid background */
+        background: var(--secondary-color) !important;
+        color: var(--primary-color) !important;
+        box-shadow: 0 3px 8px rgba(14,27,77,0.05);
     }
 
     .promotion-description {
@@ -9255,6 +9296,7 @@ html.is-changing .hero-content {
     .plan-price-new {
         gap: 8px;
         margin: 6px 0;
+        align-items: center; /* center current price */
     }
 
     .price-new {
@@ -9279,7 +9321,7 @@ html.is-changing .hero-content {
 
     .plan-price-new {
         flex-direction: column;
-        align-items: flex-start;
+        align-items: center;
         gap: 4px;
     }
 
@@ -9721,3 +9763,4 @@ body.page-apoio .btn, body.page-apoio .btn-primary {
   from { transform: translateY(12px); opacity: 0; }
   to { transform: translateY(0); opacity: 1; }
 }
+
