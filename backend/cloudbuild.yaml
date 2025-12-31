@@ -1,0 +1,38 @@
+steps:
+- name: 'gcr.io/cloud-builders/docker'
+  args:
+    - build
+    - -t
+    - gcr.io/$escritores-nogueira/${_IMAGE}:${SHORT_SHA}
+    - -f
+    - backend/Dockerfile
+    - .
+- name: 'gcr.io/cloud-builders/docker'
+  args:
+    - push
+    - gcr.io/$escritores-nogueira/${_IMAGE}:${SHORT_SHA}
+- name: 'gcr.io/cloud-builders/gcloud'
+  entrypoint: bash
+  args:
+    - -c
+    - |
+      # opcional: espere pequena propagação
+      sleep 5
+      gcloud run deploy ${_SERVICE} \
+        --image gcr.io/$escritores-nogueira/${_IMAGE}:${SHORT_SHA} \
+        --region ${_REGION} \
+        --platform managed \
+        --project ${_TARGET_PROJECT} \
+        --allow-unauthenticated \
+        --set-env-vars SPRING_PROFILES_ACTIVE=prod
+
+images:
+- gcr.io/$escritores-nogueira/${_IMAGE}:${SHORT_SHA}
+
+substitutions:
+  _IMAGE: "escritores-backend"
+  _SERVICE: "escritores-backend"
+  _REGION: "europe-west1"
+  _TARGET_PROJECT: "escritores-nogueira-482817"
+
+timeout: "1200s"
