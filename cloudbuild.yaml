@@ -3,29 +3,29 @@ steps:
   args:
     - build
     - -t
-    - gcr.io/${_TARGET_PROJECT}/${_IMAGE}:${SHORT_SHA}
+    - ${_REGISTRY}/${_IMAGE}:${SHORT_SHA}
     - -t
-    - gcr.io/${_TARGET_PROJECT}/${_IMAGE}:latest
+    - ${_REGISTRY}/${_IMAGE}:latest
     - -f
     - backend/Dockerfile
     - backend
 - name: 'gcr.io/cloud-builders/docker'
   args:
     - push
-    - gcr.io/${_TARGET_PROJECT}/${_IMAGE}:${SHORT_SHA}
+    - ${_REGISTRY}/${_IMAGE}:${SHORT_SHA}
 - name: 'gcr.io/cloud-builders/docker'
   args:
     - push
-    - gcr.io/${_TARGET_PROJECT}/${_IMAGE}:latest
+    - ${_REGISTRY}/${_IMAGE}:latest
 
 images:
-- gcr.io/${_TARGET_PROJECT}/${_IMAGE}:${SHORT_SHA}
-- gcr.io/${_TARGET_PROJECT}/${_IMAGE}:latest
+- ${_REGISTRY}/${_IMAGE}:${SHORT_SHA}
+- ${_REGISTRY}/${_IMAGE}:latest
 
 substitutions:
-  _IMAGE: "escritores-backend"
+  _IMAGE: "escritoresnogueira-backend"
   _REGION: "europe-west1"
   _TARGET_PROJECT: "escritores-nogueira"
-  _REGISTRY: "europe-west1-docker.pkg.dev/escritores-nogueira/cloud-run-source-deploy"
+  _REGISTRY: "europe-west1-docker.pkg.dev/escritores-nogueira/cloud-run-source-deploy/escritoresnogueira"
 
 timeout: "1200s"
