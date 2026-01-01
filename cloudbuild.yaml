@@ -4,6 +4,8 @@ steps:
     - build
     - -t
     - gcr.io/${_TARGET_PROJECT}/${_IMAGE}:${SHORT_SHA}
+    - -t
+    - gcr.io/${_TARGET_PROJECT}/${_IMAGE}:latest
     - -f
     - backend/Dockerfile
     - backend
@@ -11,25 +13,17 @@ steps:
   args:
     - push
     - gcr.io/${_TARGET_PROJECT}/${_IMAGE}:${SHORT_SHA}
-- name: 'gcr.io/cloud-builders/gcloud'
-  entrypoint: bash
+- name: 'gcr.io/cloud-builders/docker'
   args:
-    - -c
-    - |
-      gcloud run deploy ${_SERVICE} \
-        --image gcr.io/${_TARGET_PROJECT}/${_IMAGE}:${SHORT_SHA} \
-        --region ${_REGION} \
-        --platform managed \
-        --project ${_TARGET_PROJECT} \
-        --allow-unauthenticated \
-        --update-secrets /app/.env=ENV:latest,FIREBASE_CREDENTIALS_JSON=FIREBASE_CREDENTIALS_JSON:latest
+    - push
+    - gcr.io/${_TARGET_PROJECT}/${_IMAGE}:latest
 
 images:
 - gcr.io/${_TARGET_PROJECT}/${_IMAGE}:${SHORT_SHA}
+- gcr.io/${_TARGET_PROJECT}/${_IMAGE}:latest
 
 substitutions:
   _IMAGE: "escritores-backend"
-  _SERVICE: "escritores-backend"
   _REGION: "europe-west1"
   _TARGET_PROJECT: "escritores-nogueira"
 
