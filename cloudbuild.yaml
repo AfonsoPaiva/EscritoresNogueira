@@ -1,34 +1,53 @@
 steps:
+# This step builds the container image
 - name: 'gcr.io/cloud-builders/docker'
   args:
-    - build
-    - -t
-    - ${_REGISTRY}/${_IMAGE}:${SHORT_SHA}
-    - -t
-    - ${_REGISTRY}/${_IMAGE}:latest
-    - -f
-    - backend/Dockerfile
-    - backend
+  - 'build'
+  - '-t'
+  - '${_REGISTRY}/${_IMAGE}:${SHORT_SHA}'
+  - '-t'
+  - '${_REGISTRY}/${_IMAGE}:latest'
+  - '-f'
+  - 'backend/Dockerfile'
+  - 'backend'
+    
+# This step pushes the image to Artifact Registry with the commit SHA tag
 - name: 'gcr.io/cloud-builders/docker'
-  args:
-    - push
-    - ${_REGISTRY}/${_IMAGE}:${SHORT_SHA}
+  args: ['push', '${_REGISTRY}/${_IMAGE}:${SHORT_SHA}']
+    
+# This step pushes the image to Artifact Registry with the 'latest' tag
 - name: 'gcr.io/cloud-builders/docker'
-  args:
-    - push
-    - ${_REGISTRY}/${_IMAGE}:latest
+  args: ['push', '${_REGISTRY}/${_IMAGE}:latest']
 
-images:
-- ${_REGISTRY}/${_IMAGE}:${SHORT_SHA}
-- ${_REGISTRY}/${_IMAGE}:latest
+# === THIS IS THE NEW STEP THAT DEPLOYS TO CLOUD RUN ===
+- name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+  entrypoint: gcloud
+  args:
+  - 'run'
+  - 'deploy'
+  - 'backendservice-escritoresnogueira' # Your Cloud Run service name
+  - '--image'
+  - '${_REGISTRY}/${_IMAGE}:${SHORT_SHA}'
+  - '--region'
+  - '${_REGION}'
+  - '--project'
+  - '${PROJECT_ID}'
+  - '--platform'
+  - 'managed'
+  - '--quiet'
+ 
+ # The list of images that are built by this pipeline
+  images:
+   - '${_REGISTRY}/${_IMAGE}:${SHORT_SHA}'
+   - '${_REGISTRY}/${_IMAGE}:latest'
 
-options:
+  options:
   logging: CLOUD_LOGGING_ONLY
 
-substitutions:
+  substitutions:
   _IMAGE: "escritoresnogueira-backend"
   _REGION: "europe-west1"
   _TARGET_PROJECT: "escritores-nogueira"
   _REGISTRY: "europe-west1-docker.pkg.dev/escritores-nogueira/cloud-run-source-deploy/escritoresnogueira"
-
-timeout: "1200s"
+ 
+  timeout: "1200s"
