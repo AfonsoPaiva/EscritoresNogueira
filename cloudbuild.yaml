@@ -22,8 +22,7 @@ steps:
         --platform managed \
         --project ${_TARGET_PROJECT} \
         --allow-unauthenticated \
-        --set-env-vars FIREBASE_CREDENTIALS_PATH=/secrets/firebase-service-account.json \
-        --set-secrets ENV=ENV:latest,FIREBASE_CREDENTIALS_JSON=FIREBASE_CREDENTIALS_PATH:latest
+        --update-secrets /app/.env=ENV:latest,FIREBASE_CREDENTIALS_JSON=FIREBASE_CREDENTIALS_JSON:latest
 
 images:
 - gcr.io/${_TARGET_PROJECT}/${_IMAGE}:${SHORT_SHA}
