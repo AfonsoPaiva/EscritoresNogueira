@@ -27,5 +27,5 @@ substitutions:
   _REGION: "europe-west1"
   _TARGET_PROJECT: "escritores-nogueira"
   _REGISTRY: "europe-west1-docker.pkg.dev/escritores-nogueira/cloud-run-source-deploy/escritoresnogueira"
-
+  
 timeout: "1200s"
