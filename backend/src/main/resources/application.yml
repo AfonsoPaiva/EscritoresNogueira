@@ -84,7 +84,6 @@ server:
 
 # Firebase Configuration
 firebase:
-  credentials-path: ${FIREBASE_CREDENTIALS_PATH}
   project-id: ${FIREBASE_PROJECT_ID}
   # Web SDK config (public - safe to expose to frontend)
   web:

@@ -18,7 +18,7 @@ import java.io.InputStream;
 @Configuration
 public class FirebaseConfig {
 
-    @Value("${firebase.credentials-path}")
+    @Value("${GOOGLE_APPLICATION_CREDENTIALS}")
     private String credentialsPath;
 
     @Value("${firebase.project-id}")
