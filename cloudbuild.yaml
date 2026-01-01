@@ -26,5 +26,6 @@ substitutions:
   _IMAGE: "escritores-backend"
   _REGION: "europe-west1"
   _TARGET_PROJECT: "escritores-nogueira"
+  _REGISTRY: "europe-west1-docker.pkg.dev/escritores-nogueira/cloud-run-source-deploy"
 
 timeout: "1200s"
