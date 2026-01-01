@@ -14,6 +14,4 @@ WORKDIR /app
 COPY --from=build /workspace/target/*.jar app.jar
 ENV PORT=8080
 EXPOSE 8080
-ENTRYPOINT ["sh","-c","mkdir -p /secrets && \
-  if [ -n \"$FIREBASE_CREDENTIALS_JSON\" ]; then printf '%s' \"$FIREBASE_CREDENTIALS_JSON\" > /secrets/firebase-service-account.json; fi && \
-  exec java -Dserver.port=${PORT} $JAVA_OPTS -jar /app/app.jar"]
+ENTRYPOINT ["java", "-jar", "/app/app.jar"]
