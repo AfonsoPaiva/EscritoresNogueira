@@ -917,7 +917,7 @@ function initNewsletter() {
                 return;
             }
 
-            const response = await fetch('http://localhost:8080/api/auth/subscribe-newsletter', {
+            const response = await fetch(`${window.API_BASE}/auth/subscribe-newsletter`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email, name, recaptchaToken })
