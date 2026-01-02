@@ -1632,27 +1632,94 @@ if (!(window.auth && window.auth.currentUser)) {
                 ]
             };
 
+            // Valor adicional para cada plano - calculado dinamicamente com base nos preços da API
+            // A diferença de preço entre planos representa o valor dos benefícios adicionais
+            const profissionalDiff = planPrices['profissional'] - planPrices['essencial'];
+            const premiumDiff = planPrices['premium'] - planPrices['essencial'];
+            const premiumVsProfissional = planPrices['premium'] - planPrices['profissional'];
+            
+            const planValueItems = {
+                essencial: [],
+                profissional: [
+                    { name: 'Revisão Completa', value: Math.round(profissionalDiff * 0.40) },
+                    { name: 'Design Personalizado', value: Math.round(profissionalDiff * 0.35) },
+                    { name: 'Ilustrações', value: Math.round(profissionalDiff * 0.25) }
+                ],
+                premium: [
+                    { name: 'Edição Profissional', value: Math.round(premiumDiff * 0.25) },
+                    { name: 'Ilustração Premium', value: Math.round(premiumDiff * 0.20) },
+                    { name: 'Estratégia de Lançamento', value: Math.round(premiumDiff * 0.20) },
+                    { name: 'Programa de Royalties', value: Math.round(premiumDiff * 0.35) }
+                ]
+            };
+
             let comparisonHtml = `
                 <div class="result-header">
-                    <h3>Comparação de Planos</h3>
+                    <h3><i class="fas fa-balance-scale"></i> Comparação de Planos</h3>
                     <p>Baseado em ${calcState.quantity} livros, ${calcState.pages} páginas, ${calcState.cover === 'mole' ? 'Capa Mole' : 'Capa Dura'}</p>
                 </div>
                 <div class="comparison-grid">
             `;
 
+            const essencialPrice = planPrices['essencial'];
+
             ['essencial', 'profissional', 'premium'].forEach(plan => {
                 const isRecommended = plan === recommendedPlan;
                 const books = planData[plan][formatKey][pageIndex];
                 const features = planFeatures[plan];
+                const valueItems = planValueItems[plan];
+                const totalValue = valueItems.reduce((sum, item) => sum + item.value, 0);
+                const upgradeCost = planPrices[plan] - essencialPrice;
+                const isPremium = plan === 'premium';
+                
+                // Gerar secção de valor adicional
+                let valueSection = '';
+                if (valueItems.length > 0) {
+                    valueSection = `
+                        <div class="comp-value-section">
+                            <div class="comp-value-header">
+                                <i class="fas fa-gift"></i> Valor Adicional Incluído
+                            </div>
+                            <div class="comp-value-items">
+                                ${valueItems.map(item => `
+                                    <div class="comp-value-item">
+                                        <span class="value-name">${item.name}</span>
+                                        <span class="value-amount">€${item.value}</span>
+                                    </div>
+                                `).join('')}
+                            </div>
+                            <div class="comp-value-total">
+                                <span class="total-label">Valor Total</span>
+                                <span class="total-amount">€${totalValue}</span>
+                            </div>
+                        </div>
+                    `;
+                }
+                
+                // Determinar texto e classe do botão
+                let buttonText, buttonClass;
+                if (isRecommended) {
+                    buttonText = '<i class="fas fa-star"></i> Plano Ideal';
+                    buttonClass = 'btn-recommended';
+                } else if (plan === 'essencial') {
+                    buttonText = 'Escolher';
+                    buttonClass = '';
+                } else {
+                    buttonText = `Upgrade <span class="btn-upgrade-price">+€${upgradeCost}</span>`;
+                    buttonClass = 'btn-upgrade';
+                }
                 
                 comparisonHtml += `
-                    <div class="comparison-card ${isRecommended ? 'recommended' : ''}">
-                        ${isRecommended ? '<div class="recommended-badge">Recomendado</div>' : ''}
+                    <div class="comparison-card ${isRecommended ? 'recommended' : ''} ${isPremium ? 'premium-card' : ''}">
+                        ${isRecommended ? '<div class="recommended-badge"><i class="fas fa-crown"></i> Recomendado</div>' : ''}
+                        ${isPremium && !isRecommended ? '<div class="premium-badge"><i class="fas fa-gem"></i> Premium</div>' : ''}
                         <div class="comp-plan-name">${planNames[plan]}</div>
                         <div class="comp-plan-price">€${planPrices[plan]}</div>
+                        <div class="comp-plan-price-per">por publicação</div>
                         <div class="comp-plan-books">
                             <i class="fas fa-book"></i> ${books} livros incluídos
                         </div>
+                        ${valueSection}
                         <ul class="comp-features">
                             ${features.map(f => `
                                 <li class="${f.gain ? 'gain' : ''} ${f.loss ? 'loss' : ''}">
@@ -1661,8 +1728,8 @@ if (!(window.auth && window.auth.currentUser)) {
                                 </li>
                             `).join('')}
                         </ul>
-                        <button type="button" class="btn-choose-plan" onclick="closeBookComparisonModal()">
-                            ${isRecommended ? 'Escolher Este' : 'Ver Detalhes'}
+                        <button type="button" class="btn-choose-plan ${buttonClass}" onclick="closeBookComparisonModal()">
+                            ${buttonText}
                         </button>
                     </div>
                 `;
