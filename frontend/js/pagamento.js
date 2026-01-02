@@ -718,7 +718,7 @@ function processPayment() {
                 console.log('create-checkout-session payload (json):', JSON.stringify(payload));
             } catch (e) { console.warn('Could not stringify payload', e); }
 
-            const resp = await fetch('http://localhost:8080/api/payments/create-checkout-session', {
+            const resp = await fetch(window.API_BASE + '/payments/create-checkout-session', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
