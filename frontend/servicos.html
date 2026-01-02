@@ -1740,15 +1740,22 @@ if (!(window.auth && window.auth.currentUser)) {
             resultDiv.innerHTML = comparisonHtml;
             resultDiv.style.display = 'block';
             
-            // Animate result entry
+            // Animate result entry - use fromTo to ensure final opacity is 1
             if (typeof gsap !== 'undefined') {
-                gsap.from('.comparison-card', {
-                    opacity: 0,
-                    y: 20,
-                    stagger: 0.1,
-                    duration: 0.5,
-                    ease: 'power2.out'
-                });
+                gsap.fromTo('.comparison-card', 
+                    {
+                        opacity: 0,
+                        y: 20
+                    },
+                    {
+                        opacity: 1,
+                        y: 0,
+                        stagger: 0.1,
+                        duration: 0.5,
+                        ease: 'power2.out',
+                        clearProps: 'all' // Remove inline styles after animation
+                    }
+                );
             }
             
             resultDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
