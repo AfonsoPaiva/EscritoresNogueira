@@ -33,7 +33,7 @@ steps:
       - '--platform'
       - 'managed'
       - '--quiet'
-
+      
 # User-defined substitutions
 substitutions:
   _IMAGE: "escritoresnogueira-backend"
