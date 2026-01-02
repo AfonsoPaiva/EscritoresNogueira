@@ -51,7 +51,8 @@ public class SecurityConfig {
                 "/admin/**" // Admin API endpoints used by SPA (session token auth handled separately)
             )
 )
-            .requiresChannel(channel -> channel.anyRequest().requiresSecure()) // Force HTTPS
+            // Comment out requiresChannel - Cloud Run handles HTTPS termination
+            // .requiresChannel(channel -> channel.anyRequest().requiresSecure())
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
             .headers(headers -> headers
