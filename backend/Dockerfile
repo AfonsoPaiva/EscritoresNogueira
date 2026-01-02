@@ -12,15 +12,6 @@ RUN ./mvnw -B -ntp -DskipTests package
 FROM eclipse-temurin:21-jdk-jammy
 WORKDIR /opt/app
 COPY --from=build /workspace/target/*.jar app.jar
-
-# Create startup script that loads .env file if it exists
-RUN echo '#!/bin/bash' > /opt/app/start.sh && \
-    echo 'if [ -f /app/.env ]; then' >> /opt/app/start.sh && \
-    echo '  export $(grep -v "^#" /app/.env | xargs)' >> /opt/app/start.sh && \
-    echo 'fi' >> /opt/app/start.sh && \
-    echo 'exec java -jar /opt/app/app.jar' >> /opt/app/start.sh && \
-    chmod +x /opt/app/start.sh
-
 ENV PORT=8080
 EXPOSE 8080
-ENTRYPOINT ["/opt/app/start.sh"]
+ENTRYPOINT ["java", "-jar", "/opt/app/app.jar"]
