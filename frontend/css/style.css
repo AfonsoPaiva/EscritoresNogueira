@@ -8302,28 +8302,32 @@ body.loading .footer {
 /* Book Comparison CTA Button */
 .comparison-cta {
     text-align: center;
-    margin-top: 2rem;
+    margin-bottom: 2.5rem;
 }
 
 .btn-comparison {
     display: inline-flex;
     align-items: center;
     gap: 0.75rem;
-    padding: 0.875rem 1.75rem;
-    background: transparent;
-    border: 2px solid var(--primary-color);
+    padding: 1rem 2rem;
+    background: var(--white);
+    border: 2px solid var(--white);
     color: var(--primary-color);
     font-family: var(--font-secondary);
     font-size: 1rem;
-    font-weight: 500;
-    border-radius: 50px;
+    font-weight: 600;
+    border-radius: 8px;
     cursor: pointer;
     transition: var(--transition);
+    box-shadow: var(--shadow-md);
 }
 
 .btn-comparison:hover {
-    background: var(--primary-color);
-    color: var(--white);
+    background: var(--secondary-color);
+    border-color: var(--secondary-color);
+    color: var(--primary-color);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
 }
 
 .btn-comparison i {
@@ -8338,50 +8342,35 @@ body.loading .footer {
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(14, 27, 77, 0.85);
-    backdrop-filter: blur(8px);
+    background: rgba(14, 27, 77, 0.8);
     z-index: 10000;
     justify-content: center;
     align-items: center;
     padding: 1.5rem;
-    opacity: 0;
-    transition: opacity 0.3s ease;
 }
 
 .book-comparison-modal.active {
     display: flex;
-    opacity: 1;
 }
 
 .book-comparison-modal-content {
     background: var(--white);
-    border-radius: 16px;
-    max-width: 900px;
+    border-radius: 12px;
+    max-width: 700px;
     width: 100%;
     max-height: 90vh;
     overflow-y: auto;
     position: relative;
-    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
-    animation: modalSlideIn 0.4s ease;
-}
-
-@keyframes modalSlideIn {
-    from {
-        transform: translateY(-30px) scale(0.95);
-        opacity: 0;
-    }
-    to {
-        transform: translateY(0) scale(1);
-        opacity: 1;
-    }
+    box-shadow: var(--shadow-lg);
+    border: 1px solid var(--border-color);
 }
 
 .book-comparison-close {
     position: absolute;
     top: 1rem;
     right: 1rem;
-    width: 40px;
-    height: 40px;
+    width: 36px;
+    height: 36px;
     border: none;
     background: var(--light-gray);
     border-radius: 50%;
@@ -8391,6 +8380,7 @@ body.loading .footer {
     justify-content: center;
     transition: var(--transition);
     z-index: 10;
+    color: var(--text-dark);
 }
 
 .book-comparison-close:hover {
@@ -8398,19 +8388,15 @@ body.loading .footer {
     color: var(--white);
 }
 
-.book-comparison-close i {
-    font-size: 1.1rem;
-}
-
 .book-comparison-header {
     text-align: center;
-    padding: 2.5rem 2rem 1.5rem;
+    padding: 2rem 2rem 1.5rem;
     border-bottom: 1px solid var(--border-color);
 }
 
 .book-comparison-header h2 {
     font-family: var(--font-primary);
-    font-size: 1.75rem;
+    font-size: 1.5rem;
     color: var(--primary-color);
     margin-bottom: 0.5rem;
     display: flex;
@@ -8425,166 +8411,74 @@ body.loading .footer {
 
 .book-comparison-header p {
     color: var(--text-gray);
-    font-size: 1rem;
+    font-size: 0.95rem;
 }
 
 .book-comparison-table-wrapper {
     padding: 1.5rem;
-    overflow-x: auto;
 }
 
 .book-comparison-table {
     width: 100%;
-    border-collapse: separate;
-    border-spacing: 0;
+    border-collapse: collapse;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    overflow: hidden;
 }
 
-.book-comparison-table thead tr {
+.book-comparison-table th,
+.book-comparison-table td {
+    padding: 1rem;
+    text-align: center;
+    border: 1px solid var(--border-color);
+}
+
+.book-comparison-table thead th {
+    background: var(--primary-color);
+    color: var(--white);
+    font-weight: 600;
+    font-size: 0.95rem;
+}
+
+.book-comparison-table thead th:first-child {
+    text-align: left;
+}
+
+.book-comparison-table tbody td:first-child {
+    text-align: left;
+    font-weight: 500;
+    color: var(--text-dark);
     background: var(--light-gray);
 }
 
-.book-comparison-table th {
-    padding: 1.25rem 1rem;
-    text-align: center;
-    font-weight: 600;
+.book-comparison-table tbody td {
     font-size: 0.95rem;
-    color: var(--primary-color);
-    border-bottom: 2px solid var(--border-color);
-}
-
-.book-comparison-table th.format-col {
-    text-align: left;
-    min-width: 200px;
-}
-
-.book-comparison-table th.format-col i {
-    margin-right: 0.5rem;
-    color: var(--secondary-color);
-}
-
-.book-comparison-table th.plan-col {
-    min-width: 120px;
-}
-
-.book-comparison-table th .plan-icon {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin: 0 auto 0.5rem;
-    font-size: 1rem;
-}
-
-.book-comparison-table th.essencial-col .plan-icon {
-    background: rgba(40, 167, 69, 0.15);
-    color: #28a745;
-}
-
-.book-comparison-table th.profissional-col .plan-icon {
-    background: rgba(255, 177, 0, 0.2);
-    color: var(--secondary-color);
-}
-
-.book-comparison-table th.premium-col .plan-icon {
-    background: rgba(14, 27, 77, 0.1);
-    color: var(--primary-color);
-}
-
-.book-comparison-table tbody tr {
-    transition: var(--transition);
-}
-
-.book-comparison-table tbody tr:hover {
-    background: rgba(255, 177, 0, 0.05);
-}
-
-.book-comparison-table td {
-    padding: 1.25rem 1rem;
-    border-bottom: 1px solid var(--border-color);
-    text-align: center;
-}
-
-.book-comparison-table .format-cell {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    text-align: left;
-}
-
-.book-comparison-table .format-icon {
-    width: 45px;
-    height: 45px;
-    min-width: 45px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 10px;
-    font-size: 1.25rem;
-}
-
-.book-comparison-table .format-icon.pb {
-    background: #f0f0f0;
-    color: #333;
-}
-
-.book-comparison-table .format-icon.color {
-    background: linear-gradient(135deg, #ff6b6b, #4ecdc4, #45b7d1, #f9d56e);
-    color: white;
-}
-
-.book-comparison-table .format-info {
-    display: flex;
-    flex-direction: column;
-}
-
-.book-comparison-table .format-name {
-    font-weight: 600;
     color: var(--text-dark);
-    font-size: 1rem;
 }
 
-.book-comparison-table .format-detail {
-    font-size: 0.85rem;
-    color: var(--text-gray);
+.book-comparison-table tbody tr:hover td {
+    background: rgba(255, 177, 0, 0.1);
 }
 
-.book-comparison-table .books-cell {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0.25rem;
-}
-
-.book-comparison-table .books-count {
-    font-family: var(--font-primary);
-    font-size: 1.75rem;
-    font-weight: 700;
-    color: var(--primary-color);
-}
-
-.book-comparison-table .books-label {
-    font-size: 0.8rem;
-    color: var(--text-gray);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
+.book-comparison-table tbody tr:hover td:first-child {
+    background: rgba(255, 177, 0, 0.15);
 }
 
 .book-comparison-footer {
     text-align: center;
-    padding: 1.25rem 2rem 2rem;
+    padding: 1rem 2rem 1.5rem;
+    border-top: 1px solid var(--border-color);
     background: var(--light-gray);
-    border-radius: 0 0 16px 16px;
 }
 
 .book-comparison-footer p {
     color: var(--text-gray);
-    font-size: 0.95rem;
+    font-size: 0.9rem;
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 0.5rem;
+    margin: 0;
 }
 
 .book-comparison-footer i {
@@ -8592,18 +8486,21 @@ body.loading .footer {
 }
 
 /* Book Comparison Modal Responsive */
-@media (max-width: 768px) {
+@media (max-width: 600px) {
+    .book-comparison-modal {
+        padding: 1rem;
+    }
+    
     .book-comparison-modal-content {
-        max-height: 95vh;
-        border-radius: 12px;
+        border-radius: 8px;
     }
     
     .book-comparison-header {
-        padding: 2rem 1.5rem 1rem;
+        padding: 1.5rem 1rem 1rem;
     }
     
     .book-comparison-header h2 {
-        font-size: 1.4rem;
+        font-size: 1.25rem;
     }
     
     .book-comparison-table-wrapper {
@@ -8613,70 +8510,16 @@ body.loading .footer {
     .book-comparison-table th,
     .book-comparison-table td {
         padding: 0.75rem 0.5rem;
-    }
-    
-    .book-comparison-table th.format-col {
-        min-width: 140px;
-    }
-    
-    .book-comparison-table th.plan-col {
-        min-width: 80px;
-        font-size: 0.8rem;
-    }
-    
-    .book-comparison-table th .plan-icon {
-        width: 32px;
-        height: 32px;
         font-size: 0.85rem;
-    }
-    
-    .book-comparison-table .format-icon {
-        width: 36px;
-        height: 36px;
-        min-width: 36px;
-        font-size: 1rem;
-    }
-    
-    .book-comparison-table .format-name {
-        font-size: 0.9rem;
-    }
-    
-    .book-comparison-table .format-detail {
-        font-size: 0.75rem;
-    }
-    
-    .book-comparison-table .books-count {
-        font-size: 1.4rem;
-    }
-    
-    .book-comparison-table .books-label {
-        font-size: 0.7rem;
     }
     
     .book-comparison-footer {
-        padding: 1rem 1.5rem 1.5rem;
+        padding: 1rem;
     }
     
-    .book-comparison-footer p {
-        font-size: 0.85rem;
-    }
-}
-
-@media (max-width: 480px) {
-    .book-comparison-modal {
-        padding: 0.5rem;
-    }
-    
-    .book-comparison-table .format-cell {
-        gap: 0.5rem;
-    }
-    
-    .book-comparison-table .format-icon {
-        width: 30px;
-        height: 30px;
-        min-width: 30px;
-        font-size: 0.9rem;
-        border-radius: 6px;
+    .btn-comparison {
+        padding: 0.875rem 1.5rem;
+        font-size: 0.95rem;
     }
 }
 
