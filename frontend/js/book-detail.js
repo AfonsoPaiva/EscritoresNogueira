@@ -20,7 +20,16 @@ async function initBookDetailPage() {
     
     const urlParams = new URLSearchParams(window.location.search);
     const bookIdParam = urlParams.get('id');
-    const bookSlug = urlParams.get('slug');
+    let bookSlug = urlParams.get('slug');
+
+    // Se não houver slug nos parâmetros, tenta extrair do caminho da URL (/livro/slug)
+    if (!bookSlug && !bookIdParam) {
+        const pathParts = window.location.pathname.split('/');
+        const livroIndex = pathParts.indexOf('livro');
+        if (livroIndex !== -1 && pathParts[livroIndex + 1]) {
+            bookSlug = pathParts[livroIndex + 1];
+        }
+    }
     
     // Parse ID only if it exists and is a valid number
     const bookId = bookIdParam ? parseInt(bookIdParam) : null;
@@ -65,7 +74,7 @@ if (bookDetail) {
     container.appendChild(infoP);
 
     const link = document.createElement('a');
-    link.href = 'livros.html';
+    link.href = '/livros';
     link.className = 'btn btn-primary';
     link.style.marginTop = '20px';
     link.textContent = 'Ver Todos os Livros';
@@ -172,7 +181,7 @@ if (bookDetail) {
     container.appendChild(infoP);
 
     const link = document.createElement('a');
-    link.href = 'livros.html';
+    link.href = '/livros';
     link.className = 'btn btn-primary';
     link.style.marginTop = '20px';
     link.textContent = 'Ver Todos os Livros';
@@ -425,7 +434,7 @@ function displayRelatedBooks(books, container) {
         const isPromo = book.promo === true;
         // FIXED: Only show oldPrice if promo is true AND oldPrice exists
         const oldPrice = isPromo ? (book.oldPrice || book.originalPrice || null) : null;
-        const bookUrl = book.slug ? `livro.html?slug=${book.slug}` : `livro.html?id=${book.id}`;
+        const bookUrl = book.slug ? `/livro/${book.slug}` : `/livro/${book.id}`;
         
         return `
         <div class="swiper-slide">
@@ -892,10 +901,9 @@ function isOnBookDetailPage() {
     
     console.log('🔎 Checking page - pathname:', pathname, 'href:', href);
     
-    // Check if pathname contains 'livro.html' but NOT 'livros.html'
-    // Also check href in case pathname is different
-    const hasLivro = pathname.includes('livro.html') || href.includes('livro.html');
-    const hasLivros = pathname.includes('livros.html') || href.includes('livros.html');
+    // Check if pathname contains '/livro' but NOT '/livros'
+    const hasLivro = pathname.includes('/livro') || href.includes('/livro');
+    const hasLivros = pathname.includes('/livros') || href.includes('/livros');
     
     const result = hasLivro && !hasLivros;
     console.log('🔎 Has livro:', hasLivro, 'Has livros:', hasLivros, 'Result:', result);

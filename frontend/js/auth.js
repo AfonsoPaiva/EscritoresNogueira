@@ -1119,7 +1119,7 @@ class AuthSystem {
             this.clearSession();
             this.updateUI();
             this.showNotification('Conta eliminada com sucesso', 'info');
-            window.location.href = 'index.html';
+            window.location.href = '/';
 
         } catch (error) {
             console.error('❌ Erro ao eliminar conta:', error);
@@ -1402,7 +1402,7 @@ window.showNotification = function(message, type = 'info') {
             await window.firebaseAuth.applyActionCode(oobCode);
             window.showNotification('Email verificado com sucesso!', 'success');
             // After verification, redirect to account or login page so user can continue
-            setTimeout(() => window.location.href = 'conta.html', 1200);
+            setTimeout(() => window.location.href = '/conta', 1200);
         } else if (mode === 'resetPassword') {
             const email = await window.firebaseAuth.verifyPasswordResetCode(oobCode);
             // Show a simple prompt for new password - you can replace with a proper form
@@ -1410,7 +1410,7 @@ window.showNotification = function(message, type = 'info') {
             if (newPassword && newPassword.length >= 6) {
                 await window.firebaseAuth.confirmPasswordReset(oobCode, newPassword);
                 window.showNotification('Password alterada com sucesso!', 'success');
-                setTimeout(() => window.location.href = 'conta.html', 1200);
+                setTimeout(() => window.location.href = '/conta', 1200);
             } else {
                 window.showNotification('Password inválida ou operação cancelada', 'error');
             }

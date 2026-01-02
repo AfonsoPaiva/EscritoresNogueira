@@ -531,12 +531,12 @@ function updatePricing(pricingData) {
 // Initialize on page load
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => {
-        if (window.location.pathname.includes('formulario.html')) {
+        if (window.location.pathname.includes('/formulario')) {
             initFormularioPage();
         }
     });
 } else {
-    if (window.location.pathname.includes('formulario.html')) {
+    if (window.location.pathname.includes('/formulario')) {
         initFormularioPage();
     }
 }

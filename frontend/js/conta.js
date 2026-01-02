@@ -10,7 +10,7 @@ async function initContaPage() {
     // Wait for auth system to be ready
     if (!window.auth) {
         console.error('❌ Auth system not available');
-        window.location.href = 'index.html';
+        window.location.href = '/';
         return;
     }
 
@@ -20,7 +20,7 @@ async function initContaPage() {
     // Check if user is logged in using global auth instance
     if (!window.auth.isLoggedIn()) {
         console.log('❌ User not logged in, redirecting...');
-        window.location.href = 'index.html';
+        window.location.href = '/';
         return;
     }
 
@@ -1020,7 +1020,7 @@ async function loadUserOrders() {
                     <div class="empty-orders centered-empty-orders">
                         <i class="fas fa-shopping-bag empty-icon"></i>
                         <p class="empty-text">Ainda não fez nenhuma encomenda.</p>
-                        <a href="livros.html" class="btn btn-primary empty-cta">Explorar Livros</a>
+                        <a href="/livros" class="btn btn-primary empty-cta">Explorar Livros</a>
                     </div>
                 `;
             }
@@ -1029,7 +1029,7 @@ async function loadUserOrders() {
                 <div class="empty-orders">
                     <i class="fas fa-shopping-bag"></i>
                     <p>Ainda não fez nenhuma encomenda.</p>
-                    <a href="livros.html" class="btn btn-primary">Explorar Livros</a>
+                    <a href="/livros" class="btn btn-primary">Explorar Livros</a>
                 </div>
             `;
         }
@@ -1206,12 +1206,12 @@ window.addEventListener('popstate', handleURLHash);
 // Initialize on page load
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => {
-        if (window.location.pathname.includes('conta.html')) {
+        if (window.location.pathname.includes('/conta')) {
             initContaPage();
         }
     });
 } else {
-    if (window.location.pathname.includes('conta.html')) {
+    if (window.location.pathname.includes('/conta')) {
         initContaPage();
     }
 }

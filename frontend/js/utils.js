@@ -16,7 +16,7 @@ function renderBookCard(book, options = {}) {
     } = options;
 
     const aosAttr = dataAos ? ` data-aos="${dataAos}"` : '';
-    const bookUrl = book.slug ? `livro.html?slug=${book.slug}` : `livro.html?id=${book.id}`;
+    const bookUrl = book.slug ? `/livro/${book.slug}` : `/livro?id=${book.id}`;
     
     // Handle both API format (category as object) and static data format (category as string)
     const categoryName = typeof book.category === 'object' ? (book.category?.name || 'Geral') : (book.category || 'Geral');
@@ -69,7 +69,7 @@ function renderBookCards(books, options = {}) {
  */
 function renderBlogCard(post, options = {}) {
     const {
-        onClick = `window.location.href='artigo.html?id=${post.id}'`,
+        onClick = `window.location.href='/artigo/${post.id}'`,
         imageIcon = 'newspaper',
         dataAos = ''
     } = options;
@@ -88,7 +88,7 @@ function renderBlogCard(post, options = {}) {
                 </div>
                 <h3 class="blog-title">${post.title}</h3>
                 <p class="blog-excerpt">${post.excerpt}</p>
-                <a href="artigo.html?id=${post.id}" class="read-more">
+                <a href="/artigo/${post.id}" class="read-more">
                     Ler mais <i class="fas fa-arrow-right"></i>
                 </a>
             </div>
@@ -228,7 +228,15 @@ function initPageTabs(tabsSelector, contentsSelector, activeClass = 'active', on
  */
 function initPageOnLoad(pageName, initFunction) {
     const checkAndInit = () => {
-        if (window.location.pathname.includes(pageName)) {
+        const pathname = window.location.pathname;
+        const cleanPageName = pageName.replace('.html', '');
+        
+        // Check for exact match, match without .html, or root for index
+        const isMatch = pathname.includes(pageName) || 
+                        pathname.endsWith('/' + cleanPageName) || 
+                        (cleanPageName === 'index' && (pathname === '/' || pathname === ''));
+                        
+        if (isMatch) {
             initFunction();
         }
     };

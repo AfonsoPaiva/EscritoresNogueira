@@ -230,7 +230,7 @@ class ShoppingCart {
         }
 
         // Redirect to payment page
-        window.location.href = 'pagamento.html';
+        window.location.href = '/pagamento';
     }
 
     showNotification(message, type = 'success') {

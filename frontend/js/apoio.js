@@ -81,12 +81,12 @@ window.addEventListener('popstate', handleURLHash);
 // Initialize on page load
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => {
-        if (window.location.pathname.includes('apoio.html')) {
+        if (window.location.pathname.includes('/apoio')) {
             initApoioPage();
         }
     });
 } else {
-    if (window.location.pathname.includes('apoio.html')) {
+    if (window.location.pathname.includes('/apoio')) {
         initApoioPage();
     }
 }

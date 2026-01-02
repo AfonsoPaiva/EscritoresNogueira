@@ -1,5 +1,9 @@
 {
+  "cleanUrls": true,
+  "trailingSlash": false,
   "rewrites": [
+    { "source": "/livro/:slug", "destination": "/livro.html?slug=:slug" },
+    { "source": "/artigo/:id", "destination": "/artigo.html?id=:id" },
     { "source": "/sobre", "destination": "/sobre.html" },
     { "source": "/servicos", "destination": "/servicos.html" },
     { "source": "/pagamento", "destination": "/pagamento.html" },
@@ -13,15 +17,6 @@
   ],
   "redirects": [
     { "source": "/index.html", "destination": "/", "permanent": true },
-    { "source": "/sobre.html", "destination": "/sobre", "permanent": true },
-    { "source": "/servicos.html", "destination": "/servicos", "permanent": true },
-    { "source": "/pagamento.html", "destination": "/pagamento", "permanent": true },
-    { "source": "/livros.html", "destination": "/livros", "permanent": true },
-    { "source": "/livro.html", "destination": "/livro", "permanent": true },
-    { "source": "/formulario.html", "destination": "/formulario", "permanent": true },
-    { "source": "/conta.html", "destination": "/conta", "permanent": true },
-    { "source": "/blog.html", "destination": "/blog", "permanent": true },
-    { "source": "/artigo.html", "destination": "/artigo", "permanent": true },
-    { "source": "/apoio.html", "destination": "/apoio", "permanent": true }
+    { "source": "/(.*)\\.html", "destination": "/$1", "permanent": true }
   ]
 }

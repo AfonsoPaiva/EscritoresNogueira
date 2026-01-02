@@ -583,7 +583,7 @@ function initSearch() {
                 type: 'book',
                 title: book.title,
                 subtitle: `${book.author} • ${book.category}`,
-                url: `livro.html?id=${book.id}`,
+                url: book.slug ? `/livro/${book.slug}` : `/livro?id=${book.id}`,
                 image: book.image
             }));
 
@@ -595,7 +595,7 @@ function initSearch() {
                 type: 'post',
                 title: post.title,
                 subtitle: post.excerpt ? post.excerpt.substring(0, 100) + '...' : post.category,
-                url: `artigo.html?id=${post.id}`,
+                url: `/artigo/${post.id}`,
                 image: post.image
             }));
 
@@ -625,28 +625,37 @@ function initSearch() {
 function initPage() {
     const path = window.location.pathname;
 
-    if (path.includes('index.html') || path.endsWith('/') || path === '') {
+    if (path.includes('index.html') || path.endsWith('/') || path === '' || path.endsWith('/index')) {
         // Call async function properly
         loadFeaturedBooks().catch(err => console.error('Error in loadFeaturedBooks:', err));
-    } else if (path.includes('livros.html')) {
+    } else if (path.includes('livros.html') || path.endsWith('/livros')) {
         // Code from books.js
         loadBooks();
         attachFilters();
         applyURLFilters();
-    } else if (path.includes('livro.html') && !path.includes('livros.html')) {
+    } else if ((path.includes('livro.html') || path.includes('/livro')) && !path.includes('livros')) {
         // Book detail page - handled by book-detail.js
         // Do NOT redirect here - let book-detail.js handle it
-    } else if (path.includes('blog.html')) {
+    } else if (path.includes('blog.html') || path.endsWith('/blog')) {
         // Code from blog.js
         loadBlogPosts();
-    } else if (path.includes('artigo.html')) {
+    } else if (path.includes('artigo.html') || path.includes('/artigo')) {
         // Code from article.js
         const urlParams = new URLSearchParams(window.location.search);
-        const articleId = parseInt(urlParams.get('id'));
+        let articleId = parseInt(urlParams.get('id'));
+        
+        if (!articleId) {
+            const pathParts = path.split('/');
+            const artigoIndex = pathParts.indexOf('artigo');
+            if (artigoIndex !== -1 && pathParts[artigoIndex + 1]) {
+                articleId = parseInt(pathParts[artigoIndex + 1]);
+            }
+        }
+
         if (articleId) {
             loadArticleFromAPI(articleId);
         } else {
-            window.location.href = 'blog.html';
+            window.location.href = '/blog';
         }
     }
 }
@@ -715,7 +724,7 @@ async function loadFeaturedBooks() {
 }
 
 function displayFeaturedBooks(books, container) {
-    const bookUrl = (book) => book.slug ? `livro.html?slug=${book.slug}` : `livro.html?id=${book.id}`;
+    const bookUrl = (book) => book.slug ? `/livro/${book.slug}` : `/livro?id=${book.id}`;
     
     container.innerHTML = DOMPurify.sanitize(books.map(book => {
         // Handle both API format (category as object) and static data format (category as string)
@@ -836,8 +845,13 @@ function updateActiveNavLink() {
     const path = window.location.pathname;
     document.querySelectorAll('.nav-link').forEach(link => {
         link.classList.remove('active');
-        if (link.getAttribute('href') && path.includes(link.getAttribute('href'))) {
-            link.classList.add('active');
+        const href = link.getAttribute('href');
+        if (href) {
+            const cleanHref = href.replace('.html', '');
+            // Check for exact match, clean match, or root
+            if (path === href || path === cleanHref || (cleanHref === '/' && (path === '/' || path === '')) || (href !== '/' && path.startsWith(cleanHref))) {
+                link.classList.add('active');
+            }
         }
     });
 }

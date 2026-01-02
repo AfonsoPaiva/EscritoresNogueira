@@ -8,12 +8,20 @@ let allBlogPosts = [];
 // Initialize article page
 function initArticlePage() {
     const urlParams = new URLSearchParams(window.location.search);
-    const articleId = parseInt(urlParams.get('id'));
+    let articleId = parseInt(urlParams.get('id'));
     
+    if (!articleId) {
+        const pathParts = window.location.pathname.split('/');
+        const artigoIndex = pathParts.indexOf('artigo');
+        if (artigoIndex !== -1 && pathParts[artigoIndex + 1]) {
+            articleId = parseInt(pathParts[artigoIndex + 1]);
+        }
+    }
+
     if (articleId) {
         loadArticleFromAPI(articleId);
     } else {
-        window.location.href = 'blog.html';
+        window.location.href = '/blog';
     }
 }
 
@@ -100,7 +108,7 @@ function loadRelatedArticles() {
     }
     
     relatedArticlesContainer.innerHTML = relatedArticles.map(post => `
-        <div class="blog-card" onclick="window.location.href='artigo.html?id=${post.id}'">
+        <div class="blog-card" onclick="window.location.href='/artigo/${post.id}'">
             <div class="blog-image">
                 ${post.image ? `<img src="${post.image}" alt="${post.title}">` : '<i class="fas fa-newspaper"></i>'}
             </div>
@@ -111,7 +119,7 @@ function loadRelatedArticles() {
                 </div>
                 <h3 class="blog-title">${post.title}</h3>
                 <p class="blog-excerpt">${post.excerpt}</p>
-                <a href="artigo.html?id=${post.id}" class="read-more">
+                <a href="/artigo/${post.id}" class="read-more">
                     Ler mais <i class="fas fa-arrow-right"></i>
                 </a>
             </div>
@@ -128,13 +136,13 @@ function showArticleNotFoundError() {
         <div style="text-align: center; padding: 60px 20px;">
             <i class="fas fa-exclamation-triangle" style="font-size: 4rem; color: var(--border-color); margin-bottom: 20px;"></i>
             <p style="color: var(--text-gray); font-size: 1.2rem;">Artigo não encontrado. Verifique a URL e tente novamente</p>
-            <button onclick="window.location.href='blog.html'" class="btn btn-primary" style="margin-top: 20px;">Voltar ao Blog</button>
+            <button onclick="window.location.href='/blog'" class="btn btn-primary" style="margin-top: 20px;">Voltar ao Blog</button>
         </div>
     `;
     
     // Redirect to blog after 3 seconds
     setTimeout(() => {
-        window.location.href = 'blog.html';
+        window.location.href = '/blog';
     }, 3000);
 }
 
@@ -147,13 +155,13 @@ function showArticleLoadError() {
         <div style="text-align: center; padding: 60px 20px;">
             <i class="fas fa-exclamation-triangle" style="font-size: 4rem; color: var(--border-color); margin-bottom: 20px;"></i>
             <p style="color: var(--text-gray); font-size: 1.2rem;">Erro ao carregar artigo. Verifique a sua conexão à internet</p>
-            <button onclick="window.location.href='blog.html'" class="btn btn-primary" style="margin-top: 20px;">Voltar ao Blog</button>
+            <button onclick="window.location.href='/blog'" class="btn btn-primary" style="margin-top: 20px;">Voltar ao Blog</button>
         </div>
     `;
     
     // Redirect to blog after 3 seconds
     setTimeout(() => {
-        window.location.href = 'blog.html';
+        window.location.href = '/blog';
     }, 3000);
 }
 
@@ -167,12 +175,12 @@ function formatDate(dateString) {
 // Initialize on page load
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => {
-        if (window.location.pathname.includes('artigo.html')) {
+        if (window.location.pathname.includes('artigo')) {
             initArticlePage();
         }
     });
 } else {
-    if (window.location.pathname.includes('artigo.html')) {
+    if (window.location.pathname.includes('artigo')) {
         initArticlePage();
     }
 }

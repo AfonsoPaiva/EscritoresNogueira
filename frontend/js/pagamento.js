@@ -572,7 +572,7 @@ function showProfileRequiredModal(missingFields) {
     btnUpdate.textContent = 'Atualizar Perfil';
     btnUpdate.onclick = () => {
         // Navigate to account page with editProfile flag so the UI opens profile tab
-        window.location.href = window.location.origin + '/conta.html#orders';
+        window.location.href = window.location.origin + '/conta#orders';
     };
 
     actions.appendChild(btnCancel);
@@ -882,8 +882,8 @@ function showConfirmation(order) {
                         </div>
                     </div>
                     <div class="confirmation-actions">
-                        <a href="conta.html" class="btn btn-primary">Ver os Meus Pedidos</a>
-                        <a href="livros.html" class="btn btn-secondary">Continuar Comprando</a>
+                        <a href="/conta" class="btn btn-primary">Ver os Meus Pedidos</a>
+                        <a href="/livros" class="btn btn-secondary">Continuar Comprando</a>
                     </div>
                 </div>
             </div>

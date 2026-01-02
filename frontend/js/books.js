@@ -155,7 +155,7 @@ function displayBooks(books) {
         const isPromo = book.promo === true;
         // FIXED: Only show oldPrice if promo is true AND oldPrice exists
         const oldPrice = isPromo ? (book.oldPrice || book.originalPrice || null) : null;
-        const bookUrl = book.slug ? `livro.html?slug=${book.slug}` : `livro.html?id=${book.id}`;
+        const bookUrl = book.slug ? `/livro/${book.slug}` : `/livro/${book.id}`;
         
         return `
         <div class="book-card" data-href="${bookUrl}" data-book-id="${book.id}" data-aos="slide-up" data-aos-stagger-group="books">
@@ -329,12 +329,12 @@ function applyURLFilters() {
 // Initialize on page load
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => {
-        if (window.location.pathname.includes('livros.html')) {
+        if (window.location.pathname.includes('/livros')) {
             initBooksPage();
         }
     });
 } else {
-    if (window.location.pathname.includes('livros.html')) {
+    if (window.location.pathname.includes('/livros')) {
         initBooksPage();
     }
 }

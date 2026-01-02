@@ -27,7 +27,7 @@ async function loadBlogPosts() {
 
         // Render blog posts
         blogPostsGrid.innerHTML = posts.map(post => `
-            <div class="blog-card" onclick="window.location.href='artigo.html?id=${post.id}'">
+            <div class="blog-card" onclick="window.location.href='/artigo/${post.id}'">
                 <div class="blog-image">
                     ${post.image ? `<img src="${post.image}" alt="${post.title}">` : '<i class="fas fa-newspaper"></i>'}
                 </div>
@@ -38,7 +38,7 @@ async function loadBlogPosts() {
                     </div>
                     <h3 class="blog-title">${post.title}</h3>
                     <p class="blog-excerpt">${post.excerpt}</p>
-                    <a href="artigo.html?id=${post.id}" class="read-more">
+                    <a href="/artigo/${post.id}" class="read-more">
                         Ler mais <i class="fas fa-arrow-right"></i>
                     </a>
                 </div>
@@ -73,12 +73,12 @@ function formatDate(dateString) {
 // Initialize on page load
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => {
-        if (window.location.pathname.includes('blog.html')) {
+        if (window.location.pathname.includes('/blog')) {
             initBlogPage();
         }
     });
 } else {
-    if (window.location.pathname.includes('blog.html')) {
+    if (window.location.pathname.includes('/blog')) {
         initBlogPage();
     }
 }

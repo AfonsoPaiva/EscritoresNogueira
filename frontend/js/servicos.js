@@ -240,12 +240,12 @@ function handleServiceContact(e) {
 // Initialize on page load
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => {
-        if (window.location.pathname.includes('servicos.html')) {
+        if (window.location.pathname.includes('/servicos')) {
             initServicosPage();
         }
     });
 } else {
-    if (window.location.pathname.includes('servicos.html')) {
+    if (window.location.pathname.includes('/servicos')) {
         initServicosPage();
     }
 }
