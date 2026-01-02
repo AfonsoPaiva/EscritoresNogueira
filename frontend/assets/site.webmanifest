@@ -1,0 +1,21 @@
+{
+    "name": "Escritores Nogueira",
+    "short_name": "Escritores Nogueira",
+    "description": "Uma livraria online especializada em obras literárias.",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#FFFFFF",
+    "theme_color": "#FFB100",
+    "icons": [
+        {
+            "src": "/assets/favicon.ico",
+            "sizes": "16x16 32x32",
+            "type": "image/x-icon"
+        },
+        {
+            "src": "/assets/apple-touch-icon.png",
+            "sizes": "180x180",
+            "type": "image/png"
+        }
+    ]
+}
