@@ -1175,6 +1175,7 @@ Deseja salvar estas alterações?
     originalShowView(name);
   };
 
-  // Run initial auth check
+  // Run initial auth check and initialize Firebase
   checkAuth();
+  initFirebase();
 })();
