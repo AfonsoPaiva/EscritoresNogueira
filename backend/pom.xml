@@ -53,13 +53,6 @@
             <scope>runtime</scope>
         </dependency>
         
-        <!-- Spring Dotenv - Carrega variáveis do arquivo .env -->
-        <dependency>
-            <groupId>io.github.cdimascio</groupId>
-            <artifactId>dotenv-java</artifactId>
-            <version>3.0.0</version>
-        </dependency>
-        
         <!-- Firebase Admin SDK -->
         <dependency>
             <groupId>com.google.firebase</groupId>

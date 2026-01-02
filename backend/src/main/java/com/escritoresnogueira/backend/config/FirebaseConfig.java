@@ -8,18 +8,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.io.FileSystemResource;
-import org.springframework.core.io.Resource;
 
 import java.io.IOException;
-import java.io.InputStream;
 
 @Slf4j
 @Configuration
 public class FirebaseConfig {
-
-    @Value("${GOOGLE_APPLICATION_CREDENTIALS}")
-    private String credentialsPath;
 
     @Value("${firebase.project-id}")
     private String projectId;
@@ -27,28 +21,24 @@ public class FirebaseConfig {
     @Bean
     public FirebaseApp firebaseApp() throws IOException {
         if (FirebaseApp.getApps().isEmpty()) {
-            log.info(" Inicializando Firebase com credenciais: {}", credentialsPath);
+            log.info("🔥 Inicializando Firebase Admin SDK...");
             
-            Resource resource = new FileSystemResource(credentialsPath);
-            
-            if (!resource.exists()) {
-                log.error(" Arquivo de credenciais do Firebase não encontrado: {}", credentialsPath);
-                throw new IOException("Firebase credentials file not found: " + credentialsPath);
-            }
-
-            try (InputStream serviceAccount = resource.getInputStream()) {
+            try {
                 FirebaseOptions options = FirebaseOptions.builder()
-                        .setCredentials(GoogleCredentials.fromStream(serviceAccount))
+                        .setCredentials(GoogleCredentials.getApplicationDefault())
                         .setProjectId(projectId)
                         .build();
 
                 FirebaseApp app = FirebaseApp.initializeApp(options);
-                log.info(" Firebase Admin SDK inicializado com sucesso! Project ID: {}", projectId);
+                log.info("✅ Firebase Admin SDK inicializado com sucesso! Project ID: {}", projectId);
                 return app;
+            } catch (IOException e) {
+                log.error("❌ Erro ao inicializar Firebase: {}", e.getMessage());
+                throw e;
             }
         }
         
-        log.info(" Firebase App já inicializado");
+        log.info("ℹ️ Firebase App já inicializado");
         return FirebaseApp.getInstance();
     }
 

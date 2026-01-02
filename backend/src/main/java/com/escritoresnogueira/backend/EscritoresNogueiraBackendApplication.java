@@ -1,7 +1,6 @@
 package com.escritoresnogueira.backend;
 
 import com.escritoresnogueira.backend.service.ServicePricingService;
-import io.github.cdimascio.dotenv.Dotenv;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
@@ -14,8 +13,6 @@ import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.web.client.RestTemplate;
-
-import java.util.Set;
 
 @SpringBootApplication
 @EnableCaching
@@ -46,50 +43,13 @@ public class EscritoresNogueiraBackendApplication {
         };
     }
 
-    // Carrega .env no carregamento da classe — também será executado durante os testes
-    static {
-        try {
-            Dotenv dotenv = Dotenv.configure()
-                    .ignoreIfMissing()
-                    .load();
-
-            // define como properties do sistema para que Spring resolva placeholders
-            dotenv.entries().forEach(entry ->
-                    System.setProperty(entry.getKey(), entry.getValue())
-            );
-
-            System.out.println("Loaded .env (if present)");
-        } catch (Exception e) {
-            System.out.println("Warning: falha ao carregar .env: " + e.getMessage());
-        }
-    }
-
     public static void main(String[] args) {
-        // Carregar .env automaticamente (mantido por compatibilidade)
-        Dotenv dotenv = Dotenv.configure()
-            .ignoreIfMissing()
-            .load();
-
-        // Definir como propriedades do sistema para Spring Boot
-        dotenv.entries().forEach(entry -> 
-            System.setProperty(entry.getKey(), entry.getValue())
-        );
-
-        // Definir perfil ativo
-            String profile = System.getProperty("SPRING_PROFILES_ACTIVE", "dev");
-        System.setProperty("spring.profiles.active", profile);
-        
         SpringApplication.run(EscritoresNogueiraBackendApplication.class, args);
-        
-        // Obter valores do .env para exibir URLs corretas
-        String port = System.getProperty("SERVER_PORT", "8080");
-        String contextPath = System.getProperty("SERVER_CONTEXT_PATH", "/api");
-        String actuatorPath = System.getProperty("ACTUATOR_BASE_PATH", "/actuator");
         
         System.out.println("\n==============================================");
         System.out.println("  Escritores Nogueira Backend está a correr!");
-        System.out.println("  API: http://localhost:" + port + contextPath);
-        System.out.println("  Health: http://localhost:" + port + contextPath + actuatorPath + "/health");
+        System.out.println("  API: http://localhost:8080/api");
+        System.out.println("  Health: http://localhost:8080/api/actuator/health");
         System.out.println("==============================================\n");
     }
 }
