@@ -2,8 +2,8 @@
 // FIREBASE-CONFIG.JS - Firebase initialization
 // ==================================
 
-// API URL - should match your backend
-const FIREBASE_CONFIG_API_URL = 'http://localhost:8080/api';
+// API URL - use runtime config or fallback to localhost
+const FIREBASE_CONFIG_API_URL = window.API_BASE || 'http://localhost:8080/api';
 
 // Firebase instance placeholder
 let firebaseInitialized = false;
