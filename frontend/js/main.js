@@ -607,7 +607,7 @@ function initSearch() {
             }
 
             const resultsHTML = allResults.map(result =>
-                `<div class="search-result-item" onclick="window.location.href='${result.url}'">
+                `<a href="${result.url}" class="search-result-item">
                     <div class="search-result-image">
                         ${result.image ? `<img src="${result.image}" alt="${result.title}" loading="lazy">` : '<i class="fas fa-book"></i>'}
                     </div>
@@ -616,7 +616,7 @@ function initSearch() {
                         <p>${result.subtitle}</p>
                         <span class="search-result-type">${result.type === 'book' ? 'Livro' : 'Artigo'}</span>
                     </div>
-                </div>`
+                </a>`
             ).join('');
             
             // Use DOMPurify if available, otherwise use innerHTML directly (data is from our own API)
