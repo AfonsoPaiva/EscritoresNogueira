@@ -734,12 +734,6 @@ function openBookPreview() {
 
     const modal = document.getElementById('bookPreviewModal');
     const overlay = document.getElementById('bookPreviewOverlay');
-        window.showNotification('Prévia não disponível para este livro.', 'warning');
-        return;
-    }
-
-    const modal = document.getElementById('bookPreviewModal');
-    const overlay = document.getElementById('bookPreviewOverlay');
     const title = document.getElementById('previewBookTitle');
     const author = document.getElementById('previewBookAuthor');
     const pageImage = document.getElementById('currentPageImage');
