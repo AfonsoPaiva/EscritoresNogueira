@@ -246,16 +246,16 @@ function displayBookDetail() {
             
             <div class="book-detail-actions">
                 <div class="quantity-selector">
-                    <button onclick="updateQuantity(-1)"><i class="fas fa-minus"></i></button>
+                    <button class="quantity-decrease"><i class="fas fa-minus"></i></button>
                     <span id="quantityDisplay">1</span>
-                    <button onclick="updateQuantity(1)"><i class="fas fa-plus"></i></button>
+                    <button class="quantity-increase"><i class="fas fa-plus"></i></button>
                 </div>
                 <div class="action-buttons">
-                    <button class="btn btn-primary btn-large" onclick="addToCart()">
+                    <button class="btn btn-primary btn-large btn-add-to-cart">
                         <i class="fas fa-shopping-cart"></i>
                         Adicionar ao Carrinho
                     </button>
-                    <button class="btn btn-secondary btn-large btn-preview" onclick="openBookPreview()">
+                    <button class="btn btn-secondary btn-large btn-preview">
                         <i class="fas fa-book-open"></i>
                         Ler Amostra
                     </button>
@@ -289,6 +289,26 @@ function displayBookDetail() {
             </div>
         </div>
     `);
+    
+    // Attach event listeners after setting innerHTML
+    attachBookDetailEvents();
+}
+
+// Attach event listeners to book detail buttons
+function attachBookDetailEvents() {
+    // Quantity buttons
+    const decreaseBtn = document.querySelector('.quantity-decrease');
+    const increaseBtn = document.querySelector('.quantity-increase');
+    if (decreaseBtn) decreaseBtn.addEventListener('click', () => updateQuantity(-1));
+    if (increaseBtn) increaseBtn.addEventListener('click', () => updateQuantity(1));
+    
+    // Add to cart button
+    const addToCartBtn = document.querySelector('.btn-add-to-cart');
+    if (addToCartBtn) addToCartBtn.addEventListener('click', addToCart);
+    
+    // Preview button
+    const previewBtn = document.querySelector('.book-detail-actions .btn-preview');
+    if (previewBtn) previewBtn.addEventListener('click', openBookPreview);
 }
 
 // Preload an image and return a promise that resolves when loaded (or rejects)
@@ -329,6 +349,10 @@ function addToCart() {
         }
     }
 }
+
+// Expose functions globally for onclick handlers in HTML
+window.updateQuantity = updateQuantity;
+window.addToCart = addToCart;
 
 // Load related books
 async function loadRelatedBooks() {
