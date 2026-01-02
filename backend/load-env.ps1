@@ -50,7 +50,7 @@ if (Test-Path $envFile) {
     Write-Host "`nEnvironment variables loaded!" -ForegroundColor Green
     Write-Host "Starting Spring Boot application...`n" -ForegroundColor Yellow
     
-    # Make sure we're in backend directory
+    # Make sure we're in backend folder
     Set-Location -Path $backendPath
     
     & mvn spring-boot:run
