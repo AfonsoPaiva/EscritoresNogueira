@@ -68,8 +68,9 @@ function renderBookCards(books, options = {}) {
  * @returns {String} HTML template for blog card
  */
 function renderBlogCard(post, options = {}) {
+    const articleUrl = post.slug ? `/artigo/${post.slug}` : `/artigo/${post.id}`;
     const {
-        onClick = `window.location.href='/artigo/${post.id}'`,
+        onClick = `window.location.href='${articleUrl}'`,
         imageIcon = 'newspaper',
         dataAos = ''
     } = options;
@@ -88,7 +89,7 @@ function renderBlogCard(post, options = {}) {
                 </div>
                 <h3 class="blog-title">${post.title}</h3>
                 <p class="blog-excerpt">${post.excerpt}</p>
-                <a href="/artigo/${post.id}" class="read-more">
+                <a href="${articleUrl}" class="read-more">
                     Ler mais <i class="fas fa-arrow-right"></i>
                 </a>
             </div>

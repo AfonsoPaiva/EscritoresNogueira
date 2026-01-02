@@ -26,8 +26,10 @@ async function loadBlogPosts() {
         }
 
         // Render blog posts
-        blogPostsGrid.innerHTML = posts.map(post => `
-            <div class="blog-card" onclick="window.location.href='/artigo/${post.id}'">
+        blogPostsGrid.innerHTML = posts.map(post => {
+            const articleUrl = post.slug ? `/artigo/${post.slug}` : `/artigo/${post.id}`;
+            return `
+            <div class="blog-card" onclick="window.location.href='${articleUrl}'">
                 <div class="blog-image">
                     ${post.image ? `<img src="${post.image}" alt="${post.title}">` : '<i class="fas fa-newspaper"></i>'}
                 </div>
@@ -38,12 +40,12 @@ async function loadBlogPosts() {
                     </div>
                     <h3 class="blog-title">${post.title}</h3>
                     <p class="blog-excerpt">${post.excerpt}</p>
-                    <a href="/artigo/${post.id}" class="read-more">
+                    <a href="${articleUrl}" class="read-more">
                         Ler mais <i class="fas fa-arrow-right"></i>
                     </a>
                 </div>
             </div>
-        `).join('');
+        `}).join('');
 
         document.body.classList.remove('loading');
 

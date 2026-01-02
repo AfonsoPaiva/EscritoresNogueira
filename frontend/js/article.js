@@ -9,24 +9,36 @@ let allBlogPosts = [];
 function initArticlePage() {
     const urlParams = new URLSearchParams(window.location.search);
     let articleId = parseInt(urlParams.get('id'));
+    let articleSlug = urlParams.get('slug') || urlParams.get('slugOrId');
     
-    if (!articleId) {
+    // If slugOrId is a number, treat it as an ID
+    if (urlParams.get('slugOrId') && !isNaN(urlParams.get('slugOrId'))) {
+        articleId = parseInt(urlParams.get('slugOrId'));
+        articleSlug = null;
+    }
+    
+    if (!articleId && !articleSlug) {
         const pathParts = window.location.pathname.split('/');
         const artigoIndex = pathParts.indexOf('artigo');
         if (artigoIndex !== -1 && pathParts[artigoIndex + 1]) {
-            articleId = parseInt(pathParts[artigoIndex + 1]);
+            const param = pathParts[artigoIndex + 1];
+            if (!isNaN(param)) {
+                articleId = parseInt(param);
+            } else {
+                articleSlug = param;
+            }
         }
     }
 
-    if (articleId) {
-        loadArticleFromAPI(articleId);
+    if (articleId || articleSlug) {
+        loadArticleFromAPI(articleId, articleSlug);
     } else {
         window.location.href = '/blog';
     }
 }
 
 // Load article from API
-async function loadArticleFromAPI(articleId) {
+async function loadArticleFromAPI(articleId, articleSlug) {
     const articleContent = document.getElementById('articleContent');
     if (!articleContent) return;
     
@@ -41,8 +53,12 @@ async function loadArticleFromAPI(articleId) {
             throw new Error('Nenhum artigo encontrado');
         }
 
-        // Find the specific article by ID
-        currentArticle = allBlogPosts.find(post => post.id === articleId);
+        // Find the specific article by ID or Slug
+        if (articleId) {
+            currentArticle = allBlogPosts.find(post => post.id === articleId);
+        } else if (articleSlug) {
+            currentArticle = allBlogPosts.find(post => post.slug === articleSlug);
+        }
 
         if (!currentArticle) {
             showArticleNotFoundError();
@@ -107,8 +123,10 @@ function loadRelatedArticles() {
         relatedArticles.push(...otherArticles);
     }
     
-    relatedArticlesContainer.innerHTML = relatedArticles.map(post => `
-        <div class="blog-card" onclick="window.location.href='/artigo/${post.id}'">
+    relatedArticlesContainer.innerHTML = relatedArticles.map(post => {
+        const articleUrl = post.slug ? `/artigo/${post.slug}` : `/artigo/${post.id}`;
+        return `
+        <div class="blog-card" onclick="window.location.href='${articleUrl}'">
             <div class="blog-image">
                 ${post.image ? `<img src="${post.image}" alt="${post.title}">` : '<i class="fas fa-newspaper"></i>'}
             </div>
@@ -119,12 +137,12 @@ function loadRelatedArticles() {
                 </div>
                 <h3 class="blog-title">${post.title}</h3>
                 <p class="blog-excerpt">${post.excerpt}</p>
-                <a href="/artigo/${post.id}" class="read-more">
+                <a href="${articleUrl}" class="read-more">
                     Ler mais <i class="fas fa-arrow-right"></i>
                 </a>
             </div>
         </div>
-    `).join('');
+    `}).join('');
 }
 
 // Show article not found error

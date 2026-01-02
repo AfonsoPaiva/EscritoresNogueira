@@ -2,6 +2,6 @@
   "cleanUrls": true,
   "rewrites": [
     { "source": "/livro/:slug", "destination": "/livro.html?slug=:slug" },
-    { "source": "/artigo/:id", "destination": "/artigo.html?id=:id" }
+    { "source": "/artigo/:slugOrId", "destination": "/artigo.html?slugOrId=:slugOrId" }
   ]
 }

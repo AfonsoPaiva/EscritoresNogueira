@@ -595,7 +595,7 @@ function initSearch() {
                 type: 'post',
                 title: post.title,
                 subtitle: post.excerpt ? post.excerpt.substring(0, 100) + '...' : post.category,
-                url: `/artigo/${post.id}`,
+                url: post.slug ? `/artigo/${post.slug}` : `/artigo/${post.id}`,
                 image: post.image
             }));
 
