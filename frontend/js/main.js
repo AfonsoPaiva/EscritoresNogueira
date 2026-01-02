@@ -910,11 +910,18 @@ function initNewsletter() {
                 }
             }
 
-            // If siteKey is configured but we failed to obtain a token, abort — always use reCAPTCHA v3
+            // If siteKey is configured but we failed to obtain a token, only abort if grecaptcha is actually available
+            // (if grecaptcha failed to load due to ad blockers, allow submission without token)
             if (window.recaptchaSiteKey && !recaptchaToken) {
-                console.error('reCAPTCHA v3 token not obtained; aborting newsletter subscribe (v3 required)');
-                this.showNotification && this.showNotification('Erro reCAPTCHA. Tente novamente mais tarde.', 'error');
-                return;
+                if (window.grecaptcha && typeof grecaptcha.execute === 'function') {
+                    // grecaptcha is available but token generation failed - this is an error
+                    console.error('reCAPTCHA v3 token not obtained; aborting newsletter subscribe (v3 required)');
+                    this.showNotification && this.showNotification('Erro reCAPTCHA. Tente novamente mais tarde.', 'error');
+                    return;
+                } else {
+                    // grecaptcha not available (likely blocked) - proceed without token
+                    console.warn('reCAPTCHA not available (possibly blocked), proceeding without token');
+                }
             }
 
             const response = await fetch(`${window.API_BASE}/auth/subscribe-newsletter`, {
