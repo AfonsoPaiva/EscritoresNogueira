@@ -46,7 +46,7 @@ public class SecurityConfig {
                 "/session/**",   // Endpoints de sessão
                 "/user/**",      // Endpoints de utilizador
                 "/payments/**",  // Payments endpoints (checkout session preflight)
-                "/form-submissions", "/form-submissions/**", // Public form submissions (no CSRF)
+                "/public/form-submissions", "/public/form-submissions/**", // Public form submissions (no CSRF)
                 "/admin/api/login", "/admin/api/logout", // Admin form-login endpoints (skip CSRF)
                 "/admin/**" // Admin API endpoints used by SPA (session token auth handled separately)
             )
@@ -99,7 +99,7 @@ public class SecurityConfig {
                 .requestMatchers("/payments/**").permitAll()
                 
                 // PUBLIC: Form submissions (frontend posts here without auth)
-                .requestMatchers("/form-submissions", "/form-submissions/**").permitAll()
+                .requestMatchers("/public/form-submissions", "/public/form-submissions/**").permitAll()
                 
                 // PUBLIC: Service pricing (for frontend dynamic pricing)
                 .requestMatchers("/public/servicos-precos", "/public/servicos-precos/**").permitAll()

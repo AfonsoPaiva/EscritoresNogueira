@@ -1594,78 +1594,96 @@ if (!(window.auth && window.auth.currentUser)) {
 
             // Find the best plan
             let recommendedPlan = null;
-            let booksIncluded = 0;
-
             for (const plan of ['essencial', 'profissional', 'premium']) {
                 const available = planData[plan][formatKey][pageIndex];
                 if (available >= calcState.quantity) {
                     recommendedPlan = plan;
-                    booksIncluded = available;
                     break;
                 }
             }
+            // If none fits, recommend premium
+            if (!recommendedPlan) recommendedPlan = 'premium';
 
             // Show result
             const resultDiv = document.getElementById('calculatorResult');
-            const resultTitle = document.getElementById('resultTitle');
-            const resultDesc = document.getElementById('resultDescription');
-            const resultDetails = document.getElementById('resultDetails');
-            const resultIcon = resultDiv.querySelector('.result-icon');
+            
+            const planNames = {essencial: 'Essencial', profissional: 'Profissional', premium: 'Premium'};
+            const planFeatures = {
+                essencial: [
+                    { text: 'Revisão ortográfica básica', gain: false },
+                    { text: 'Design de capa simples', gain: false },
+                    { text: 'Suporte por email', gain: false },
+                    { text: 'Sem ilustrações', gain: false, loss: true },
+                    { text: 'Sem royalties', gain: false, loss: true }
+                ],
+                profissional: [
+                    { text: 'Revisão completa do manuscrito', gain: true },
+                    { text: 'Design de capa personalizado', gain: true },
+                    { text: 'Ilustrações detalhadas', gain: true },
+                    { text: 'Suporte prioritário', gain: true },
+                    { text: 'Sem royalties', gain: false, loss: true }
+                ],
+                premium: [
+                    { text: 'Edição profissional completa', gain: true },
+                    { text: 'Capa com ilustração premium', gain: true },
+                    { text: 'Royalties na venda de livros', gain: true },
+                    { text: 'Estratégia de lançamento', gain: true },
+                    { text: 'Suporte VIP', gain: true }
+                ]
+            };
 
-            if (recommendedPlan) {
-                const planNames = {essencial: 'Essencial', profissional: 'Profissional', premium: 'Premium'};
-                const formatNames = {
-                    mole_pb: 'Capa Mole P&B',
-                    dura_pb: 'Capa Dura P&B',
-                    mole_cores: 'Capa Mole a Cores',
-                    dura_cores: 'Capa Dura a Cores'
-                };
+            let comparisonHtml = `
+                <div class="result-header">
+                    <h3>Comparação de Planos</h3>
+                    <p>Baseado em ${calcState.quantity} livros, ${calcState.pages} páginas, ${calcState.cover === 'mole' ? 'Capa Mole' : 'Capa Dura'}</p>
+                </div>
+                <div class="comparison-grid">
+            `;
 
-                resultIcon.className = 'result-icon';
-                resultIcon.innerHTML = '<i class="fas fa-check-circle"></i>';
-                resultTitle.textContent = `Plano ${planNames[recommendedPlan]}`;
-                resultDesc.textContent = `O plano ideal para as suas necessidades`;
+            ['essencial', 'profissional', 'premium'].forEach(plan => {
+                const isRecommended = plan === recommendedPlan;
+                const books = planData[plan][formatKey][pageIndex];
+                const features = planFeatures[plan];
                 
-                resultDetails.innerHTML = `
-                    <div class="result-detail-item">
-                        <div class="label">Preço</div>
-                        <div class="value">€${planPrices[recommendedPlan]}</div>
-                    </div>
-                    <div class="result-detail-item">
-                        <div class="label">Livros Incluídos</div>
-                        <div class="value">${booksIncluded}</div>
-                    </div>
-                    <div class="result-detail-item">
-                        <div class="label">Formato</div>
-                        <div class="value" style="font-size: 1rem;">${formatNames[formatKey]}</div>
+                comparisonHtml += `
+                    <div class="comparison-card ${isRecommended ? 'recommended' : ''}">
+                        ${isRecommended ? '<div class="recommended-badge">Recomendado</div>' : ''}
+                        <div class="comp-plan-name">${planNames[plan]}</div>
+                        <div class="comp-plan-price">€${planPrices[plan]}</div>
+                        <div class="comp-plan-books">
+                            <i class="fas fa-book"></i> ${books} livros incluídos
+                        </div>
+                        <ul class="comp-features">
+                            ${features.map(f => `
+                                <li class="${f.gain ? 'gain' : ''} ${f.loss ? 'loss' : ''}">
+                                    <i class="fas ${f.loss ? 'fa-times-circle' : 'fa-check-circle'}"></i>
+                                    ${f.text}
+                                </li>
+                            `).join('')}
+                        </ul>
+                        <button type="button" class="btn-choose-plan" onclick="closeBookComparisonModal()">
+                            ${isRecommended ? 'Escolher Este' : 'Ver Detalhes'}
+                        </button>
                     </div>
                 `;
-            } else {
-                // No plan fits
-                const premiumBooks = planData.premium[formatKey][pageIndex];
-                
-                resultIcon.className = 'result-icon warning';
-                resultIcon.innerHTML = '<i class="fas fa-exclamation-triangle"></i>';
-                resultTitle.textContent = 'Quantidade Elevada';
-                resultDesc.textContent = `Para ${calcState.quantity} livros neste formato, recomendamos o Plano Premium (inclui até ${premiumBooks} livros) e encomendar os restantes separadamente.`;
-                
-                resultDetails.innerHTML = `
-                    <div class="result-detail-item">
-                        <div class="label">Plano Sugerido</div>
-                        <div class="value">Premium</div>
-                    </div>
-                    <div class="result-detail-item">
-                        <div class="label">Preço</div>
-                        <div class="value">€${planPrices.premium}</div>
-                    </div>
-                    <div class="result-detail-item">
-                        <div class="label">Livros no Plano</div>
-                        <div class="value">${premiumBooks}</div>
-                    </div>
-                `;
-            }
+            });
 
+            comparisonHtml += `</div>`;
+            
+            resultDiv.innerHTML = comparisonHtml;
             resultDiv.style.display = 'block';
+            
+            // Animate result entry
+            if (typeof gsap !== 'undefined') {
+                gsap.from('.comparison-card', {
+                    opacity: 0,
+                    y: 20,
+                    stagger: 0.1,
+                    duration: 0.5,
+                    ease: 'power2.out'
+                });
+            }
+            
             resultDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         }
     </script>

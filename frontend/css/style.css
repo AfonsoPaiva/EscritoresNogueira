@@ -8668,9 +8668,119 @@ body.loading .footer {
     color: var(--primary-color);
 }
 
+/* Calculator Result Comparison */
+.calculator-result {
+    margin-top: 2rem;
+    padding: 2rem;
+    background: #f8faff;
+    border-radius: 12px;
+    border: 1px solid #e2e8f0;
+}
+
+.result-header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.comparison-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.comparison-card {
+    background: var(--white);
+    border: 2px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    transition: var(--transition);
+    position: relative;
+}
+
+.comparison-card.recommended {
+    border-color: var(--secondary-color);
+    box-shadow: 0 4px 20px rgba(255, 177, 0, 0.15);
+    transform: scale(1.05);
+    z-index: 1;
+}
+
+.recommended-badge {
+    position: absolute;
+    top: -12px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--secondary-color);
+    color: var(--primary-color);
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.comp-plan-name {
+    font-family: var(--font-primary);
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--primary-color);
+    margin-bottom: 0.5rem;
+    text-align: center;
+}
+
+.comp-plan-price {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--primary-color);
+    text-align: center;
+    margin-bottom: 1rem;
+}
+
+.comp-plan-books {
+    background: #edf2f7;
+    padding: 0.5rem;
+    border-radius: 6px;
+    text-align: center;
+    font-size: 0.9rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+}
+
+.comp-features {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    font-size: 0.85rem;
+    flex-grow: 1;
+}
+
+.comp-features li {
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+}
+
+.comp-features li i {
+    margin-top: 3px;
+}
+
+.comp-features li.gain {
+    color: #2f855a;
+    font-weight: 600;
+}
+
+.comp-features li.loss {
+    color: #a0aec0;
+    text-decoration: line-through;
+}
+
 .btn-choose-plan {
     display: inline-flex;
     align-items: center;
+    justify-content: center;
     gap: 0.5rem;
     padding: 0.875rem 2rem;
     background: var(--primary-color);
@@ -8679,11 +8789,24 @@ body.loading .footer {
     border-radius: 8px;
     font-weight: 600;
     transition: var(--transition);
+    width: 100%;
+    margin-top: 1rem;
 }
 
 .btn-choose-plan:hover {
     background: var(--secondary-color);
     color: var(--primary-color);
+}
+
+@media (max-width: 768px) {
+    .comparison-grid {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+    }
+    
+    .comparison-card.recommended {
+        transform: none;
+    }
 }
 
 /* Calculator Responsive */

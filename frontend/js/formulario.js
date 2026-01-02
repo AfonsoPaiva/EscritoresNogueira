@@ -380,7 +380,7 @@ function initFormSubmission() {
             const devHosts = ['localhost', '127.0.0.1'];
             const apiBase = (devHosts.includes(location.hostname) && location.port && location.port !== '8080') ? 'http://localhost:8080' : '';
 
-            const resp = await fetch(apiBase + '/api/form-submissions', {
+            const resp = await fetch(apiBase + '/api/public/form-submissions', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(formData)

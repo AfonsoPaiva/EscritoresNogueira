@@ -13,7 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/form-submissions")
+@RequestMapping("/public/form-submissions")
 @RequiredArgsConstructor
 @Slf4j
 public class PublicFormSubmissionController {
