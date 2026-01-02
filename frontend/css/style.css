@@ -8342,11 +8342,12 @@ body.loading .footer {
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(14, 27, 77, 0.85);
+    background: rgba(14, 27, 77, 0.6);
     z-index: 10000;
     justify-content: center;
     align-items: center;
     padding: 1rem;
+    opacity: 0;
 }
 
 .book-comparison-modal.active {
@@ -8357,21 +8358,23 @@ body.loading .footer {
     background: var(--white);
     border-radius: 16px;
     width: 70%;
-    max-width: 800px;
+    max-width: 700px;
     max-height: 90vh;
     overflow-y: auto;
     position: relative;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 25px 80px rgba(14, 27, 77, 0.25);
+    transform: translateY(30px) scale(0.95);
+    opacity: 0;
 }
 
 .book-comparison-close {
     position: absolute;
-    top: 1rem;
-    right: 1rem;
-    width: 40px;
-    height: 40px;
-    border: none;
-    background: var(--light-gray);
+    top: 1.25rem;
+    right: 1.25rem;
+    width: 36px;
+    height: 36px;
+    border: 1px solid var(--border-color);
+    background: var(--white);
     border-radius: 50%;
     cursor: pointer;
     display: flex;
@@ -8379,26 +8382,24 @@ body.loading .footer {
     justify-content: center;
     transition: var(--transition);
     z-index: 10;
-    color: var(--text-dark);
+    color: var(--text-gray);
 }
 
 .book-comparison-close:hover {
     background: var(--primary-color);
+    border-color: var(--primary-color);
     color: var(--white);
 }
 
 .book-comparison-header {
     text-align: center;
-    padding: 2rem 2rem 1.5rem;
-    border-bottom: 1px solid var(--border-color);
-    background: var(--primary-color);
-    border-radius: 16px 16px 0 0;
+    padding: 2.5rem 2rem 1.5rem;
 }
 
 .book-comparison-header h2 {
     font-family: var(--font-primary);
     font-size: 1.75rem;
-    color: var(--white);
+    color: var(--primary-color);
     margin-bottom: 0.5rem;
     display: flex;
     align-items: center;
@@ -8411,7 +8412,7 @@ body.loading .footer {
 }
 
 .book-comparison-header p {
-    color: rgba(255, 255, 255, 0.8);
+    color: var(--text-gray);
     font-size: 1rem;
 }
 
@@ -8555,6 +8556,44 @@ body.loading .footer {
 .btn-calculate:hover {
     background: var(--primary-color);
     color: var(--white);
+}
+
+/* Calculator Error */
+.calculator-error {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1rem 1.25rem;
+    background: #fff5f5;
+    border: 1px solid #fed7d7;
+    border-radius: 8px;
+    margin-top: 1rem;
+    color: #c53030;
+}
+
+.calculator-error i {
+    font-size: 1.25rem;
+    flex-shrink: 0;
+}
+
+.calculator-error span {
+    font-size: 0.95rem;
+    font-weight: 500;
+}
+
+/* Error state for steps */
+.calculator-step.has-error .calculator-options {
+    animation: shake 0.4s ease;
+}
+
+.calculator-step.has-error .calc-option {
+    border-color: #fed7d7;
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    20%, 60% { transform: translateX(-5px); }
+    40%, 80% { transform: translateX(5px); }
 }
 
 /* Calculator Result */
