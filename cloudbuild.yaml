@@ -43,7 +43,9 @@ steps:
       - '--max-instances'
       - '20'
       - '--set-secrets'
-      - 'FIREBASE_CREDENTIALS_JSON=FIREBASE_CREDENTIALS_JSON:1,/secrets/.env=ENV:latest'
+      - 'FIREBASE_CREDENTIALS_JSON=FIREBASE_CREDENTIALS_JSON:1'
+      - '--set-secrets'
+      - '/secrets/.env=ENV:latest'
       - '--allow-unauthenticated'
       - '--quiet'
 
