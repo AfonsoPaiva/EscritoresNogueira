@@ -12,6 +12,8 @@ RUN ./mvnw -B -ntp -DskipTests package
 FROM eclipse-temurin:21-jdk-jammy
 WORKDIR /opt/app
 COPY --from=build /workspace/target/*.jar app.jar
+COPY entrypoint.sh .
+RUN chmod +x entrypoint.sh
 ENV PORT=8080
 EXPOSE 8080
-ENTRYPOINT ["java", "-jar", "/opt/app/app.jar"]
+ENTRYPOINT ["./entrypoint.sh"]
