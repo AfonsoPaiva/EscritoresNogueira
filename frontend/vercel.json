@@ -1,6 +1,12 @@
 {
   "cleanUrls": true,
   "trailingSlash": false,
+  "redirects": [
+    { "source": "/livro", "destination": "/livros", "permanent": false },
+    { "source": "/livro/", "destination": "/livros", "permanent": false },
+    { "source": "/artigo", "destination": "/blog", "permanent": false },
+    { "source": "/artigo/", "destination": "/blog", "permanent": false }
+  ],
   "rewrites": [
     { "source": "/livro/:slug", "destination": "/livro" },
     { "source": "/artigo/:slugOrId", "destination": "/artigo" }
