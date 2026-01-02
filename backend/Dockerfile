@@ -14,4 +14,12 @@ WORKDIR /opt/app
 COPY --from=build /workspace/target/*.jar app.jar
 ENV PORT=8080
 EXPOSE 8080
-ENTRYPOINT ["java", "-jar", "/opt/app/app.jar"]
+# Optimize JVM for Cloud Run with faster startup and memory limits
+ENTRYPOINT ["java", \
+    "-Xmx768m", \
+    "-Xms256m", \
+    "-XX:+UseG1GC", \
+    "-XX:MaxGCPauseMillis=100", \
+    "-Djava.security.egd=file:/dev/./urandom", \
+    "-jar", \
+    "/opt/app/app.jar"]
