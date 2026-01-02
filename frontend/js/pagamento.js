@@ -248,7 +248,7 @@ async function loadProfileAndDisplayShipping(user) {
     try {
         const token = auth.sessionToken || null;
         if (token) {
-            const resp = await fetch('http://localhost:8080/api/user/profile', {
+            const resp = await fetch(`${window.API_BASE}/user/profile`, {
                 method: 'GET',
                 headers: { 'X-Session-Token': token }
             });
@@ -572,7 +572,7 @@ function showProfileRequiredModal(missingFields) {
     btnUpdate.textContent = 'Atualizar Perfil';
     btnUpdate.onclick = () => {
         // Navigate to account page with editProfile flag so the UI opens profile tab
-        window.location.href = window.location.origin + '/frontend/conta.html#orders';
+        window.location.href = window.location.origin + '/conta.html#orders';
     };
 
     actions.appendChild(btnCancel);
