@@ -10,8 +10,8 @@ RUN ./mvnw -B -ntp -DskipTests package
 
 # runtime stage
 FROM eclipse-temurin:21-jdk-jammy
-WORKDIR /app
+WORKDIR /opt/app
 COPY --from=build /workspace/target/*.jar app.jar
 ENV PORT=8080
 EXPOSE 8080
-ENTRYPOINT ["java", "-jar", "/app/app.jar"]
+ENTRYPOINT ["java", "-jar", "/opt/app/app.jar"]
