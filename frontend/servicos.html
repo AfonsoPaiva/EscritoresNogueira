@@ -775,7 +775,7 @@ window.klaroConfig = {
                                             <i class="fas fa-chevron-down faq-arrow"></i>
                                         </button>
                                                 <div class="faq-answer">
-                                                    <p>Sim, depois de pagar o plano, pode encomendar mais livros adicionais conforme a sua necessidade. Apenas será cobrado o valor de impressão dos livros.</p>
+                                                    <p>Sim, depois de pagar o plano, pode encomendar mais livros adicionais conforme a sua necessidade, pela nossa plataforma apenas.</p>
                                         </div>
                                         </div>
                                     </div>
@@ -799,12 +799,12 @@ window.klaroConfig = {
                                     <h3>Essencial</h3>
                                     <div class="plan-price-new">
                                         <span class="currency">€</span>
-                                        <span class="amount">129</span>
+                                        <span class="amount">150</span>
                                     </div>
                                     <span class="plan-period">pagamento único</span>
                                 </div>
                                 <ul class="plan-features-new">
-                                    <li><i class="fas fa-check-circle"></i> 5 livros impressos incluídos</li>
+                                    <li><i class="fas fa-check-circle"></i> 2 livros impressos incluídos</li>
                                     <li><i class="fas fa-check-circle"></i> Disponibilização de Venda no Website</li>
                                     <li><i class="fas fa-check-circle"></i> Revisão ortográfica básica</li>
                                     <li><i class="fas fa-check-circle"></i> Design de capa simples</li>
@@ -826,12 +826,12 @@ window.klaroConfig = {
                                     <h3>Profissional</h3>
                                     <div class="plan-price-new">
                                         <span class="currency">€</span>
-                                        <span class="amount">299</span>
+                                        <span class="amount">320</span>
                                     </div>
                                     <span class="plan-period">pagamento único</span>
                                 </div>
                                 <ul class="plan-features-new">
-                                    <li><i class="fas fa-check-circle"></i> 15 livros impressos incluídos</li>
+                                    <li><i class="fas fa-check-circle"></i> 2 livros impressos incluídos</li>
                                     <li><i class="fas fa-check-circle"></i> Disponibilização de Venda no Website</li>
                                     <li><i class="fas fa-check-circle"></i> Revisão completa do manuscrito</li>
                                     <li><i class="fas fa-check-circle"></i> Design de capa personalizado</li>
@@ -852,12 +852,12 @@ window.klaroConfig = {
                                     <h3>Premium</h3>
                                     <div class="plan-price-new">
                                         <span class="currency">€</span>
-                                        <span class="amount">549</span>
+                                        <span class="amount">560</span>
                                     </div>
                                     <span class="plan-period">pagamento único</span>
                                 </div>
                                 <ul class="plan-features-new">
-                                    <li><i class="fas fa-check-circle"></i> 30 livros impressos incluídos</li>
+                                    <li><i class="fas fa-check-circle"></i> 3 livros impressos incluídos</li>
                                     <li><i class="fas fa-check-circle"></i> Disponibilização de Venda no Website</li>
                                     <li><i class="fas fa-check-circle"></i> Edição profissional completa</li>
                                     <li><i class="fas fa-check-circle"></i> Capa com ilustração detalhada</li>
@@ -873,10 +873,147 @@ window.klaroConfig = {
                                 </div>
                             </div>
                         </div>
+
+                        <!-- Book Comparison Button -->
+                        <div class="comparison-cta">
+                            <button class="btn-comparison" onclick="openBookComparisonModal()">
+                                <i class="fas fa-book-open"></i>
+                                Ver Quantos Livros Cada Plano Inclui
+                            </button>
+                        </div>
                     </div>
                 </section>
 
     </main>
+
+    <!-- Book Comparison Modal -->
+    <div id="bookComparisonModal" class="book-comparison-modal">
+        <div class="book-comparison-modal-content">
+            <button class="book-comparison-close" onclick="closeBookComparisonModal()">
+                <i class="fas fa-times"></i>
+            </button>
+            
+            <div class="book-comparison-header">
+                <h2><i class="fas fa-book"></i> Livros Incluídos por Plano</h2>
+                <p>Compare a quantidade de livros impressos incluídos em cada formato</p>
+            </div>
+
+            <div class="book-comparison-table-wrapper">
+                <table class="book-comparison-table">
+                    <thead>
+                        <tr>
+                            <th class="format-col">
+                                <i class="fas fa-layer-group"></i>
+                                Formato do Livro
+                            </th>
+                            <th class="plan-col essencial-col">
+                                <div class="plan-icon"><i class="fas fa-seedling"></i></div>
+                                Essencial
+                            </th>
+                            <th class="plan-col profissional-col">
+                                <div class="plan-icon"><i class="fas fa-star"></i></div>
+                                Profissional
+                            </th>
+                            <th class="plan-col premium-col">
+                                <div class="plan-icon"><i class="fas fa-crown"></i></div>
+                                Premium
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="format-cell">
+                                <i class="fas fa-book format-icon pb"></i>
+                                <div class="format-info">
+                                    <span class="format-name">Capa Mole</span>
+                                    <span class="format-detail">Preto & Branco</span>
+                                </div>
+                            </td>
+                            <td class="books-cell">
+                                <span class="books-count">11</span>
+                                <span class="books-label">livros</span>
+                            </td>
+                            <td class="books-cell">
+                                <span class="books-count">23</span>
+                                <span class="books-label">livros</span>
+                            </td>
+                            <td class="books-cell">
+                                <span class="books-count">35</span>
+                                <span class="books-label">livros</span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="format-cell">
+                                <i class="fas fa-book-bookmark format-icon pb"></i>
+                                <div class="format-info">
+                                    <span class="format-name">Capa Dura</span>
+                                    <span class="format-detail">Preto & Branco</span>
+                                </div>
+                            </td>
+                            <td class="books-cell">
+                                <span class="books-count">5</span>
+                                <span class="books-label">livros</span>
+                            </td>
+                            <td class="books-cell">
+                                <span class="books-count">10</span>
+                                <span class="books-label">livros</span>
+                            </td>
+                            <td class="books-cell">
+                                <span class="books-count">16</span>
+                                <span class="books-label">livros</span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="format-cell">
+                                <i class="fas fa-book format-icon color"></i>
+                                <div class="format-info">
+                                    <span class="format-name">Capa Mole</span>
+                                    <span class="format-detail">A Cores</span>
+                                </div>
+                            </td>
+                            <td class="books-cell">
+                                <span class="books-count">3</span>
+                                <span class="books-label">livros</span>
+                            </td>
+                            <td class="books-cell">
+                                <span class="books-count">7</span>
+                                <span class="books-label">livros</span>
+                            </td>
+                            <td class="books-cell">
+                                <span class="books-count">11</span>
+                                <span class="books-label">livros</span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="format-cell">
+                                <i class="fas fa-book-bookmark format-icon color"></i>
+                                <div class="format-info">
+                                    <span class="format-name">Capa Dura</span>
+                                    <span class="format-detail">A Cores</span>
+                                </div>
+                            </td>
+                            <td class="books-cell">
+                                <span class="books-count">2</span>
+                                <span class="books-label">livros</span>
+                            </td>
+                            <td class="books-cell">
+                                <span class="books-count">5</span>
+                                <span class="books-label">livros</span>
+                            </td>
+                            <td class="books-cell">
+                                <span class="books-count">8</span>
+                                <span class="books-label">livros</span>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="book-comparison-footer">
+                <p><i class="fas fa-info-circle"></i> Pode trocar os livros entre formatos diferentes</p>
+            </div>
+        </div>
+    </div>
 
     <!-- Footer -->
     <footer class="footer">
@@ -1204,6 +1341,33 @@ if (!(window.auth && window.auth.currentUser)) {
                 faqItem.classList.add('active');
             }
         }
+
+        // Book Comparison Modal Functions
+        function openBookComparisonModal() {
+            const modal = document.getElementById('bookComparisonModal');
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeBookComparisonModal() {
+            const modal = document.getElementById('bookComparisonModal');
+            modal.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+
+        // Close modal on backdrop click
+        document.getElementById('bookComparisonModal')?.addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeBookComparisonModal();
+            }
+        });
+
+        // Close modal on Escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeBookComparisonModal();
+            }
+        });
     </script>
 </body>
 </html>
