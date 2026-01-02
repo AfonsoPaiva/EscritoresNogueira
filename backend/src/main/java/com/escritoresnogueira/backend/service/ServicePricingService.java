@@ -48,27 +48,34 @@ public class ServicePricingService {
 
     @Transactional
     public void initializeDefaultPricing() {
-        // Remove all existing pricing records first
-        servicePricingRepository.deleteAll();
-
         // Define the only allowed service plans
         String[] planos = {"essencial", "profissional", "premium"};
         BigDecimal[] precos = {new BigDecimal("199"), new BigDecimal("399"), new BigDecimal("699")};
 
-        // Create only the default pricing records
+        // Create only the default pricing records if they don't exist
+        int createdCount = 0;
         for (int i = 0; i < planos.length; i++) {
-            ServicePricing pricing = ServicePricing.builder()
-                    .plano(planos[i])
-                    .precoAtual(precos[i])
-                    .precoAntigo(null)
-                    .descontoPercentagem(0)
-                    .emPromocao(false)
-                    .descricaoPromocao(null)
-                    .build();
-            servicePricingRepository.save(pricing);
+            // Check if plan already exists
+            Optional<ServicePricing> existing = servicePricingRepository.findByPlano(planos[i]);
+            if (existing.isEmpty()) {
+                ServicePricing pricing = ServicePricing.builder()
+                        .plano(planos[i])
+                        .precoAtual(precos[i])
+                        .precoAntigo(null)
+                        .descontoPercentagem(0)
+                        .emPromocao(false)
+                        .descricaoPromocao(null)
+                        .build();
+                servicePricingRepository.save(pricing);
+                createdCount++;
+            }
         }
 
-        log.info("Initialized default service pricing with {} plans", planos.length);
+        if (createdCount > 0) {
+            log.info("Initialized {} new service pricing plans", createdCount);
+        } else {
+            log.info("All service pricing plans already exist, skipping initialization");
+        }
     }
 
     private ServicosPrecosDTO convertToDTO(ServicePricing pricing) {
