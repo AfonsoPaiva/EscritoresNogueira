@@ -118,7 +118,8 @@ function initGSAPAnimations() {
 // Load reCAPTCHA configuration
 async function loadRecaptchaConfig() {
     try {
-        const response = await fetch('http://localhost:8080/api/auth/recaptcha-config');
+        const apiBase = window.API_BASE || 'http://localhost:8080/api';
+        const response = await fetch(`${apiBase}/auth/recaptcha-config`);
         if (response.ok) {
             const config = await response.json();
             window.recaptchaSiteKey = config.siteKey;
