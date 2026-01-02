@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Página Não Encontrada - Escritores Nogueira</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" href="/assets/favicon.ico">
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:wght@400;500;600;700;800&family=Questrial&display=swap" rel="stylesheet">
+    
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Main CSS -->
+    <link rel="stylesheet" href="/css/style.css">
+    
+    <style>
+        .error-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 70vh;
+            text-align: center;
+            padding: 20px;
+        }
+        .error-code {
+            font-family: 'EB Garamond', serif;
+            font-size: 8rem;
+            font-weight: 800;
+            color: var(--primary);
+            line-height: 1;
+            margin-bottom: 1rem;
+        }
+        .error-message {
+            font-size: 1.5rem;
+            color: var(--text-dark);
+            margin-bottom: 2rem;
+        }
+        .error-actions {
+            display: flex;
+            gap: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header will be injected by main.js if needed, but for 404 we can keep it simple -->
+    
+    <main class="error-container">
+        <div class="error-code">404</div>
+        <h1 class="error-message">Ups! A página que procura não foi encontrada.</h1>
+        <p style="margin-bottom: 2rem; color: var(--text-gray);">Pode ter sido movida, eliminada ou o endereço pode estar incorreto.</p>
+        
+        <div class="error-actions">
+            <a href="/" class="btn btn-primary">Voltar ao Início</a>
+            <a href="/livros" class="btn btn-secondary">Explorar Livros</a>
+        </div>
+    </main>
+
+    <!-- Footer will be injected by main.js if needed -->
+
+    <script src="/js/runtime-config.js"></script>
+    <script src="/js/utils.js"></script>
+    <script src="/js/main.js"></script>
+</body>
+</html>
