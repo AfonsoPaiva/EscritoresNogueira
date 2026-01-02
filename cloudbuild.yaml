@@ -37,8 +37,8 @@ steps:
 # User-defined substitutions
 substitutions:
   _IMAGE: "escritoresnogueira-backend"
-  _REGION: "europe-west1"
-  _REGISTRY: "europe-west1-docker.pkg.dev/escritores-nogueira/cloud-run-source-deploy/escritoresnogueira"
+  _REGION: "europe-southwest1"
+  _REGISTRY: "europe-southwest1-docker.pkg.dev/escritores-nogueira/cloud-run-source-deploy/escritoresnogueira"
 
 # Build-level options
 options:
