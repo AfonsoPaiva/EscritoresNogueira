@@ -1,0 +1,27 @@
+{
+  "rewrites": [
+    { "source": "/sobre", "destination": "/sobre.html" },
+    { "source": "/servicos", "destination": "/servicos.html" },
+    { "source": "/pagamento", "destination": "/pagamento.html" },
+    { "source": "/livros", "destination": "/livros.html" },
+    { "source": "/livro", "destination": "/livro.html" },
+    { "source": "/formulario", "destination": "/formulario.html" },
+    { "source": "/conta", "destination": "/conta.html" },
+    { "source": "/blog", "destination": "/blog.html" },
+    { "source": "/artigo", "destination": "/artigo.html" },
+    { "source": "/apoio", "destination": "/apoio.html" }
+  ],
+  "redirects": [
+    { "source": "/index.html", "destination": "/", "permanent": true },
+    { "source": "/sobre.html", "destination": "/sobre", "permanent": true },
+    { "source": "/servicos.html", "destination": "/servicos", "permanent": true },
+    { "source": "/pagamento.html", "destination": "/pagamento", "permanent": true },
+    { "source": "/livros.html", "destination": "/livros", "permanent": true },
+    { "source": "/livro.html", "destination": "/livro", "permanent": true },
+    { "source": "/formulario.html", "destination": "/formulario", "permanent": true },
+    { "source": "/conta.html", "destination": "/conta", "permanent": true },
+    { "source": "/blog.html", "destination": "/blog", "permanent": true },
+    { "source": "/artigo.html", "destination": "/artigo", "permanent": true },
+    { "source": "/apoio.html", "destination": "/apoio", "permanent": true }
+  ]
+}
