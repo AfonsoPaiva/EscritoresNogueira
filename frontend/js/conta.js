@@ -3,7 +3,7 @@
 // ==================================
 
 // API Configuration
-const CONTA_API_URL = 'http://localhost:8080/api';
+const CONTA_API_URL = window.API_BASE || 'http://localhost:8080/api';
 
 // Initialize account page
 async function initContaPage() {

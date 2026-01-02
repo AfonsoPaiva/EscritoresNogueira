@@ -3,7 +3,7 @@
 // ==================================
 
 // API Configuration
-const AUTH_API_URL = 'http://localhost:8080/api';
+const AUTH_API_URL = window.API_BASE || 'http://localhost:8080/api';
 
 // Session token header name
 const SESSION_HEADER = 'X-Session-Token';
