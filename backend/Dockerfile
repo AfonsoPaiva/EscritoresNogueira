@@ -14,4 +14,4 @@ WORKDIR /app
 COPY --from=build /workspace/target/*.jar app.jar
 ENV PORT=8080
 EXPOSE 8080
-ENTRYPOINT ["sh", "-c", "echo '--- Starting Debug Shell ---' && echo '--- Environment Variables ---' && printenv && echo '--- Listing /app directory ---' && ls -la /app && echo '--- Listing /gcp directory ---' && ls -la /gcp && echo '--- Reading .env file from /app/.env ---' && cat /app/.env && echo '--- Container is now sleeping ---' && sleep 3600"]
+ENTRYPOINT ["java", "-jar", "/app/app.jar"]
