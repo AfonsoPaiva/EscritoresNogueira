@@ -178,7 +178,7 @@ function loadOrderSummary() {
     }
     
     // Display items
-    summaryItems.innerHTML = DOMPurify.sanitize(items.map(item => `
+    const itemsHTML = items.map(item => `
         <div class="summary-item">
             <div class="item-image">
                 ${item.image ? `<img src="${item.image}" alt="${item.title}">` : '<i class="fas fa-book"></i>'}
@@ -191,7 +191,10 @@ function loadOrderSummary() {
                 ${(item.price * item.quantity).toFixed(2)}€
             </div>
         </div>
-    `).join(''));
+    `).join('');
+    
+    // Use DOMPurify if available, otherwise use innerHTML directly (data is from our own cart)
+    summaryItems.innerHTML = typeof DOMPurify !== 'undefined' ? DOMPurify.sanitize(itemsHTML) : itemsHTML;
     
     // Calculate totals
     const subtotal = cart.getTotal();

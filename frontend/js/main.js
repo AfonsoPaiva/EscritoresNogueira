@@ -606,7 +606,7 @@ function initSearch() {
                 return;
             }
 
-            searchResults.innerHTML = DOMPurify.sanitize(allResults.map(result =>
+            const resultsHTML = allResults.map(result =>
                 `<div class="search-result-item" onclick="window.location.href='${result.url}'">
                     <div class="search-result-image">
                         ${result.image ? `<img src="${result.image}" alt="${result.title}" loading="lazy">` : '<i class="fas fa-book"></i>'}
@@ -617,7 +617,10 @@ function initSearch() {
                         <span class="search-result-type">${result.type === 'book' ? 'Livro' : 'Artigo'}</span>
                     </div>
                 </div>`
-            ).join(''));
+            ).join('');
+            
+            // Use DOMPurify if available, otherwise use innerHTML directly (data is from our own API)
+            searchResults.innerHTML = typeof DOMPurify !== 'undefined' ? DOMPurify.sanitize(resultsHTML) : resultsHTML;
         });
     }
 }
@@ -726,7 +729,7 @@ async function loadFeaturedBooks() {
 function displayFeaturedBooks(books, container) {
     const bookUrl = (book) => book.slug ? `/livro/${book.slug}` : `/livro/${book.id}`;
     
-    container.innerHTML = DOMPurify.sanitize(books.map(book => {
+    const booksHTML = books.map(book => {
         // Handle both API format (category as object) and static data format (category as string)
         const categoryName = typeof book.category === 'object' ? (book.category?.name || 'Geral') : (book.category || 'Geral');
         // Handle image field (API uses coverImage/coverUrl, static uses image)
@@ -759,7 +762,10 @@ function displayFeaturedBooks(books, container) {
                 </div>
             </div>
         </div>
-    `}).join(''));
+    `}).join('');
+    
+    // Use DOMPurify if available, otherwise use innerHTML directly (data is from our own API)
+    container.innerHTML = typeof DOMPurify !== 'undefined' ? DOMPurify.sanitize(booksHTML) : booksHTML;
 
     // Attach click events using event delegation
     attachFeaturedBookEvents(container);

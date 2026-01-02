@@ -217,7 +217,7 @@ function displayBookDetail() {
     const language = currentBook.language || 'Português';
     const description = currentBook.description || 'Descrição não disponível.';
     
-    bookDetail.innerHTML = DOMPurify.sanitize(`
+    const bookDetailHTML = `
         <div class="book-detail-image" data-aos="fade-right">
             <div class="book-detail-image-wrapper">
                 ${imageUrl ? `<img src="${imageUrl}" alt="${currentBook.title}" class="book-detail-main-image" width="420" height="560" loading="lazy">` : '<i class="fas fa-book"></i>'}
@@ -302,7 +302,10 @@ function displayBookDetail() {
                 </div>
             </div>
         </div>
-    `);
+    `;
+    
+    // Use DOMPurify if available, otherwise use innerHTML directly (data is from our own API)
+    bookDetail.innerHTML = typeof DOMPurify !== 'undefined' ? DOMPurify.sanitize(bookDetailHTML) : bookDetailHTML;
     
     // Attach event listeners after setting innerHTML
     attachBookDetailEvents();
@@ -430,7 +433,7 @@ async function loadRelatedBooks() {
 
 // Display related books in swiper
 function displayRelatedBooks(books, container) {
-    container.innerHTML = DOMPurify.sanitize(books.map(book => {
+    const relatedBooksHTML = books.map(book => {
         // Handle both API format (category as object) and static data format (category as string)
         const categoryName = typeof book.category === 'object' ? (book.category?.name || 'Geral') : (book.category || 'Geral');
         // Handle image field (API uses coverImage/coverUrl, static uses image)
@@ -464,7 +467,10 @@ function displayRelatedBooks(books, container) {
                 </div>
             </div>
         </div>
-    `}).join(''));
+    `}).join('');
+    
+    // Use DOMPurify if available, otherwise use innerHTML directly (data is from our own API)
+    container.innerHTML = typeof DOMPurify !== 'undefined' ? DOMPurify.sanitize(relatedBooksHTML) : relatedBooksHTML;
     
     // Attach click events
     attachRelatedBookEvents(container);
