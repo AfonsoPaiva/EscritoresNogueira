@@ -1357,16 +1357,18 @@ if (!(window.auth && window.auth.currentUser)) {
                     duration: 0.3,
                     ease: 'power2.out'
                 }, '-=0.2')
-                .from(btn, {
-                    opacity: 0,
-                    y: 10,
-                    duration: 0.3,
-                    ease: 'power2.out'
-                }, '-=0.1');
+                .fromTo(btn, 
+                    { opacity: 0, y: 10 },
+                    { opacity: 1, y: 0, duration: 0.3, ease: 'power2.out' }, 
+                '-=0.1');
             } else {
                 modal.style.opacity = '1';
                 content.style.opacity = '1';
                 content.style.transform = 'translateY(0) scale(1)';
+                if (btn) {
+                    btn.style.opacity = '1';
+                    btn.style.transform = 'translateY(0)';
+                }
             }
         }
 
@@ -1453,8 +1455,9 @@ if (!(window.auth && window.auth.currentUser)) {
                 if (response.ok) {
                     const pricingData = await response.json();
                     pricingData.forEach(pricing => {
-                        if (planPrices.hasOwnProperty(pricing.plano)) {
-                            planPrices[pricing.plano] = pricing.preco;
+                        const planKey = pricing.plano.toLowerCase();
+                        if (planPrices.hasOwnProperty(planKey)) {
+                            planPrices[planKey] = pricing.precoAtual || pricing.preco;
                         }
                     });
                     console.log('Calculator prices loaded:', planPrices);
