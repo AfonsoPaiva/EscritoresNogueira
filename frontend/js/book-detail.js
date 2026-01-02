@@ -19,15 +19,20 @@ async function initBookDetailPage() {
     console.log('🔗 Search params:', window.location.search);
     
     const urlParams = new URLSearchParams(window.location.search);
-    const bookIdParam = urlParams.get('id');
+    let bookIdParam = urlParams.get('id');
     let bookSlug = urlParams.get('slug');
 
-    // Se não houver slug nos parâmetros, tenta extrair do caminho da URL (/livro/slug)
-    if (!bookSlug && !bookIdParam) {
-        const pathParts = window.location.pathname.split('/');
-        const livroIndex = pathParts.indexOf('livro');
-        if (livroIndex !== -1 && pathParts[livroIndex + 1]) {
-            bookSlug = pathParts[livroIndex + 1];
+    // Always try to extract from path first (preferred method with clean URLs)
+    const pathParts = window.location.pathname.split('/');
+    const livroIndex = pathParts.indexOf('livro');
+    if (livroIndex !== -1 && pathParts[livroIndex + 1]) {
+        const pathParam = decodeURIComponent(pathParts[livroIndex + 1]);
+        // Check if it's a number (ID) or a slug
+        if (!isNaN(pathParam) && pathParam.trim() !== '') {
+            bookIdParam = pathParam;
+            bookSlug = null;
+        } else {
+            bookSlug = pathParam;
         }
     }
     

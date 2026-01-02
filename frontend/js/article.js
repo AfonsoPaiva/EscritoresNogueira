@@ -8,25 +8,28 @@ let allBlogPosts = [];
 // Initialize article page
 function initArticlePage() {
     const urlParams = new URLSearchParams(window.location.search);
-    let articleId = parseInt(urlParams.get('id'));
+    let articleId = null;
     let articleSlug = urlParams.get('slug') || urlParams.get('slugOrId');
     
     // If slugOrId is a number, treat it as an ID
     if (urlParams.get('slugOrId') && !isNaN(urlParams.get('slugOrId'))) {
         articleId = parseInt(urlParams.get('slugOrId'));
         articleSlug = null;
+    } else if (urlParams.get('id')) {
+        articleId = parseInt(urlParams.get('id'));
     }
     
-    if (!articleId && !articleSlug) {
-        const pathParts = window.location.pathname.split('/');
-        const artigoIndex = pathParts.indexOf('artigo');
-        if (artigoIndex !== -1 && pathParts[artigoIndex + 1]) {
-            const param = pathParts[artigoIndex + 1];
-            if (!isNaN(param)) {
-                articleId = parseInt(param);
-            } else {
-                articleSlug = param;
-            }
+    // Always try to extract from path first (preferred method with clean URLs)
+    const pathParts = window.location.pathname.split('/');
+    const artigoIndex = pathParts.indexOf('artigo');
+    if (artigoIndex !== -1 && pathParts[artigoIndex + 1]) {
+        const pathParam = decodeURIComponent(pathParts[artigoIndex + 1]);
+        // Check if it's a number (ID) or a slug
+        if (!isNaN(pathParam) && pathParam.trim() !== '') {
+            articleId = parseInt(pathParam);
+            articleSlug = null;
+        } else {
+            articleSlug = pathParam;
         }
     }
 

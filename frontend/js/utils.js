@@ -16,7 +16,7 @@ function renderBookCard(book, options = {}) {
     } = options;
 
     const aosAttr = dataAos ? ` data-aos="${dataAos}"` : '';
-    const bookUrl = book.slug ? `/livro/${book.slug}` : `/livro?id=${book.id}`;
+    const bookUrl = book.slug ? `/livro/${book.slug}` : `/livro/${book.id}`;
     
     // Handle both API format (category as object) and static data format (category as string)
     const categoryName = typeof book.category === 'object' ? (book.category?.name || 'Geral') : (book.category || 'Geral');

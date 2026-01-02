@@ -1,7 +1,8 @@
 {
   "cleanUrls": true,
+  "trailingSlash": false,
   "rewrites": [
-    { "source": "/livro/:slug", "destination": "/livro.html?slug=:slug" },
-    { "source": "/artigo/:slugOrId", "destination": "/artigo.html?slugOrId=:slugOrId" }
+    { "source": "/livro/:slug", "destination": "/livro" },
+    { "source": "/artigo/:slugOrId", "destination": "/artigo" }
   ]
 }

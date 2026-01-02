@@ -583,7 +583,7 @@ function initSearch() {
                 type: 'book',
                 title: book.title,
                 subtitle: `${book.author} • ${book.category}`,
-                url: book.slug ? `/livro/${book.slug}` : `/livro?id=${book.id}`,
+                url: book.slug ? `/livro/${book.slug}` : `/livro/${book.id}`,
                 image: book.image
             }));
 
@@ -724,7 +724,7 @@ async function loadFeaturedBooks() {
 }
 
 function displayFeaturedBooks(books, container) {
-    const bookUrl = (book) => book.slug ? `/livro/${book.slug}` : `/livro?id=${book.id}`;
+    const bookUrl = (book) => book.slug ? `/livro/${book.slug}` : `/livro/${book.id}`;
     
     container.innerHTML = DOMPurify.sanitize(books.map(book => {
         // Handle both API format (category as object) and static data format (category as string)
