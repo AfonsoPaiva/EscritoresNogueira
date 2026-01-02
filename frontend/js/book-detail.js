@@ -734,6 +734,12 @@ function openBookPreview() {
 
     const modal = document.getElementById('bookPreviewModal');
     const overlay = document.getElementById('bookPreviewOverlay');
+        window.showNotification('Prévia não disponível para este livro.', 'warning');
+        return;
+    }
+
+    const modal = document.getElementById('bookPreviewModal');
+    const overlay = document.getElementById('bookPreviewOverlay');
     const title = document.getElementById('previewBookTitle');
     const author = document.getElementById('previewBookAuthor');
     const pageImage = document.getElementById('currentPageImage');
@@ -845,6 +851,10 @@ function closeBookPreview() {
     if (prevBtn) prevBtn.removeEventListener('click', prevPage);
     if (nextBtn) nextBtn.removeEventListener('click', nextPage);
 }
+
+// Expose functions globally for onclick handlers
+window.openBookPreview = openBookPreview;
+window.closeBookPreview = closeBookPreview;
 
 // Handle keyboard events for preview modal
 function handlePreviewKeydown(e) {
