@@ -16,4 +16,4 @@ COPY entrypoint.sh .
 RUN chmod +x entrypoint.sh
 ENV PORT=8080
 EXPOSE 8080
-ENTRYPOINT ["./entrypoint.sh"]
+ENTRYPOINT ["java", "-jar", "/opt/app/app.jar"]
