@@ -380,7 +380,7 @@ function initFormSubmission() {
             const devHosts = ['localhost', '127.0.0.1'];
             const apiBase = window.API_BASE;
 
-            const resp = await fetch(apiBase + '/api/public/form-submissions', {
+            const resp = await fetch(apiBase + '/public/form-submissions', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(formData)
