@@ -1,7 +1,7 @@
 {
     "name": "Escritores Nogueira",
     "short_name": "Escritores Nogueira",
-    "description": "Uma livraria online especializada em obras literárias.",
+    "description": "Crie o seu livro personalizado connosco!",
     "start_url": "/",
     "display": "standalone",
     "background_color": "#FFFFFF",
