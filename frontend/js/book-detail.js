@@ -289,11 +289,11 @@ function displayBookDetail() {
                     </div>
                     <div class="feature-item">
                         <i class="fas fa-truck"></i>
-                        <span>Envio grátis para encomendas superiores a 20€</span>
+                        <span>Envio grátis para todas as encomendas</span>
                     </div>
                     <div class="feature-item">
                         <i class="fas fa-undo"></i>
-                        <span>Devolução grátis até 30 dias</span>
+                        <span>Devolução grátis até 14 dias</span>
                     </div>
                     <div class="feature-item">
                         <i class="fas fa-shield-alt"></i>
