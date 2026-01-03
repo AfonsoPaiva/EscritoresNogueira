@@ -378,7 +378,7 @@ function initFormSubmission() {
             // Determine API base: if frontend served from a dev port different from backend (8080),
             // use localhost:8080 as backend during development. In production the same-origin path ('') will be used.
             const devHosts = ['localhost', '127.0.0.1'];
-            const apiBase = (devHosts.includes(location.hostname) && location.port && location.port !== '8080') ? 'http://localhost:8080' : '';
+            const apiBase = window.API_BASE;
 
             const resp = await fetch(apiBase + '/api/public/form-submissions', {
                 method: 'POST',
