@@ -8,12 +8,12 @@
     "theme_color": "#FFB100",
     "icons": [
         {
-            "src": "/assets/favicon.ico",
+            "src": "https://escritoresnogueira.com/assets/favicon.ico",
             "sizes": "16x16 32x32",
             "type": "image/x-icon"
         },
         {
-            "src": "/assets/apple-touch-icon.png",
+            "src": "https://escritoresnogueira.com/assets/apple-touch-icon.png",
             "sizes": "180x180",
             "type": "image/png"
         }
