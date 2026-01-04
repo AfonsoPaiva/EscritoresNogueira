@@ -16,7 +16,7 @@
     <link rel="icon" href="https://escritoresnogueira.com/assets/favicon.svg" type="image/svg+xml">
     <link rel="apple-touch-icon" href="https://escritoresnogueira.com/assets/apple-touch-icon.png">
     <link rel="manifest" href="/assets/site.webmanifest">
-    
+
      <!-- Open Graph (Facebook/LinkedIn sharing) -->
     <meta property="og:title" content="Escritores Nogueira - Descubra o Universo dos Livros">
     <meta property="og:description" content="Uma seleção única de obras literárias, serviços de criação de livros e artigos sobre literatura. Entrega rápida e gratuita em Portugal.">
@@ -275,15 +275,36 @@ window.klaroConfig = {
 
     // Callback when consent changes
     callback: function(consent, app) {
-        // Track consent state to avoid repeated handling
-        window._klaroConsentState = window._klaroConsentState || {};
-        var prev = window._klaroConsentState[app.name];
-        if (prev === consent) return;
-        window._klaroConsentState[app.name] = consent;
-        if (app.name === 'firebase' && consent) {
-            if (window.initializeFirebase) window.initializeFirebase();
-        }
+    // Track consent state to avoid repeated handling
+    window._klaroConsentState = window._klaroConsentState || {};
+    var prev = window._klaroConsentState[app.name];
+    if (prev === consent) return;
+    window._klaroConsentState[app.name] = consent;
+
+    if (app.name === 'firebase' && consent) {
+        if (window.initializeFirebase) window.initializeFirebase();
     }
+
+    // NEW: Load Google Analytics only after consent
+    if (app.name === 'google-analytics' && consent) {
+        // Dynamically load gtag script
+        var script = document.createElement('script');
+        script.async = true;
+        script.src = 'https://www.googletagmanager.com/gtag/js?id=G-SF9CQEPSLJ';
+        script.onload = function() {
+            // Initialize gtag after script loads
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'G-SF9CQEPSLJ');
+            console.log('Google Analytics loaded and initialized after consent.');
+        };
+        script.onerror = function() {
+            console.warn('Failed to load Google Analytics script.');
+        };
+        document.head.appendChild(script);
+    }
+}
 };
 </script>
     <script>
@@ -427,16 +448,6 @@ window.klaroConfig = {
 </style>
 
 </head>
-
-<!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-SF9CQEPSLJ"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-
-  gtag('config', 'G-SF9CQEPSLJ');
-</script>
 
 <body class="page-home">
     
