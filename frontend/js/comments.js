@@ -138,7 +138,7 @@ const commentsModule = {
                             </div>
                         </div>
                     </div>
-                            <div class="review-date">${formattedDate}</div>  // Replace the parsed date with the formatted string
+                            <div class="review-date">${formattedDate}</div>  
                 </div>
                 <div class="review-content">
                     <h5 class="review-title">${escapeHtml(comment.title)}</h5>
