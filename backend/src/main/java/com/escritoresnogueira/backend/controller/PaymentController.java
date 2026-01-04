@@ -257,9 +257,15 @@ public class PaymentController {
     }
 
     @PostMapping("/confirm-session")
-    public ResponseEntity<?> confirmSession(@RequestHeader(value = "X-Session-Token", required = false) String sessionToken,
-                                            @RequestBody Map<String, Object> body) {
+public ResponseEntity<?> confirmSession(@RequestHeader("X-Session-Token") String sessionToken,
+                                        @RequestBody Map<String, Object> body) {
         try {
+            Optional<UserSession> userSessionOpt = sessionService.validateSession(sessionToken);
+            if (userSessionOpt.isEmpty()) {
+                return ResponseEntity.status(401).body(Map.of("error", "Invalid session"));
+            }
+
+            User user = userSessionOpt.get().getUser();
             if (body == null || !body.containsKey("sessionId") || body.get("sessionId") == null || String.valueOf(body.get("sessionId")).isBlank()) {
                 return ResponseEntity.badRequest().body(Map.of("error", "Missing sessionId"));
             }
