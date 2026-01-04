@@ -31,6 +31,9 @@ public class BookCommentDTO {
     
     @JsonProperty("helpfulCount")
     private Integer helpfulCount;
+
+    @JsonProperty("formattedDate")
+    private String formattedDate;
 }
 
 

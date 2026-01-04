@@ -117,7 +117,7 @@ const commentsModule = {
      */
     createCommentHTML(comment) {
         const starHTML = this.generateStarRating(comment.rating);
-        const formattedDate = this.formatDate(comment.createdAt);
+        const formattedDate = comment.formattedDate || 'Data não disponível';  
         const escapeHtml = (text) => {
             const div = document.createElement('div');
             div.textContent = text;
@@ -138,7 +138,7 @@ const commentsModule = {
                             </div>
                         </div>
                     </div>
-                    <div class="review-date">${formattedDate}</div>
+                            <div class="review-date">${formattedDate}</div>  // Replace the parsed date with the formatted string
                 </div>
                 <div class="review-content">
                     <h5 class="review-title">${escapeHtml(comment.title)}</h5>

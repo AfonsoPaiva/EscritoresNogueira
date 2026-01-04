@@ -12,7 +12,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
+import java.time.format.DateTimeFormatter;
+import java.util.Locale;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -173,6 +174,9 @@ public class BookCommentService {
      * Map BookComment to DTO
      */
     private BookCommentDTO mapToDTO(BookComment comment) {
+
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("d 'de' MMMM 'de' yyyy", Locale.forLanguageTag("pt-PT"));
+
         return BookCommentDTO.builder()
                 .id(comment.getId())
                 .authorName(comment.getAuthorName())
@@ -183,6 +187,8 @@ public class BookCommentService {
                 .createdAt(comment.getCreatedAt())
                 .approvedAt(comment.getApprovedAt())
                 .helpfulCount(comment.getHelpfulCount())
+                .formattedDate(comment.getCreatedAt() != null ? comment.getCreatedAt().format(formatter) : null)  
+
                 .build();
     }
 }
