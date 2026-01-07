@@ -643,24 +643,18 @@ function initPage() {
         // Code from blog.js
         loadBlogPosts();
     } else if (path.includes('artigo.html') || path.includes('/artigo')) {
-        // Code from article.js
-        const urlParams = new URLSearchParams(window.location.search);
-        let articleId = parseInt(urlParams.get('id'));
-        
-        if (!articleId) {
-            const pathParts = path.split('/');
-            const artigoIndex = pathParts.indexOf('artigo');
-            if (artigoIndex !== -1 && pathParts[artigoIndex + 1]) {
-                articleId = parseInt(pathParts[artigoIndex + 1]);
-            }
-        }
-
-        if (articleId) {
-            loadArticleFromAPI(articleId);
+    // Article detail page: delegate to article.js (slug-only)
+    try {
+        if (typeof initArticlePage === 'function') {
+            initArticlePage();
         } else {
             window.location.href = '/blog';
         }
+    } catch (e) {
+        console.error('Error initializing article page:', e);
+        window.location.href = '/blog';
     }
+}
 }
 
 async function loadFeaturedBooks() {
