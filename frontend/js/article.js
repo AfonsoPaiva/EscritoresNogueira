@@ -21,35 +21,15 @@ async function initArticlePage() {
 
     console.log('articleSlug after extraction:', articleSlug);
 
-    // Check if articleSlug is numeric (ID-based access), lookup slug and redirect
-    if (articleSlug && !isNaN(articleSlug) && !isNaN(parseFloat(articleSlug))) {
-        console.log('Numeric ID detected, looking up slug for ID:', articleSlug);
-        try {
-            const posts = await api.getBlogPosts();
-            console.log('Fetched posts for lookup:', posts.length, 'posts');
-            const post = posts.find(p => String(p.id) === String(articleSlug));
-            console.log('Found post for ID:', post);
-            if (post && post.slug) {
-                console.log('Redirecting to slug URL:', `/artigo/${post.slug}`);
-                window.location.href = `/artigo/${post.slug}`;
-                return;
-            }
-        } catch (error) {
-            console.error('Error looking up post by ID:', error);
-        }
-        console.log('Post not found or error, redirecting to /blog');
-        window.location.href = '/blog';
-        return;
-    }
-
     if (articleSlug) {
-        console.log('Loading article with slug:', articleSlug);
+        console.log('Loading article with slug/ID:', articleSlug);
         loadArticleFromAPI(articleSlug);
     } else {
         console.log('No articleSlug, redirecting to /blog');
         window.location.href = '/blog';
     }
 }
+
 
 
 async function loadArticleFromAPI(articleSlug) {
@@ -63,10 +43,20 @@ async function loadArticleFromAPI(articleSlug) {
     articleContent.innerHTML = '<div style="text-align: center; padding: 2rem;"><p>Carregando artigo...</p></div>';
 
     try {
-        console.log('Calling api.getBlogPostBySlug with:', articleSlug);
-        // Always resolve by slug against backend
-        const post = await api.getBlogPostBySlug(articleSlug);
-        console.log('Fetched post from API:', post);
+        // First, try to load by slug
+        console.log('Attempting to load by slug:', articleSlug);
+        let post = await api.getBlogPostBySlug(articleSlug);
+        
+        // If not found and it's numeric, try looking up by ID
+        if (!post && !isNaN(articleSlug) && !isNaN(parseFloat(articleSlug))) {
+            console.log('Slug lookup failed, attempting ID lookup for ID:', articleSlug);
+            const allPosts = await api.getBlogPosts();
+            console.log('Fetched all posts:', allPosts.length);
+            post = allPosts.find(p => String(p.id) === String(articleSlug));
+            console.log('Found post by ID:', post);
+        }
+        
+        console.log('Final post result:', post);
         if (!post || !post.id) { 
             console.log('Post not found or invalid');
             showArticleNotFoundError(); 
