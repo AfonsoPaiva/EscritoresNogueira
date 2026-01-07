@@ -47,9 +47,8 @@ public class EscritoresNogueiraBackendApplication {
         SpringApplication.run(EscritoresNogueiraBackendApplication.class, args);
         
         System.out.println("\n==============================================");
-        System.out.println("  Escritores Nogueira Backend está a correr!");
-        System.out.println("  API: http://localhost:8080/api");
-        System.out.println("  Health: http://localhost:8080/api/actuator/health");
+        System.out.println("  Escritores Nogueira Backend");
+        System.out.println("  VERSION 7.0.1");
         System.out.println("==============================================\n");
     }
 }
