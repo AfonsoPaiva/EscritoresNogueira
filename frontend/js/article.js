@@ -8,7 +8,7 @@ let allBlogPosts = [];
 // Initialize article page
 function initArticlePage() {
     const urlParams = new URLSearchParams(window.location.search);
-    let articleSlug = urlParams.get('slug');
+    let articleSlug = urlParams.get('slug') || urlParams.get('slugOrId') || urlParams.get('id') || null;
 
     const pathParts = window.location.pathname.split('/').filter(Boolean);
     const artigoIndex = pathParts.indexOf('artigo');
