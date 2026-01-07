@@ -180,14 +180,14 @@ function formatDate(dateString) {
 }
 
 // Initialize on page load
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => {
-        if (window.location.pathname.includes('artigo')) {
-            initArticlePage();
-        }
-    });
-} else {
-    if (window.location.pathname.includes('artigo')) {
-        initArticlePage();
+// Initialize on page load — run only for article detail paths (/artigo/:slugOrId or /blog/:slugOrId)
+(function initOnLoad() {
+    const isArticlePath = /\/artigo\/[^\/]+/.test(window.location.pathname) || /\/blog\/[^\/]+/.test(window.location.pathname);
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', () => {
+            if (isArticlePath) initArticlePage();
+        });
+    } else {
+        if (isArticlePath) initArticlePage();
     }
-}
+})();
