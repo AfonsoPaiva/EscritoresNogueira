@@ -8,31 +8,45 @@ let allBlogPosts = [];
 // Initialize article page
 function initArticlePage() {
     const urlParams = new URLSearchParams(window.location.search);
-    let articleIdOrSlug = null;
-    let isId = false;
+    let articleSlug = urlParams.get('slug') || urlParams.get('slugOrId') || urlParams.get('id') || null;
 
-    // query params: id or slugOrId
-    if (urlParams.get('slug') || urlParams.get('slugOrId') || urlParams.get('id')) {
-        articleIdOrSlug = urlParams.get('slug') || urlParams.get('slugOrId') || urlParams.get('id');
-        if (articleIdOrSlug && /^[0-9]+$/.test(articleIdOrSlug)) isId = true;
-    }
-
-    // path: check for either 'artigo' or 'blog'
     const pathParts = window.location.pathname.split('/').filter(Boolean);
     const artigoIndex = pathParts.indexOf('artigo');
     const blogIndex = pathParts.indexOf('blog');
     const paramIndex = (artigoIndex !== -1) ? artigoIndex : (blogIndex !== -1 ? blogIndex : -1);
     if (paramIndex !== -1 && pathParts[paramIndex + 1]) {
-        const pathParam = decodeURIComponent(pathParts[paramIndex + 1]);
-        articleIdOrSlug = pathParam;
-        isId = /^[0-9]+$/.test(pathParam);
+        articleSlug = decodeURIComponent(pathParts[paramIndex + 1]);
     }
 
-    if (articleIdOrSlug) {
-        // pass raw string and flag whether it's an id
-        loadArticleFromAPI(articleIdOrSlug, isId);
+    if (articleSlug) {
+        loadArticleFromAPI(articleSlug);
     } else {
         window.location.href = '/blog';
+    }
+}
+
+async function loadArticleFromAPI(articleSlug) {
+    const articleContent = document.getElementById('articleContent');
+    if (!articleContent) return;
+
+    articleContent.innerHTML = '<div style="text-align: center; padding: 2rem;"><p>Carregando artigo...</p></div>';
+
+    try {
+        // Always resolve by slug against backend
+        const post = await api.getBlogPostBySlug(articleSlug);
+        if (!post || !post.id) { showArticleNotFoundError(); return; }
+
+        currentArticle = post;
+
+        displayArticle();
+
+        // load smaller list for related articles (if needed)
+        try { allBlogPosts = await api.getBlogPosts(); } catch (e) { allBlogPosts = []; }
+        loadRelatedArticles();
+
+    } catch (error) {
+        console.error('Erro ao carregar artigo:', error);
+        showArticleLoadError();
     }
 }
 
@@ -113,7 +127,7 @@ function loadRelatedArticles() {
     }
 
     relatedArticlesContainer.innerHTML = relatedArticles.map(post => {
-        const articleUrl = post.slug ? `/artigo/${post.slug}` : `/artigo/${post.id}`;
+        const articleUrl = post.slug ? `/artigo/${post.slug}` : '#';
         return `
         <div class="blog-card" onclick="window.location.href='${articleUrl}'">
             <div class="blog-image">
