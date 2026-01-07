@@ -9,10 +9,11 @@ import org.springframework.context.annotation.Configuration;
 public class JacksonConfig {
 
     @Bean
-    public ObjectMapper objectMapper() {
-        ObjectMapper mapper = new ObjectMapper();
-        mapper.registerModule(new JavaTimeModule());
-        return mapper;
+    public Jackson2ObjectMapperBuilderCustomizer jacksonCustomizer() {
+        return builder -> {
+            builder.serializerByType(Long.class, ToStringSerializer.instance);
+            builder.serializerByType(Long.TYPE, ToStringSerializer.instance);
+        };
     }
 }
 
