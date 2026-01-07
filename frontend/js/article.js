@@ -5,12 +5,13 @@
 let currentArticle = null;
 let allBlogPosts = [];
 
-// Initialize article page
+// Initialize article page (slug-only)
 async function initArticlePage() {
     console.log('initArticlePage called, pathname:', window.location.pathname, 'search:', window.location.search);
     const urlParams = new URLSearchParams(window.location.search);
-    let articleSlug = urlParams.get('slug') || urlParams.get('slugOrId') || urlParams.get('id') || null;
+    let articleSlug = urlParams.get('slug') || urlParams.get('slugOrId') || null;
 
+    // Extract from URL path
     const pathParts = window.location.pathname.split('/').filter(Boolean);
     const artigoIndex = pathParts.indexOf('artigo');
     const blogIndex = pathParts.indexOf('blog');
@@ -19,21 +20,29 @@ async function initArticlePage() {
         articleSlug = decodeURIComponent(pathParts[paramIndex + 1]);
     }
 
-    console.log('articleSlug after extraction:', articleSlug);
+    console.log('Extracted articleSlug:', articleSlug);
+
+    // Reject numeric IDs — only accept slugs
+    if (articleSlug && !isNaN(articleSlug) && !isNaN(parseFloat(articleSlug))) {
+        console.log('Numeric ID detected (ID=' + articleSlug + '). Only slug-based URLs are supported. Redirecting to /blog');
+        window.location.href = '/blog';
+        return;
+    }
 
     if (articleSlug) {
-        console.log('Loading article with slug/ID:', articleSlug);
+        console.log('Loading article with slug:', articleSlug);
         loadArticleFromAPI(articleSlug);
     } else {
-        console.log('No articleSlug, redirecting to /blog');
+        console.log('No slug found, redirecting to /blog');
         window.location.href = '/blog';
     }
 }
 
 
 
+// Load article from API — slug-only
 async function loadArticleFromAPI(articleSlug) {
-    console.log('loadArticleFromAPI called with:', articleSlug);
+    console.log('loadArticleFromAPI called with slug:', articleSlug);
     const articleContent = document.getElementById('articleContent');
     if (!articleContent) {
         console.error('articleContent element not found');
@@ -43,22 +52,12 @@ async function loadArticleFromAPI(articleSlug) {
     articleContent.innerHTML = '<div style="text-align: center; padding: 2rem;"><p>Carregando artigo...</p></div>';
 
     try {
-        // First, try to load by slug
-        console.log('Attempting to load by slug:', articleSlug);
-        let post = await api.getBlogPostBySlug(articleSlug);
+        console.log('Attempting to load article by slug:', articleSlug);
+        const post = await api.getBlogPostBySlug(articleSlug);
         
-        // If not found and it's numeric, try looking up by ID
-        if (!post && !isNaN(articleSlug) && !isNaN(parseFloat(articleSlug))) {
-            console.log('Slug lookup failed, attempting ID lookup for ID:', articleSlug);
-            const allPosts = await api.getBlogPosts();
-            console.log('Fetched all posts:', allPosts.length);
-            post = allPosts.find(p => String(p.id) === String(articleSlug));
-            console.log('Found post by ID:', post);
-        }
-        
-        console.log('Final post result:', post);
+        console.log('Post result:', post);
         if (!post || !post.id) { 
-            console.log('Post not found or invalid');
+            console.log('Post not found for slug:', articleSlug);
             showArticleNotFoundError(); 
             return; 
         }
@@ -75,35 +74,6 @@ async function loadArticleFromAPI(articleSlug) {
             console.error('Error fetching all posts:', e);
             allBlogPosts = []; 
         }
-        loadRelatedArticles();
-
-    } catch (error) {
-        console.error('Erro ao carregar artigo:', error);
-        showArticleLoadError();
-    }
-}
-
-// Load article from API
-async function loadArticleFromAPI(articleIdOrSlug, isId) {
-    const articleContent = document.getElementById('articleContent');
-    if (!articleContent) return;
-
-    articleContent.innerHTML = '<div style="text-align: center; padding: 2rem;"><p>Carregando artigo...</p></div>';
-
-    try {
-        allBlogPosts = await api.getBlogPosts();
-        if (!allBlogPosts || allBlogPosts.length === 0) throw new Error('Nenhum artigo encontrado');
-
-        if (isId) {
-            // match by id but compare as strings to preserve large Long values
-            currentArticle = allBlogPosts.find(post => String(post.id) === String(articleIdOrSlug));
-        } else {
-            currentArticle = allBlogPosts.find(post => post.slug === articleIdOrSlug);
-        }
-
-        if (!currentArticle) { showArticleNotFoundError(); return; }
-
-        displayArticle();
         loadRelatedArticles();
 
     } catch (error) {
