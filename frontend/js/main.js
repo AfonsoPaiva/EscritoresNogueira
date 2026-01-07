@@ -595,7 +595,7 @@ function initSearch() {
                 type: 'post',
                 title: post.title,
                 subtitle: post.excerpt ? post.excerpt.substring(0, 100) + '...' : post.category,
-                url: `/artigo/${post.slug}`,
+                url: post.slug ? `/artigo/${post.slug}` : `/artigo/${post.id}`,
                 image: post.image
             }));
 
@@ -861,7 +861,7 @@ async function loadLatestBlogPosts() {
 
 function displayLatestBlogPosts(posts, container) {
     const postsHTML = posts.map(post => {
-        const articleUrl = `/artigo/${post.slug}`;
+        const articleUrl = post.slug ? `/artigo/${post.slug}` : `/artigo/${post.id}`;
         return `
         <div class="blog-card" onclick="window.location.href='${articleUrl}'">
             <div class="blog-image">

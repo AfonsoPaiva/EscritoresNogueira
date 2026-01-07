@@ -100,6 +100,7 @@ public class BlogController {
 
         return PublicBlogPostDTO.builder()
                 .id(post.getId())
+                .slug(post.getSlug())
                 .title(post.getTitle())
                 .excerpt(post.getExcerpt())
                 .content(content)

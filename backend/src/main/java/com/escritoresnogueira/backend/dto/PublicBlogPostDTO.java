@@ -11,6 +11,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class PublicBlogPostDTO {
     private Long id;
+    private String slug;
     private String title;
     private String excerpt;
     private String content;

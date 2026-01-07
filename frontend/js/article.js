@@ -5,7 +5,7 @@
 let currentArticle = null;
 let allBlogPosts = [];
 
-// Initialize article page (slug-only)
+// Initialize article page
 function initArticlePage() {
     const pathParts = window.location.pathname.split('/').filter(Boolean);
     const artigoIndex = pathParts.indexOf('artigo');
@@ -13,13 +13,6 @@ function initArticlePage() {
 
     if (artigoIndex !== -1 && pathParts[artigoIndex + 1]) {
         articleSlug = decodeURIComponent(pathParts[artigoIndex + 1]);
-    }
-
-    // Reject numeric IDs and redirect to blog
-    if (articleSlug && /^\d+$/.test(articleSlug)) {
-        console.warn(`Numeric ID "${articleSlug}" detected in URL. Redirecting to /blog as only slugs are supported.`);
-        window.location.href = '/blog';
-        return;
     }
 
     if (articleSlug) {
@@ -30,7 +23,7 @@ function initArticlePage() {
     }
 }
 
-// Load article from API — slug-only
+// Load article from API
 async function loadArticleFromAPI(articleSlug) {
     const articleContent = document.getElementById('articleContent');
     if (!articleContent) {
@@ -113,8 +106,7 @@ function loadRelatedArticles() {
     }
 
     relatedArticlesContainer.innerHTML = relatedArticles.map(post => {
-        // Always use slug for article URL
-        const articleUrl = `/artigo/${post.slug}`;
+        const articleUrl = post.slug ? `/artigo/${post.slug}` : `/artigo/${post.id}`;
         return `
         <div class="blog-card" onclick="window.location.href='${articleUrl}'">
             <div class="blog-image">

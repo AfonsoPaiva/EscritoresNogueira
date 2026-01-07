@@ -62,13 +62,14 @@ function renderBookCards(books, options = {}) {
 }
 
 /**
+
  * Render a blog card template
  * @param {Object} post - Post object with id, title, excerpt, date, readTime, etc.
  * @param {Object} options - Options: { onClick: '', image: 'icon', dataAos: '' }
  * @returns {String} HTML template for blog card
  */
 function renderBlogCard(post, options = {}) {
-    const articleUrl = `/artigo/${post.slug}`;
+    const articleUrl = post.slug ? `/artigo/${post.slug}` : `/artigo/${post.id}`;
     const {
         onClick = `window.location.href='${articleUrl}'`,
         imageIcon = 'newspaper',
