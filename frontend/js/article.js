@@ -8,7 +8,7 @@ let allBlogPosts = [];
 // Initialize article page
 function initArticlePage() {
     const urlParams = new URLSearchParams(window.location.search);
-    let articleSlug = urlParams.get('slug') || urlParams.get('slugOrId') || urlParams.get('id') || null;
+    let articleSlug = urlParams.get('slug');
 
     const pathParts = window.location.pathname.split('/').filter(Boolean);
     const artigoIndex = pathParts.indexOf('artigo');
@@ -16,6 +16,12 @@ function initArticlePage() {
     const paramIndex = (artigoIndex !== -1) ? artigoIndex : (blogIndex !== -1 ? blogIndex : -1);
     if (paramIndex !== -1 && pathParts[paramIndex + 1]) {
         articleSlug = decodeURIComponent(pathParts[paramIndex + 1]);
+    }
+
+    // Check if articleSlug is numeric (ID-based access), redirect to blog
+    if (articleSlug && !isNaN(articleSlug) && !isNaN(parseFloat(articleSlug))) {
+        window.location.href = '/blog';
+        return;
     }
 
     if (articleSlug) {
