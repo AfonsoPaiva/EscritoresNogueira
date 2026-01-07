@@ -6,43 +6,32 @@ let currentArticle = null;
 let allBlogPosts = [];
 
 // Initialize article page (slug-only)
-async function initArticlePage() {
-    console.log('initArticlePage called, pathname:', window.location.pathname, 'search:', window.location.search);
-    const urlParams = new URLSearchParams(window.location.search);
-    let articleSlug = urlParams.get('slug') || urlParams.get('slugOrId') || null;
-
-    // Extract from URL path
+function initArticlePage() {
     const pathParts = window.location.pathname.split('/').filter(Boolean);
     const artigoIndex = pathParts.indexOf('artigo');
-    const blogIndex = pathParts.indexOf('blog');
-    const paramIndex = (artigoIndex !== -1) ? artigoIndex : (blogIndex !== -1 ? blogIndex : -1);
-    if (paramIndex !== -1 && pathParts[paramIndex + 1]) {
-        articleSlug = decodeURIComponent(pathParts[paramIndex + 1]);
+    let articleSlug = null;
+
+    if (artigoIndex !== -1 && pathParts[artigoIndex + 1]) {
+        articleSlug = decodeURIComponent(pathParts[artigoIndex + 1]);
     }
 
-    console.log('Extracted articleSlug:', articleSlug);
-
-    // Reject numeric IDs — only accept slugs
-    if (articleSlug && !isNaN(articleSlug) && !isNaN(parseFloat(articleSlug))) {
-        console.log('Numeric ID detected (ID=' + articleSlug + '). Only slug-based URLs are supported. Redirecting to /blog');
+    // Reject numeric IDs and redirect to blog
+    if (articleSlug && /^\d+$/.test(articleSlug)) {
+        console.warn(`Numeric ID "${articleSlug}" detected in URL. Redirecting to /blog as only slugs are supported.`);
         window.location.href = '/blog';
         return;
     }
 
     if (articleSlug) {
-        console.log('Loading article with slug:', articleSlug);
         loadArticleFromAPI(articleSlug);
     } else {
-        console.log('No slug found, redirecting to /blog');
+        console.warn('No article slug found in URL. Redirecting to /blog.');
         window.location.href = '/blog';
     }
 }
 
-
-
 // Load article from API — slug-only
 async function loadArticleFromAPI(articleSlug) {
-    console.log('loadArticleFromAPI called with slug:', articleSlug);
     const articleContent = document.getElementById('articleContent');
     if (!articleContent) {
         console.error('articleContent element not found');
@@ -52,32 +41,26 @@ async function loadArticleFromAPI(articleSlug) {
     articleContent.innerHTML = '<div style="text-align: center; padding: 2rem;"><p>Carregando artigo...</p></div>';
 
     try {
-        console.log('Attempting to load article by slug:', articleSlug);
         const post = await api.getBlogPostBySlug(articleSlug);
         
-        console.log('Post result:', post);
         if (!post || !post.id) { 
-            console.log('Post not found for slug:', articleSlug);
             showArticleNotFoundError(); 
             return; 
         }
 
         currentArticle = post;
-
         displayArticle();
 
-        // load smaller list for related articles (if needed)
+        // Load other posts for related articles section
         try { 
             allBlogPosts = await api.getBlogPosts(); 
-            console.log('Fetched all blog posts for related:', allBlogPosts.length);
         } catch (e) { 
-            console.error('Error fetching all posts:', e);
             allBlogPosts = []; 
         }
         loadRelatedArticles();
 
     } catch (error) {
-        console.error('Erro ao carregar artigo:', error);
+        console.error('Error loading article by slug:', error);
         showArticleLoadError();
     }
 }
@@ -196,18 +179,13 @@ function formatDate(dateString) {
     return date.toLocaleDateString('pt-PT', options);
 }
 
-// Initialize on page load
-// Initialize on page load — run only for article detail paths (/artigo/:slugOrId or /blog/:slugOrId)
+// Initialize on page load — run only for article detail paths
 (function initOnLoad() {
-    const urlParams = new URLSearchParams(window.location.search);
-    const isArticlePath = /\/artigo\/[^\/]+/.test(window.location.pathname) || /\/blog\/[^\/]+/.test(window.location.pathname) ||
-        (window.location.pathname === '/artigo' && urlParams.has('slugOrId')) ||
-        (window.location.pathname === '/blog' && urlParams.has('slugOrId'));
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', () => {
-            if (isArticlePath) initArticlePage();
-        });
-    } else {
-        if (isArticlePath) initArticlePage();
+    if (window.location.pathname.startsWith('/artigo/')) {
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initArticlePage);
+        } else {
+            initArticlePage();
+        }
     }
 })();

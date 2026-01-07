@@ -17,33 +17,17 @@ window.onRecaptchaLoad = function() {
 
 // Initialize on first load
 document.addEventListener('DOMContentLoaded', function() {
-    // Initialize in correct order and wait for async library loads
-    (async function start() {
-        try {
-            await Promise.all([ensureGSAP(), ensureSwiper()]);
-            await initGSAPAnimations();
-        } catch (e) {
-            console.warn('Library load warning:', e);
-        }
+    // Load dynamic header/footer
+    loadHeaderAndFooter();
 
-        loadRecaptchaConfig();
-        initApp();
+    // Initialize GSAP animations
+    initGSAPAnimations();
 
-        // Run animations after app init and after libraries are ready
-        if (typeof runAnimations === 'function') {
-            runAnimations();
-        }
-        if (typeof ScrollTrigger !== 'undefined') {
-            try { ScrollTrigger.refresh(); } catch (e) { console.warn('ScrollTrigger.refresh failed', e); }
-        }
+    // Initialize page-specific logic
+    initPage();
 
-        // Initialize swipers for the initial page load
-        setTimeout(() => {
-            if (typeof initAllSwipers === 'function') {
-                initAllSwipers();
-            }
-        }, 100);
-    })();
+    // Load reCAPTCHA config
+    loadRecaptchaConfig();
 });
 
 // Initialize GSAP
