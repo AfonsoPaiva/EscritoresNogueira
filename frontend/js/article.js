@@ -8,65 +8,53 @@ let allBlogPosts = [];
 // Initialize article page
 function initArticlePage() {
     const urlParams = new URLSearchParams(window.location.search);
-    let articleId = null;
-    let articleSlug = urlParams.get('slug') || urlParams.get('slugOrId');
-    
-    // If slugOrId is a number, treat it as an ID
-    if (urlParams.get('slugOrId') && !isNaN(urlParams.get('slugOrId'))) {
-        articleId = parseInt(urlParams.get('slugOrId'));
-        articleSlug = null;
-    } else if (urlParams.get('id')) {
-        articleId = parseInt(urlParams.get('id'));
-    }
-    
-    // Always try to extract from path first (preferred method with clean URLs)
-    const pathParts = window.location.pathname.split('/');
-    const artigoIndex = pathParts.indexOf('artigo');
-    if (artigoIndex !== -1 && pathParts[artigoIndex + 1]) {
-        const pathParam = decodeURIComponent(pathParts[artigoIndex + 1]);
-        // Check if it's a number (ID) or a slug
-        if (!isNaN(pathParam) && pathParam.trim() !== '') {
-            articleId = parseInt(pathParam);
-            articleSlug = null;
-        } else {
-            articleSlug = pathParam;
-        }
+    let articleIdOrSlug = null;
+    let isId = false;
+
+    // query params: id or slugOrId
+    if (urlParams.get('slug') || urlParams.get('slugOrId') || urlParams.get('id')) {
+        articleIdOrSlug = urlParams.get('slug') || urlParams.get('slugOrId') || urlParams.get('id');
+        if (articleIdOrSlug && /^[0-9]+$/.test(articleIdOrSlug)) isId = true;
     }
 
-    if (articleId || articleSlug) {
-        loadArticleFromAPI(articleId, articleSlug);
+    // path: check for either 'artigo' or 'blog'
+    const pathParts = window.location.pathname.split('/').filter(Boolean);
+    const artigoIndex = pathParts.indexOf('artigo');
+    const blogIndex = pathParts.indexOf('blog');
+    const paramIndex = (artigoIndex !== -1) ? artigoIndex : (blogIndex !== -1 ? blogIndex : -1);
+    if (paramIndex !== -1 && pathParts[paramIndex + 1]) {
+        const pathParam = decodeURIComponent(pathParts[paramIndex + 1]);
+        articleIdOrSlug = pathParam;
+        isId = /^[0-9]+$/.test(pathParam);
+    }
+
+    if (articleIdOrSlug) {
+        // pass raw string and flag whether it's an id
+        loadArticleFromAPI(articleIdOrSlug, isId);
     } else {
         window.location.href = '/blog';
     }
 }
 
 // Load article from API
-async function loadArticleFromAPI(articleId, articleSlug) {
+async function loadArticleFromAPI(articleIdOrSlug, isId) {
     const articleContent = document.getElementById('articleContent');
     if (!articleContent) return;
-    
-    // Show loading state
+
     articleContent.innerHTML = '<div style="text-align: center; padding: 2rem;"><p>Carregando artigo...</p></div>';
 
     try {
-        // Fetch all blog posts from API
         allBlogPosts = await api.getBlogPosts();
+        if (!allBlogPosts || allBlogPosts.length === 0) throw new Error('Nenhum artigo encontrado');
 
-        if (!allBlogPosts || allBlogPosts.length === 0) {
-            throw new Error('Nenhum artigo encontrado');
+        if (isId) {
+            // match by id but compare as strings to preserve large Long values
+            currentArticle = allBlogPosts.find(post => String(post.id) === String(articleIdOrSlug));
+        } else {
+            currentArticle = allBlogPosts.find(post => post.slug === articleIdOrSlug);
         }
 
-        // Find the specific article by ID or Slug
-        if (articleId) {
-            currentArticle = allBlogPosts.find(post => post.id === articleId);
-        } else if (articleSlug) {
-            currentArticle = allBlogPosts.find(post => post.slug === articleSlug);
-        }
-
-        if (!currentArticle) {
-            showArticleNotFoundError();
-            return;
-        }
+        if (!currentArticle) { showArticleNotFoundError(); return; }
 
         displayArticle();
         loadRelatedArticles();
@@ -112,20 +100,18 @@ function displayArticle() {
 function loadRelatedArticles() {
     const relatedArticlesContainer = document.getElementById('relatedArticles');
     if (!relatedArticlesContainer || !currentArticle) return;
-    
-    // Get articles from the same category, excluding current article
+
     const relatedArticles = allBlogPosts
-        .filter(post => post.category === currentArticle.category && post.id !== currentArticle.id)
+        .filter(post => post.category === currentArticle.category && String(post.id) !== String(currentArticle.id))
         .slice(0, 3);
-    
-    // If not enough from same category, fill with other articles
+
     if (relatedArticles.length < 3) {
         const otherArticles = allBlogPosts
-            .filter(post => post.id !== currentArticle.id && !relatedArticles.find(r => r.id === post.id))
+            .filter(post => String(post.id) !== String(currentArticle.id) && !relatedArticles.find(r => String(r.id) === String(post.id)))
             .slice(0, 3 - relatedArticles.length);
         relatedArticles.push(...otherArticles);
     }
-    
+
     relatedArticlesContainer.innerHTML = relatedArticles.map(post => {
         const articleUrl = post.slug ? `/artigo/${post.slug}` : `/artigo/${post.id}`;
         return `
