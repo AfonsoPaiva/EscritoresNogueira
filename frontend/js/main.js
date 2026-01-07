@@ -595,7 +595,7 @@ function initSearch() {
                 type: 'post',
                 title: post.title,
                 subtitle: post.excerpt ? post.excerpt.substring(0, 100) + '...' : post.category,
-                url: post.slug ? `/artigo/${post.slug}` : '#',
+                url: `/artigo/${post.slug}`,
                 image: post.image
             }));
 
@@ -631,6 +631,7 @@ function initPage() {
     if (path.includes('index.html') || path.endsWith('/') || path === '' || path.endsWith('/index')) {
         // Call async function properly
         loadFeaturedBooks().catch(err => console.error('Error in loadFeaturedBooks:', err));
+        loadLatestBlogPosts().catch(err => console.error('Error in loadLatestBlogPosts:', err));
     } else if (path.includes('livros.html') || path.endsWith('/livros')) {
         // Code from books.js
         loadBooks();
@@ -809,6 +810,98 @@ function displayFeaturedBooks(books, container) {
     } catch (e) {
         console.warn('Erro ao reexecutar animações após carregar livros em destaque', e);
     }
+}
+
+// Load latest blog posts for homepage
+async function loadLatestBlogPosts() {
+    const latestPostsContainer = document.getElementById('latestPosts');
+    if (!latestPostsContainer) return;
+
+    // Show loading skeleton
+    latestPostsContainer.innerHTML = Array(3).fill('').map(() => `
+        <div class="blog-card skeleton">
+            <div class="blog-image skeleton-image"></div>
+            <div class="blog-content">
+                <div class="skeleton-text" style="width: 70%; height: 14px; margin-bottom: 10px;"></div>
+                <div class="skeleton-text" style="width: 100%; height: 20px; margin-bottom: 8px;"></div>
+                <div class="skeleton-text" style="width: 90%; height: 14px;"></div>
+            </div>
+        </div>
+    `).join('');
+
+    try {
+        // Fetch blog posts from API
+        const posts = await api.getBlogPosts();
+        
+        if (!posts || posts.length === 0) {
+            latestPostsContainer.innerHTML = `
+                <div style="grid-column: 1/-1; text-align: center; padding: 40px 20px; color: var(--text-gray);">
+                    <i class="fas fa-newspaper" style="font-size: 2rem; margin-bottom: 10px;"></i>
+                    <p>Nenhum artigo disponível no momento.</p>
+                </div>
+            `;
+            return;
+        }
+
+        // Get the 3 most recent posts
+        const latestPosts = posts.slice(0, 3);
+        displayLatestBlogPosts(latestPosts, latestPostsContainer);
+        
+    } catch (error) {
+        console.error('❌ Erro ao carregar artigos:', error);
+        latestPostsContainer.innerHTML = `
+            <div style="grid-column: 1/-1; text-align: center; padding: 40px 20px; color: var(--text-gray);">
+                <i class="fas fa-exclamation-circle" style="font-size: 2rem; margin-bottom: 10px;"></i>
+                <p>Erro ao carregar artigos. Verifique a sua conexão à internet.</p>
+                <button onclick="loadLatestBlogPosts()" class="btn btn-secondary" style="margin-top: 15px;">Tentar Novamente</button>
+            </div>
+        `;
+    }
+}
+
+function displayLatestBlogPosts(posts, container) {
+    const postsHTML = posts.map(post => {
+        const articleUrl = `/artigo/${post.slug}`;
+        return `
+        <div class="blog-card" onclick="window.location.href='${articleUrl}'">
+            <div class="blog-image">
+                ${post.image ? `<img src="${post.image}" alt="${post.title}" loading="lazy">` : '<i class="fas fa-newspaper"></i>'}
+            </div>
+            <div class="blog-content">
+                <div class="blog-meta">
+                    <span><i class="far fa-calendar"></i> ${formatDate(post.date)}</span>
+                    <span><i class="far fa-clock"></i> ${post.readTime}</span>
+                </div>
+                <h3 class="blog-title">${post.title}</h3>
+                <p class="blog-excerpt">${post.excerpt}</p>
+                <a href="${articleUrl}" class="read-more">
+                    Ler mais <i class="fas fa-arrow-right"></i>
+                </a>
+            </div>
+        </div>
+        `;
+    }).join('');
+    
+    container.innerHTML = postsHTML;
+    
+    // Refresh animations for dynamically added content
+    try {
+        if (typeof runAnimations === 'function') {
+            runAnimations();
+        }
+        if (typeof ScrollTrigger !== 'undefined') {
+            ScrollTrigger.refresh();
+        }
+    } catch (e) {
+        console.warn('Erro ao reexecutar animações após carregar posts', e);
+    }
+}
+
+// Utility function to format dates
+function formatDate(dateString) {
+    const date = new Date(dateString);
+    const options = { year: 'numeric', month: 'long', day: 'numeric' };
+    return date.toLocaleDateString('pt-PT', options);
 }
 
 // Attach click events to featured book cards

@@ -113,7 +113,8 @@ function loadRelatedArticles() {
     }
 
     relatedArticlesContainer.innerHTML = relatedArticles.map(post => {
-        const articleUrl = post.slug ? `/artigo/${post.slug}` : '#';
+        // Always use slug for article URL
+        const articleUrl = `/artigo/${post.slug}`;
         return `
         <div class="blog-card" onclick="window.location.href='${articleUrl}'">
             <div class="blog-image">
