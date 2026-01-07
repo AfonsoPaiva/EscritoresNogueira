@@ -87,25 +87,25 @@ class ShoppingCart {
         this.showNotification('Livro adicionado ao carrinho!');
     }
 
-    removeItem(bookId) {
-        this.items = this.items.filter(item => item.id !== bookId);
-        this.saveCart();
-        this.updateCartUI();
-        this.showNotification('Livro removido do carrinho');
-    }
+   removeItem(bookId) {
+    this.items = this.items.filter(item => item.id != bookId);
+    this.saveCart();
+    this.updateCartUI();
+    this.showNotification('Livro removido do carrinho');
+}
 
     updateQuantity(bookId, quantity) {
-        const item = this.items.find(item => item.id === bookId);
-        if (item) {
-            if (quantity <= 0) {
-                this.removeItem(bookId);
-            } else {
-                item.quantity = quantity;
-                this.saveCart();
-                this.updateCartUI();
-            }
+    const item = this.items.find(item => item.id == bookId);
+    if (item) {
+        if (quantity <= 0) {
+            this.removeItem(bookId);
+        } else {
+            item.quantity = quantity;
+            this.saveCart();
+            this.updateCartUI();
         }
     }
+}
 
     getTotal() {
         return this.items.reduce((total, item) => total + (item.price * item.quantity), 0);
