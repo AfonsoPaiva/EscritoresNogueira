@@ -202,7 +202,10 @@ function formatDate(dateString) {
 // Initialize on page load
 // Initialize on page load — run only for article detail paths (/artigo/:slugOrId or /blog/:slugOrId)
 (function initOnLoad() {
-    const isArticlePath = /\/artigo\/[^\/]+/.test(window.location.pathname) || /\/blog\/[^\/]+/.test(window.location.pathname);
+    const urlParams = new URLSearchParams(window.location.search);
+    const isArticlePath = /\/artigo\/[^\/]+/.test(window.location.pathname) || /\/blog\/[^\/]+/.test(window.location.pathname) ||
+        (window.location.pathname === '/artigo' && urlParams.has('slugOrId')) ||
+        (window.location.pathname === '/blog' && urlParams.has('slugOrId'));
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', () => {
             if (isArticlePath) initArticlePage();
