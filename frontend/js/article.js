@@ -6,7 +6,7 @@ let currentArticle = null;
 let allBlogPosts = [];
 
 // Initialize article page
-function initArticlePage() {
+async function initArticlePage() {
     const urlParams = new URLSearchParams(window.location.search);
     let articleSlug = urlParams.get('slug') || urlParams.get('slugOrId') || urlParams.get('id') || null;
 
@@ -18,19 +18,24 @@ function initArticlePage() {
         articleSlug = decodeURIComponent(pathParts[paramIndex + 1]);
     }
 
-    // Check if articleSlug is numeric (ID-based access), redirect to blog
+    // Check if articleSlug is numeric (ID-based access), lookup slug and redirect
     if (articleSlug && !isNaN(articleSlug) && !isNaN(parseFloat(articleSlug))) {
-        window.location.href = '/blog';
-        return;
+        try {
+            const posts = await api.getBlogPosts();
+            const post = posts.find(p => String(p.id) === String(articleSlug));
+            if (post && post.slug) {
+                window.location.href = `/artigo/${post.slug}`;
+                return;
+            }
+        } catch (error) {
+            console.error('Error looking up post by ID:', error);
+        }
     }
 
     if (articleSlug) {
         loadArticleFromAPI(articleSlug);
-    } else {
-        window.location.href = '/blog';
     }
 }
-
 async function loadArticleFromAPI(articleSlug) {
     const articleContent = document.getElementById('articleContent');
     if (!articleContent) return;
