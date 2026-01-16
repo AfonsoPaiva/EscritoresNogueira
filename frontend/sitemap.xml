@@ -36,34 +36,4 @@
         <changefreq>monthly</changefreq>
         <priority>0.6</priority>
     </url>
-    <url>
-        <loc>https://escritoresnogueira.com/artigo</loc>
-        <lastmod>2026-01-08</lastmod>
-        <changefreq>weekly</changefreq>
-        <priority>0.7</priority>
-    </url>
-    <url>
-        <loc>https://escritoresnogueira.com/conta</loc>
-        <lastmod>2026-01-08</lastmod>
-        <changefreq>monthly</changefreq>
-        <priority>0.5</priority>
-    </url>
-    <url>
-        <loc>https://escritoresnogueira.com/formulario</loc>
-        <lastmod>2026-01-08</lastmod>
-        <changefreq>monthly</changefreq>
-        <priority>0.6</priority>
-    </url>
-    <url>
-        <loc>https://escritoresnogueira.com/livro</loc>
-        <lastmod>2026-01-08</lastmod>
-        <changefreq>weekly</changefreq>
-        <priority>0.7</priority>
-    </url>
-    <url>
-        <loc>https://escritoresnogueira.com/pagamento</loc>
-        <lastmod>2026-01-08</lastmod>
-        <changefreq>monthly</changefreq>
-        <priority>0.5</priority>
-    </url>
 </urlset>
