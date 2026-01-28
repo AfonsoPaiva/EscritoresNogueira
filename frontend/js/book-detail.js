@@ -394,6 +394,8 @@ function loadBookVideo() {
     currentBook.videoUrl ||
     currentBook.youtubeUrl;
 
+  console.log("📹 loadBookVideo - videoUrl:", videoUrl);
+
   // Show or hide video wrapper based on content
   const videoWrapper = document.querySelector(".book-video-wrapper");
 
@@ -408,6 +410,7 @@ function loadBookVideo() {
 
   // Extract YouTube video ID from URL
   const videoId = extractYouTubeId(videoUrl);
+  console.log("📹 Extracted videoId:", videoId);
 
   if (!videoId) {
     console.warn("Invalid YouTube URL:", videoUrl);
@@ -424,6 +427,8 @@ function loadBookVideo() {
 
   videoContainer.innerHTML = "";
   videoContainer.appendChild(iframe);
+
+  console.log("✅ Video iframe created successfully");
 }
 
 // Extract YouTube video ID from URL
@@ -433,6 +438,7 @@ function extractYouTubeId(url) {
   // Handle various YouTube URL formats
   const patterns = [
     /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([^&?\s]+)/,
+    /youtube\.com\/shorts\/([^&?\s]+)/, // YouTube Shorts
     /^([a-zA-Z0-9_-]{11})$/, // Direct video ID
   ];
 
