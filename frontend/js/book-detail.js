@@ -327,6 +327,33 @@ function displayBookDetail() {
   loadBookContent();
 }
 
+// Attach event listeners to book detail elements
+function attachBookDetailEvents() {
+  // Quantity selector buttons
+  const decreaseBtn = document.querySelector(".quantity-decrease");
+  const increaseBtn = document.querySelector(".quantity-increase");
+
+  if (decreaseBtn) {
+    decreaseBtn.addEventListener("click", () => updateQuantity(-1));
+  }
+
+  if (increaseBtn) {
+    increaseBtn.addEventListener("click", () => updateQuantity(1));
+  }
+
+  // Add to cart button
+  const addToCartBtn = document.querySelector(".btn-add-to-cart");
+  if (addToCartBtn) {
+    addToCartBtn.addEventListener("click", addToCart);
+  }
+
+  // Preview button
+  const previewBtn = document.querySelector(".btn-preview");
+  if (previewBtn) {
+    previewBtn.addEventListener("click", openBookPreview);
+  }
+}
+
 // Load book content (video and gallery)
 function loadBookContent() {
   if (!currentBook) return;
