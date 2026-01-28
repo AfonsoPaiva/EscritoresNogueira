@@ -11254,13 +11254,19 @@ body.page-apoio .btn-primary {
 /* Default: Horizontal video (16:9) */
 .video-container {
   padding-bottom: 56.25%; /* 16:9 aspect ratio */
+  position: relative;
 }
 
 /* Mobile: Vertical video (9:16) */
 @media (max-width: 768px) {
   .video-container {
     padding-bottom: 177.78%; /* 9:16 aspect ratio */
-    max-width: 400px;
+    max-width: 100%;
+    width: 100%;
+  }
+
+  .book-video-wrapper {
+    padding: 0 15px;
   }
 }
 
@@ -11324,6 +11330,8 @@ body.page-apoio .btn-primary {
   height: 100%;
   object-fit: cover;
   transition: transform 0.3s ease;
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: crisp-edges;
 }
 
 .gallery-item:hover img {
@@ -11469,5 +11477,13 @@ body.page-apoio .btn-primary {
   .book-gallery {
     grid-template-columns: 1fr;
     gap: 10px;
+  }
+
+  .gallery-item {
+    aspect-ratio: 4/3; /* More suitable for mobile viewing */
+  }
+
+  .video-container {
+    border-radius: 8px;
   }
 }

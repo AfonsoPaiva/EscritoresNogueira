@@ -420,11 +420,23 @@ function loadBookVideo() {
   const videoContainer = document.getElementById("bookVideoContainer");
   if (!videoContainer) return;
 
-  // Check if book has video URL (support both old and new field names)
-  const videoUrl =
-    currentBook.videoHorizontalUrl ||
-    currentBook.videoUrl ||
-    currentBook.youtubeUrl;
+  // Detect if mobile device
+  const isMobile = window.innerWidth <= 768;
+
+  // Choose video based on device type
+  let videoUrl;
+  if (isMobile && currentBook.videoVerticalUrl) {
+    // Mobile: prefer vertical video (Shorts)
+    videoUrl = currentBook.videoVerticalUrl;
+    console.log("📱 Mobile detected - using vertical video");
+  } else {
+    // Desktop: use horizontal video
+    videoUrl =
+      currentBook.videoHorizontalUrl ||
+      currentBook.videoUrl ||
+      currentBook.youtubeUrl;
+    console.log("💻 Desktop detected - using horizontal video");
+  }
 
   console.log("📹 loadBookVideo - videoUrl:", videoUrl);
 
@@ -530,7 +542,13 @@ function loadBookGallery() {
 
       return `
             <div class="gallery-item" data-index="${index}" data-aos="fade-up" data-aos-delay="${index * 100}">
-                <img src="${imageUrl}" alt="${altText}" loading="lazy">
+                <img 
+                  src="${imageUrl}" 
+                  alt="${altText}" 
+                  loading="lazy"
+                  class="gallery-image"
+                  style="width: 100%; height: auto; object-fit: cover;"
+                >
             </div>
         `;
     })
