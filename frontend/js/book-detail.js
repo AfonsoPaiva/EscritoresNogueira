@@ -205,8 +205,16 @@ async function loadBookDetail(bookId, bookSlug) {
 
 // Display book details
 function displayBookDetail() {
+  console.log("🎨 displayBookDetail() called");
+  console.log("📦 currentBook:", currentBook);
+
   const bookDetail = document.getElementById("bookDetail");
-  if (!bookDetail) return;
+  if (!bookDetail) {
+    console.warn("❌ No bookDetail element found!");
+    return;
+  }
+
+  console.log("✅ bookDetail element found, rendering...");
 
   // Handle both API format and static data format
   const imageUrl =
@@ -320,8 +328,12 @@ function displayBookDetail() {
       ? DOMPurify.sanitize(bookDetailHTML)
       : bookDetailHTML;
 
+  console.log("✅ HTML rendered, attaching event listeners...");
+
   // Attach event listeners after setting innerHTML
   attachBookDetailEvents();
+
+  console.log("✅ Event listeners attached, loading content...");
 
   // Load book content (video + gallery)
   loadBookContent();
