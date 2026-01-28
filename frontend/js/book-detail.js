@@ -358,6 +358,24 @@ function attachBookDetailEvents() {
 function loadBookContent() {
   if (!currentBook) return;
 
+  // Check if there's any content to show
+  const hasVideo =
+    currentBook.videoHorizontalUrl ||
+    currentBook.videoUrl ||
+    currentBook.youtubeUrl;
+  const hasGallery =
+    (currentBook.galleryPhotos || currentBook.photos || []).length > 0;
+
+  // Hide entire section if no content
+  const contentSection = document.querySelector(".book-content-section");
+  if (!hasVideo && !hasGallery) {
+    if (contentSection) contentSection.style.display = "none";
+    return;
+  }
+
+  // Show section if there's content
+  if (contentSection) contentSection.style.display = "block";
+
   // Load video if available
   loadBookVideo();
 
@@ -376,12 +394,17 @@ function loadBookVideo() {
     currentBook.videoUrl ||
     currentBook.youtubeUrl;
 
+  // Show or hide video wrapper based on content
+  const videoWrapper = document.querySelector(".book-video-wrapper");
+
   if (!videoUrl) {
     // Hide video section if no video
-    const videoWrapper = document.querySelector(".book-video-wrapper");
     if (videoWrapper) videoWrapper.style.display = "none";
     return;
   }
+
+  // Show video wrapper
+  if (videoWrapper) videoWrapper.style.display = "block";
 
   // Extract YouTube video ID from URL
   const videoId = extractYouTubeId(videoUrl);
@@ -428,13 +451,16 @@ function loadBookGallery() {
 
   // Check if book has gallery photos
   const galleryPhotos = currentBook.galleryPhotos || currentBook.photos || [];
+  const galleryWrapper = document.querySelector(".book-gallery-wrapper");
 
   if (!Array.isArray(galleryPhotos) || galleryPhotos.length === 0) {
     // Hide gallery section if no photos
-    const galleryWrapper = document.querySelector(".book-gallery-wrapper");
     if (galleryWrapper) galleryWrapper.style.display = "none";
     return;
   }
+
+  // Show gallery wrapper
+  if (galleryWrapper) galleryWrapper.style.display = "block";
 
   // Create gallery items
   const galleryHTML = galleryPhotos
