@@ -356,7 +356,13 @@ function attachBookDetailEvents() {
 
 // Load book content (video and gallery)
 function loadBookContent() {
-  if (!currentBook) return;
+  console.log("🔍 loadBookContent() called");
+  console.log("📦 currentBook:", currentBook);
+
+  if (!currentBook) {
+    console.warn("❌ No currentBook!");
+    return;
+  }
 
   // Check if there's any content to show
   const hasVideo =
@@ -366,14 +372,28 @@ function loadBookContent() {
   const hasGallery =
     (currentBook.galleryPhotos || currentBook.photos || []).length > 0;
 
+  console.log("📹 hasVideo:", hasVideo, "- URLs:", {
+    videoHorizontalUrl: currentBook.videoHorizontalUrl,
+    videoUrl: currentBook.videoUrl,
+    youtubeUrl: currentBook.youtubeUrl,
+  });
+  console.log(
+    "🖼️ hasGallery:",
+    hasGallery,
+    "- Photos:",
+    currentBook.galleryPhotos,
+  );
+
   // Hide entire section if no content
   const contentSection = document.querySelector(".book-content-section");
   if (!hasVideo && !hasGallery) {
+    console.log("⚠️ No video or gallery content - hiding section");
     if (contentSection) contentSection.style.display = "none";
     return;
   }
 
   // Show section if there's content
+  console.log("✅ Content available - showing section");
   if (contentSection) contentSection.style.display = "block";
 
   // Load video if available
@@ -453,19 +473,36 @@ function extractYouTubeId(url) {
 // Load photo gallery
 function loadBookGallery() {
   const galleryContainer = document.getElementById("bookGallery");
-  if (!galleryContainer) return;
+  if (!galleryContainer) {
+    console.warn("❌ No galleryContainer element found");
+    return;
+  }
 
   // Check if book has gallery photos
   const galleryPhotos = currentBook.galleryPhotos || currentBook.photos || [];
   const galleryWrapper = document.querySelector(".book-gallery-wrapper");
 
+  console.log("🖼️ loadBookGallery - galleryPhotos:", galleryPhotos);
+  console.log(
+    "🖼️ Is array:",
+    Array.isArray(galleryPhotos),
+    "Length:",
+    galleryPhotos.length,
+  );
+
   if (!Array.isArray(galleryPhotos) || galleryPhotos.length === 0) {
     // Hide gallery section if no photos
+    console.log("⚠️ No gallery photos - hiding wrapper");
     if (galleryWrapper) galleryWrapper.style.display = "none";
     return;
   }
 
   // Show gallery wrapper
+  console.log(
+    "✅ Showing gallery wrapper with",
+    galleryPhotos.length,
+    "photos",
+  );
   if (galleryWrapper) galleryWrapper.style.display = "block";
 
   // Create gallery items
