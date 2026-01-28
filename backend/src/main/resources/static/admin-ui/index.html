@@ -1,236 +1,443 @@
 <!doctype html>
 <html lang="pt">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Admin UI - Escritores Nogueira</title>
-  <base href="./">
-  <link rel="stylesheet" href="styles.css">
-  <!-- FontAwesome for icons -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-  <!-- Chart.js for charts -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <!-- Firebase (compat) for Google Sign-In -->
-  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
-</head>
-<body>
-  <div class="container">
-    <header class="header">
-      <h1>Escritores Nogueira — Admin</h1>
-      <div class="header-actions">
-        <input id="backendBase" class="backend-base" placeholder="Backend base (optional)" />
-        <button id="btnLogout" class="btn small" style="display:none">Sair</button>
-      </div>
-    </header>
-
-    <main class="main">
-      <aside class="nav">
-        <ul>
-          <li data-view="dashboard" class="active">Dashboard</li>
-          <li data-view="books">Books</li>
-          <li data-view="posts">Blog Posts</li>
-          <li data-view="comments">Comments</li>
-          <li data-view="orders">Orders</li>
-          <li data-view="forms">Form Submissions</li>
-          <li data-view="newsletters">Newsletters</li>
-          <li data-view="services">Services</li>
-          <li data-view="users">Users</li>
-        </ul>
-      </aside>
-
-      <section class="content">
-        <!-- Login box (shown when not authenticated) -->
-        <div id="loginSection" class="card">
-          <h2>Admin Login</h2>
-          <div class="form-row"><label>Usuário<input id="loginUser" /></label></div>
-          <div class="form-row"><label>Senha<input id="loginPass" type="password" /></label></div>
-          <div class="form-row"><button id="btnLogin" class="btn primary">Entrar</button></div>
-          <hr style="margin: 10px 0;">
-          <p>Or sign in with your Google account:</p>
-          <div class="form-row">
-            <button id="btnGoogleSignIn" class="btn">Sign in with Google</button>
-          </div>
-          <p class="note">Authentication creates a secure admin session.</p>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Admin UI - Escritores Nogueira</title>
+    <base href="./" />
+    <link rel="stylesheet" href="styles.css" />
+    <!-- FontAwesome for icons -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+    />
+    <!-- Chart.js for charts -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Firebase (compat) for Google Sign-In -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
+  </head>
+  <body>
+    <div class="container">
+      <header class="header">
+        <h1>Escritores Nogueira — Admin</h1>
+        <div class="header-actions">
+          <input
+            id="backendBase"
+            class="backend-base"
+            placeholder="Backend base (optional)"
+          />
+          <button id="btnLogout" class="btn small" style="display: none">
+            Sair
+          </button>
         </div>
+      </header>
 
-        <!-- Dashboard -->
-        <div id="dashboard" class="view" style="display:none">
-          <div class="grid">
-            <div class="card">
-              <h3>Summary</h3>
-              <div id="summary"></div>
-            </div>
-            <div class="card">
-              <h3>Order Status Progress</h3>
-              <div id="orderStatusProgress"></div>
-            </div>
-            <div class="card">
-              <h3>Revenue (last 30 days)</h3>
-              <canvas id="revenueChart" height="150"></canvas>
-            </div>
-          </div>
-          <div class="grid">
-            <div class="card">
-              <h3>New Users (last 30 days)</h3>
-              <canvas id="usersChart" height="100"></canvas>
-            </div>
-            <div class="card">
-              <h3>Top Items</h3>
-              <div id="topItems">Loading...</div>
-            </div>
-          </div>
-          <div class="card">
-            <h3>Recent Activity</h3>
-            <pre id="recentActivity">Loading...</pre>
-          </div>
-        </div>
+      <main class="main">
+        <aside class="nav">
+          <ul>
+            <li data-view="dashboard" class="active">Dashboard</li>
+            <li data-view="books">Books</li>
+            <li data-view="posts">Blog Posts</li>
+            <li data-view="comments">Comments</li>
+            <li data-view="orders">Orders</li>
+            <li data-view="forms">Form Submissions</li>
+            <li data-view="newsletters">Newsletters</li>
+            <li data-view="services">Services</li>
+            <li data-view="users">Users</li>
+          </ul>
+        </aside>
 
-        <!-- Books -->
-        <div id="books" class="view" style="display:none">
-          <div class="card">
-            <h3>Create Book</h3>
-            <form id="createBookForm" class="form-grid">
-              <div class="form-row"><span class="input-desc">Título:</span><input name="title" placeholder="Title" required /></div>
-              <div class="form-row"><span class="input-desc">Slug (URL):</span><input name="slug" placeholder="Slug" required /></div>
-              <div class="form-row"><span class="input-desc">Autor:</span><input name="author" placeholder="Author" /></div>
-              <div class="form-row"><span class="input-desc">Categoria:</span><input name="category" placeholder="Category" /></div>
-              <div class="form-row"><span class="input-desc">Preço (€):</span><input name="price" placeholder="Price" /></div>
-              <div class="form-row"><span class="input-desc">Preço antigo (€):</span><input name="oldPrice" placeholder="Old price (for discount)" /></div>
-              <div class="form-row"><span class="input-desc">Desconto (%):</span><input name="discountPercent" placeholder="Discount percent" /></div>
-              <div class="form-row"><span class="input-desc">Promo:</span><label><input type="checkbox" name="promo" /> Promo</label></div>
-              <div class="form-row"><span class="input-desc">Destaque:</span><label><input type="checkbox" name="featured" /> Featured</label></div>
-              <div class="form-row"><span class="input-desc">Stock (unidades):</span><input name="stock" placeholder="Stock" /></div>
-              <div class="form-row"><span class="input-desc">ISBN:</span><input name="isbn" placeholder="ISBN" /></div>
-              <div class="form-row"><span class="input-desc">Páginas:</span><input name="pages" placeholder="Pages" /></div>
-              <div class="form-row"><span class="input-desc">Ano de publicação:</span><input name="year" placeholder="Year" /></div>
-              <div class="form-row"><span class="input-desc">Idioma:</span><input name="language" placeholder="Language" /></div>
-              <div class="form-row"><span class="input-desc">Editora:</span><input name="publisher" placeholder="Publisher" /></div>
-              <div class="form-row"><span class="input-desc">Imagem (URL):</span><input name="image" placeholder="Image URL" /></div>
-              <div class="form-row"><span class="input-desc">Stripe Product ID:</span><input name="stripeProductId" placeholder="Stripe Product ID" /></div>
-              <div class="form-row"><span class="input-desc">Páginas de amostra:</span><textarea name="samplePages" placeholder="Sample pages (comma-separated URLs)"></textarea></div>
-              <div class="form-row"><span class="input-desc">Descrição:</span><textarea name="description" placeholder="Description"></textarea></div>
-              <div class="form-row"><button class="btn primary" type="submit">Create</button></div>
-            </form>
+        <section class="content">
+          <!-- Login box (shown when not authenticated) -->
+          <div id="loginSection" class="card">
+            <h2>Admin Login</h2>
+            <div class="form-row">
+              <label>Usuário<input id="loginUser" /></label>
+            </div>
+            <div class="form-row">
+              <label>Senha<input id="loginPass" type="password" /></label>
+            </div>
+            <div class="form-row">
+              <button id="btnLogin" class="btn primary">Entrar</button>
+            </div>
+            <hr style="margin: 10px 0" />
+            <p>Or sign in with your Google account:</p>
+            <div class="form-row">
+              <button id="btnGoogleSignIn" class="btn">
+                Sign in with Google
+              </button>
+            </div>
+            <p class="note">Authentication creates a secure admin session.</p>
           </div>
-          <div class="card">
-            <h3>Books</h3>
-            <div id="booksList">Loading...</div>
-          </div>
-        </div>
 
-        <!-- Posts -->
-        <div id="posts" class="view" style="display:none">
-          <div class="card">
-              <h3>Create Post</h3>
-              <form id="createPostForm" class="form-grid">
-                <div class="form-row"><label>Título:<input name="title" placeholder="Title" required /></label></div>
-                <div class="form-row"><label>Slug (URL):<input name="slug" placeholder="Slug" required /></label></div>
-                <div class="form-row"><label>Autor:<input name="author" placeholder="Author" /></label></div>
-                <div class="form-row"><label>Categoria:<input name="category" placeholder="Category name" /></label></div>
-                <div class="form-row"><label>Excerpt:<input name="excerpt" placeholder="Short excerpt" /></label></div>
-                <div class="form-row"><label>Imagem (URL):<input name="featuredImage" placeholder="Featured image URL" /></label></div>
-                <div class="form-row"><label>Publicado: <input type="checkbox" name="published" /></label></div>
-                <div class="form-row"><label>Destaque: <input type="checkbox" name="featured" /></label></div>
-                <div class="form-row"><label>Conteúdo (HTML):<textarea name="content" placeholder="Content (HTML)" rows="8"></textarea></label></div>
-                <div class="form-row"><button class="btn primary" type="submit">Create Post</button></div>
+          <!-- Dashboard -->
+          <div id="dashboard" class="view" style="display: none">
+            <div class="grid">
+              <div class="card">
+                <h3>Summary</h3>
+                <div id="summary"></div>
+              </div>
+              <div class="card">
+                <h3>Order Status Progress</h3>
+                <div id="orderStatusProgress"></div>
+              </div>
+              <div class="card">
+                <h3>Revenue (last 30 days)</h3>
+                <canvas id="revenueChart" height="150"></canvas>
+              </div>
+            </div>
+            <div class="grid">
+              <div class="card">
+                <h3>New Users (last 30 days)</h3>
+                <canvas id="usersChart" height="100"></canvas>
+              </div>
+              <div class="card">
+                <h3>Top Items</h3>
+                <div id="topItems">Loading...</div>
+              </div>
+            </div>
+            <div class="card">
+              <h3>Recent Activity</h3>
+              <pre id="recentActivity">Loading...</pre>
+            </div>
+          </div>
+
+          <!-- Books -->
+          <div id="books" class="view" style="display: none">
+            <div class="card">
+              <h3>Create Book</h3>
+              <form id="createBookForm" class="form-grid">
+                <div class="form-row">
+                  <span class="input-desc">Título:</span
+                  ><input name="title" placeholder="Title" required />
+                </div>
+                <div class="form-row">
+                  <span class="input-desc">Slug (URL):</span
+                  ><input name="slug" placeholder="Slug" required />
+                </div>
+                <div class="form-row">
+                  <span class="input-desc">Autor:</span
+                  ><input name="author" placeholder="Author" />
+                </div>
+                <div class="form-row">
+                  <span class="input-desc">Categoria:</span
+                  ><input name="category" placeholder="Category" />
+                </div>
+                <div class="form-row">
+                  <span class="input-desc">Preço (€):</span
+                  ><input name="price" placeholder="Price" />
+                </div>
+                <div class="form-row">
+                  <span class="input-desc">Preço antigo (€):</span
+                  ><input
+                    name="oldPrice"
+                    placeholder="Old price (for discount)"
+                  />
+                </div>
+                <div class="form-row">
+                  <span class="input-desc">Desconto (%):</span
+                  ><input
+                    name="discountPercent"
+                    placeholder="Discount percent"
+                  />
+                </div>
+                <div class="form-row">
+                  <span class="input-desc">Promo:</span
+                  ><label><input type="checkbox" name="promo" /> Promo</label>
+                </div>
+                <div class="form-row">
+                  <span class="input-desc">Destaque:</span
+                  ><label
+                    ><input type="checkbox" name="featured" /> Featured</label
+                  >
+                </div>
+                <div class="form-row">
+                  <span class="input-desc">Stock (unidades):</span
+                  ><input name="stock" placeholder="Stock" />
+                </div>
+                <div class="form-row">
+                  <span class="input-desc">ISBN:</span
+                  ><input name="isbn" placeholder="ISBN" />
+                </div>
+                <div class="form-row">
+                  <span class="input-desc">Páginas:</span
+                  ><input name="pages" placeholder="Pages" />
+                </div>
+                <div class="form-row">
+                  <span class="input-desc">Ano de publicação:</span
+                  ><input name="year" placeholder="Year" />
+                </div>
+                <div class="form-row">
+                  <span class="input-desc">Idioma:</span
+                  ><input name="language" placeholder="Language" />
+                </div>
+                <div class="form-row">
+                  <span class="input-desc">Editora:</span
+                  ><input name="publisher" placeholder="Publisher" />
+                </div>
+                <div class="form-row">
+                  <span class="input-desc">Imagem (URL):</span
+                  ><input name="image" placeholder="Image URL" />
+                </div>
+                <div class="form-row">
+                  <span class="input-desc">Vídeo Vertical (URL):</span
+                  ><input
+                    name="videoVerticalUrl"
+                    placeholder="Vertical video URL (e.g., YouTube Shorts)"
+                  />
+                </div>
+                <div class="form-row">
+                  <span class="input-desc">Vídeo Horizontal (URL):</span
+                  ><input
+                    name="videoHorizontalUrl"
+                    placeholder="Horizontal video URL (YouTube)"
+                  />
+                </div>
+                <div class="form-row">
+                  <span class="input-desc">Stripe Product ID:</span
+                  ><input
+                    name="stripeProductId"
+                    placeholder="Stripe Product ID"
+                  />
+                </div>
+                <div class="form-row">
+                  <span class="input-desc">Páginas de amostra:</span
+                  ><textarea
+                    name="samplePages"
+                    placeholder="Sample pages (comma-separated URLs)"
+                  ></textarea>
+                </div>
+                <div class="form-row">
+                  <span class="input-desc">Galeria de fotos:</span
+                  ><textarea
+                    name="galleryPhotos"
+                    placeholder="Gallery photos (comma-separated URLs)"
+                  ></textarea>
+                </div>
+                <div class="form-row">
+                  <span class="input-desc">Descrição:</span
+                  ><textarea
+                    name="description"
+                    placeholder="Description"
+                  ></textarea>
+                </div>
+                <div class="form-row">
+                  <button class="btn primary" type="submit">Create</button>
+                </div>
               </form>
             </div>
-          <div class="card">
-            <h3>Posts</h3>
-            <div id="postsList">Loading...</div>
-          </div>
-        </div>
-
-        <!-- Comments -->
-        <div id="comments" class="view" style="display:none">
-          <div class="card">
-            <h3>Pending Comments</h3>
-            <div id="commentsList">Loading...</div>
-          </div>
-        </div>
-
-        <!-- Orders -->
-        <div id="orders" class="view" style="display:none">
-          <div class="card">
-            <h3>Orders</h3>
-            <div id="ordersList">Loading...</div>
-          </div>
-        </div>
-
-        <!-- Order Modal -->
-        <div id="orderModal" class="modal" style="display:none; position:fixed; left:0;top:0;right:0;bottom:0;background:rgba(0,0,0,0.4);align-items:center;justify-content:center;">
-          <div class="card" style="max-width:800px;margin:auto;">
-            <h3>Order Details</h3>
-            <div id="orderModalContent">Loading...</div>
-            <div style="margin-top:8px;text-align:right">
-              <button id="orderModalSave" class="btn primary">Save</button>
-              <button id="orderModalClose" class="btn">Close</button>
+            <div class="card">
+              <h3>Books</h3>
+              <div id="booksList">Loading...</div>
             </div>
           </div>
-        </div>
 
-        <!-- Forms -->
-        <div id="forms" class="view" style="display:none">
-          <div class="card">
-            <h3>Form Submissions</h3>
-            <div id="formsList">Loading...</div>
-          </div>
-        </div>
-
-        <!-- Form Submission Modal -->
-        <div id="formModal" class="modal" style="display:none; position:fixed; left:0;top:0;right:0;bottom:0;background:rgba(0,0,0,0.4);align-items:center;justify-content:center;">
-          <div class="card" style="max-width:800px;margin:auto; width:95%;">
-            <h3>Submission Details</h3>
-            <div id="formModalContent">Loading...</div>
-            <div style="margin-top:8px;text-align:right">
-              <button id="formModalClose" class="btn">Close</button>
+          <!-- Posts -->
+          <div id="posts" class="view" style="display: none">
+            <div class="card">
+              <h3>Create Post</h3>
+              <form id="createPostForm" class="form-grid">
+                <div class="form-row">
+                  <label
+                    >Título:<input name="title" placeholder="Title" required
+                  /></label>
+                </div>
+                <div class="form-row">
+                  <label
+                    >Slug (URL):<input name="slug" placeholder="Slug" required
+                  /></label>
+                </div>
+                <div class="form-row">
+                  <label
+                    >Autor:<input name="author" placeholder="Author"
+                  /></label>
+                </div>
+                <div class="form-row">
+                  <label
+                    >Categoria:<input
+                      name="category"
+                      placeholder="Category name"
+                  /></label>
+                </div>
+                <div class="form-row">
+                  <label
+                    >Excerpt:<input name="excerpt" placeholder="Short excerpt"
+                  /></label>
+                </div>
+                <div class="form-row">
+                  <label
+                    >Imagem (URL):<input
+                      name="featuredImage"
+                      placeholder="Featured image URL"
+                  /></label>
+                </div>
+                <div class="form-row">
+                  <label
+                    >Publicado: <input type="checkbox" name="published"
+                  /></label>
+                </div>
+                <div class="form-row">
+                  <label
+                    >Destaque: <input type="checkbox" name="featured"
+                  /></label>
+                </div>
+                <div class="form-row">
+                  <label
+                    >Conteúdo (HTML):<textarea
+                      name="content"
+                      placeholder="Content (HTML)"
+                      rows="8"
+                    ></textarea>
+                  </label>
+                </div>
+                <div class="form-row">
+                  <button class="btn primary" type="submit">Create Post</button>
+                </div>
+              </form>
+            </div>
+            <div class="card">
+              <h3>Posts</h3>
+              <div id="postsList">Loading...</div>
             </div>
           </div>
-        </div>
 
-        <!-- Newsletters -->
-        <div id="newsletters" class="view" style="display:none">
-          <div class="card">
-            <h3>Newsletter Subscribers</h3>
-            <div id="newslettersList">Loading...</div>
-            <div style="margin-top:8px">
-              <button id="exportSubscribers" class="btn">Export CSV</button>
+          <!-- Comments -->
+          <div id="comments" class="view" style="display: none">
+            <div class="card">
+              <h3>Pending Comments</h3>
+              <div id="commentsList">Loading...</div>
             </div>
           </div>
-          <div class="card">
-            <h3>Send Newsletter</h3>
-            <form id="sendNewsletterForm" class="form-grid">
-              <input name="subject" id="newsletterSubject" placeholder="Subject" required />
-              <textarea name="content" id="newsletterContent" placeholder="HTML content" rows="6"></textarea>
-              <button class="btn primary" type="submit">Send</button>
-            </form>
-          </div>
-        </div>
-        
-        <!-- Services -->
-        <div id="services" class="view" style="display:none">
-          <div class="card">
-            <h3>Service Pricing Management</h3>
-            <p class="info-message">Apenas os 3 planos de serviço padrão podem ser gerenciados. Use os botões "Editar" para modificar preços e configurações de promoção.</p>
-            <div style="margin-bottom: 15px;">
-              <button id="refreshServicesBtn" class="btn">Atualizar Lista</button>
-            </div>
-            <div id="servicesList">Loading...</div>
-          </div>
-        </div>
-        
-        <!-- Users -->
-        <div id="users" class="view" style="display:none">
-          <div class="card">
-            <h3>Users</h3>
-            <div id="usersList">Loading...</div>
-          </div>
-        </div>
-      </section>
-    </main>
-  </div>
 
-  <script src="app.js"></script>
-</body>
+          <!-- Orders -->
+          <div id="orders" class="view" style="display: none">
+            <div class="card">
+              <h3>Orders</h3>
+              <div id="ordersList">Loading...</div>
+            </div>
+          </div>
+
+          <!-- Order Modal -->
+          <div
+            id="orderModal"
+            class="modal"
+            style="
+              display: none;
+              position: fixed;
+              left: 0;
+              top: 0;
+              right: 0;
+              bottom: 0;
+              background: rgba(0, 0, 0, 0.4);
+              align-items: center;
+              justify-content: center;
+            "
+          >
+            <div class="card" style="max-width: 800px; margin: auto">
+              <h3>Order Details</h3>
+              <div id="orderModalContent">Loading...</div>
+              <div style="margin-top: 8px; text-align: right">
+                <button id="orderModalSave" class="btn primary">Save</button>
+                <button id="orderModalClose" class="btn">Close</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Forms -->
+          <div id="forms" class="view" style="display: none">
+            <div class="card">
+              <h3>Form Submissions</h3>
+              <div id="formsList">Loading...</div>
+            </div>
+          </div>
+
+          <!-- Form Submission Modal -->
+          <div
+            id="formModal"
+            class="modal"
+            style="
+              display: none;
+              position: fixed;
+              left: 0;
+              top: 0;
+              right: 0;
+              bottom: 0;
+              background: rgba(0, 0, 0, 0.4);
+              align-items: center;
+              justify-content: center;
+            "
+          >
+            <div
+              class="card"
+              style="max-width: 800px; margin: auto; width: 95%"
+            >
+              <h3>Submission Details</h3>
+              <div id="formModalContent">Loading...</div>
+              <div style="margin-top: 8px; text-align: right">
+                <button id="formModalClose" class="btn">Close</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Newsletters -->
+          <div id="newsletters" class="view" style="display: none">
+            <div class="card">
+              <h3>Newsletter Subscribers</h3>
+              <div id="newslettersList">Loading...</div>
+              <div style="margin-top: 8px">
+                <button id="exportSubscribers" class="btn">Export CSV</button>
+              </div>
+            </div>
+            <div class="card">
+              <h3>Send Newsletter</h3>
+              <form id="sendNewsletterForm" class="form-grid">
+                <input
+                  name="subject"
+                  id="newsletterSubject"
+                  placeholder="Subject"
+                  required
+                />
+                <textarea
+                  name="content"
+                  id="newsletterContent"
+                  placeholder="HTML content"
+                  rows="6"
+                ></textarea>
+                <button class="btn primary" type="submit">Send</button>
+              </form>
+            </div>
+          </div>
+
+          <!-- Services -->
+          <div id="services" class="view" style="display: none">
+            <div class="card">
+              <h3>Service Pricing Management</h3>
+              <p class="info-message">
+                Apenas os 3 planos de serviço padrão podem ser gerenciados. Use
+                os botões "Editar" para modificar preços e configurações de
+                promoção.
+              </p>
+              <div style="margin-bottom: 15px">
+                <button id="refreshServicesBtn" class="btn">
+                  Atualizar Lista
+                </button>
+              </div>
+              <div id="servicesList">Loading...</div>
+            </div>
+          </div>
+
+          <!-- Users -->
+          <div id="users" class="view" style="display: none">
+            <div class="card">
+              <h3>Users</h3>
+              <div id="usersList">Loading...</div>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script src="app.js"></script>
+  </body>
 </html>

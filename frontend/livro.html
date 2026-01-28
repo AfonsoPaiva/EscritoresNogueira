@@ -1,734 +1,918 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="pt">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="Permissions-Policy" content="private-token=()">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="Permissions-Policy" content="private-token=()" />
     <title>Detalhes do Livro - Escritores Nogueira</title>
-    <meta name="description" content="Detalhes do livro">
-    <link rel="icon" href="/assets/favicon.ico">
-    
+    <meta name="description" content="Detalhes do livro" />
+    <link rel="icon" href="/assets/favicon.ico" />
+
     <!-- Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:wght@400;500;600;700;800&family=Questrial&display=swap" rel="stylesheet">
-    
+    <link
+      href="https://fonts.googleapis.com/css2?family=EB+Garamond:wght@400;500;600;700;800&family=Questrial&display=swap"
+      rel="stylesheet"
+    />
+
     <!-- Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+
     <!-- Swiper CSS -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css">
-    
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css"
+    />
+
     <!-- AOS removed: replaced by GSAP+ScrollTrigger -->
-    
+
     <!-- Main CSS -->
-    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/style.css" />
 
     <!-- Klaro Cookie Consent -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/klaro@0.7.9/dist/klaro.css">
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/klaro@0.7.9/dist/klaro.css"
+    />
     <script>
-window.klaroConfig = {
-    // Privacy policy URL
-    privacyPolicy: '/apoio#privacy',
+      window.klaroConfig = {
+        // Privacy policy URL
+        privacyPolicy: "/apoio#privacy",
 
-    // Language
-    lang: 'pt',
+        // Language
+        lang: "pt",
 
-    // Force consent modal on first visit
-    mustConsent: false,
+        // Force consent modal on first visit
+        mustConsent: false,
 
-    // Accept all button
-    acceptAll: true,
+        // Accept all button
+        acceptAll: true,
 
-    // Decline all button
-    declineAll: true,
+        // Decline all button
+        declineAll: true,
 
-    // Hide the "powered by" link
-    poweredBy: false,
+        // Hide the "powered by" link
+        poweredBy: false,
 
-    // Cookie name for storing consent
-    cookieName: 'escritores_nogueira_consent',
+        // Cookie name for storing consent
+        cookieName: "escritores_nogueira_consent",
 
-    // Force Klaro to use cookies so removing the cookie restores the banner
-    storageMethod: 'cookie',
+        // Force Klaro to use cookies so removing the cookie restores the banner
+        storageMethod: "cookie",
 
-    // Cookie expires in 1 year
-    cookieExpiresAfterDays: 365,
+        // Cookie expires in 1 year
+        cookieExpiresAfterDays: 365,
 
-    // Services (apps) to manage
-    services: [
-        {
-            name: 'firebase',
-            title: 'Firebase Authentication',
-            purposes: ['authentication'],
+        // Services (apps) to manage
+        services: [
+          {
+            name: "firebase",
+            title: "Firebase Authentication",
+            purposes: ["authentication"],
             required: false,
             cookies: [
-                ['firebase', '/', '.firebase.com'],
-                ['firebase-auth-token', '/', location.hostname]
-            ]
-        },
-        {
-            name: 'google-analytics',
-            title: 'Google Analytics',
-            purposes: ['analytics'],
+              ["firebase", "/", ".firebase.com"],
+              ["firebase-auth-token", "/", location.hostname],
+            ],
+          },
+          {
+            name: "google-analytics",
+            title: "Google Analytics",
+            purposes: ["analytics"],
             required: false,
             cookies: [
-                ['_ga', '/', location.hostname],
-                ['_gid', '/', location.hostname],
-                ['_gat', '/', location.hostname]
-            ]
-        },
-        {
-            name: 'recaptcha',
-            title: 'Google reCAPTCHA',
-            purposes: ['security'],
+              ["_ga", "/", location.hostname],
+              ["_gid", "/", location.hostname],
+              ["_gat", "/", location.hostname],
+            ],
+          },
+          {
+            name: "recaptcha",
+            title: "Google reCAPTCHA",
+            purposes: ["security"],
             required: false,
-            cookies: [
-                ['recaptcha', '/', '.google.com']
-            ]
-        }
-    ],
+            cookies: [["recaptcha", "/", ".google.com"]],
+          },
+        ],
 
-    // Purposes
-    purposes: {
-        authentication: {
-            title: 'Autenticação',
-            description: 'Necessário para login e conta de usuário.'
+        // Purposes
+        purposes: {
+          authentication: {
+            title: "Autenticação",
+            description: "Necessário para login e conta de usuário.",
+          },
+          analytics: {
+            title: "Analytics",
+            description:
+              "Ajuda-nos a entender como o site é usado para melhorar a experiência.",
+          },
+          security: {
+            title: "Segurança",
+            description: "Protege o site contra spam e abuso.",
+          },
         },
-        analytics: {
-            title: 'Analytics',
-            description: 'Ajuda-nos a entender como o site é usado para melhorar a experiência.'
+
+        // Styling
+        styling: {
+          theme: ["light", "bottom", "left"],
+          "modal-bg-color": "rgba(0, 0, 0, 0.8)",
+          "modal-border-radius": "8px",
+          "button-border-radius": "6px",
+          "button-primary-bg": "#FFB100",
+          "button-primary-color": "#0E1B4D",
+          "button-secondary-bg": "#F5F5F5",
+          "button-secondary-color": "#0E1B4D",
+          "checkbox-checked-bg": "#FFB100",
+          "checkbox-unchecked-bg": "#FFFFFF",
+          "checkbox-border-color": "#E0E0E0",
+          "consent-modal-bg-color": "#FFFFFF",
+          "consent-notice-bg-color": "#0E1B4D",
+          "consent-notice-color": "#FFFFFF",
+          "consent-notice-border": "none",
+          "consent-notice-border-radius": "0",
+          "consent-notice-box-shadow": "0 2px 8px rgba(14, 27, 77, 0.1)",
+          "consent-modal-box-shadow": "0 4px 16px rgba(14, 27, 77, 0.2)",
+          "font-family": "'Questrial', sans-serif",
+          "font-size-base": "14px",
         },
-        security: {
-            title: 'Segurança',
-            description: 'Protege o site contra spam e abuso.'
-        }
-    },
 
-    // Styling
-    styling: {
-        theme: ['light', 'bottom', 'left'],
-        'modal-bg-color': 'rgba(0, 0, 0, 0.8)',
-        'modal-border-radius': '8px',
-        'button-border-radius': '6px',
-        'button-primary-bg': '#FFB100',
-        'button-primary-color': '#0E1B4D',
-        'button-secondary-bg': '#F5F5F5',
-        'button-secondary-color': '#0E1B4D',
-        'checkbox-checked-bg': '#FFB100',
-        'checkbox-unchecked-bg': '#FFFFFF',
-        'checkbox-border-color': '#E0E0E0',
-        'consent-modal-bg-color': '#FFFFFF',
-        'consent-notice-bg-color': '#0E1B4D',
-        'consent-notice-color': '#FFFFFF',
-        'consent-notice-border': 'none',
-        'consent-notice-border-radius': '0',
-        'consent-notice-box-shadow': '0 2px 8px rgba(14, 27, 77, 0.1)',
-        'consent-modal-box-shadow': '0 4px 16px rgba(14, 27, 77, 0.2)',
-        'font-family': "'Questrial', sans-serif",
-        'font-size-base': '14px'
-    },
-
-    // Services
-    services: [
-        {
-            name: 'firebase',
-            title: 'Firebase Authentication',
-            purposes: ['authentication'],
+        // Services
+        services: [
+          {
+            name: "firebase",
+            title: "Firebase Authentication",
+            purposes: ["authentication"],
             required: true,
             cookies: [
-                ['firebase', '/', location.hostname],
-                ['firebase-auth', '/', location.hostname]
-            ]
-        },
-        {
-            name: 'google-analytics',
-            title: 'Google Analytics',
-            purposes: ['analytics'],
+              ["firebase", "/", location.hostname],
+              ["firebase-auth", "/", location.hostname],
+            ],
+          },
+          {
+            name: "google-analytics",
+            title: "Google Analytics",
+            purposes: ["analytics"],
             required: false,
             cookies: [
-                ['_ga', '/', location.hostname],
-                ['_gid', '/', location.hostname],
-                ['_gat', '/', location.hostname]
-            ]
-        },
-        {
-            name: 'location',
-            title: 'Recolha de Localização',
-            purposes: ['location'],
+              ["_ga", "/", location.hostname],
+              ["_gid", "/", location.hostname],
+              ["_gat", "/", location.hostname],
+            ],
+          },
+          {
+            name: "location",
+            title: "Recolha de Localização",
+            purposes: ["location"],
             required: false,
             cookies: [
-                // No cookies for location collection
-            ]
-        },
-        {
-            name: 'recaptcha',
-            title: 'Google reCAPTCHA',
-            purposes: ['security'],
+              // No cookies for location collection
+            ],
+          },
+          {
+            name: "recaptcha",
+            title: "Google reCAPTCHA",
+            purposes: ["security"],
             required: true,
-            cookies: [
-                ['recaptcha', '/', '.google.com']
-            ]
-        }
-    ],
+            cookies: [["recaptcha", "/", ".google.com"]],
+          },
+        ],
 
-    // Purposes
-    purposes: {
-        authentication: {
-            title: 'Autenticação',
-            description: 'Necessário para login e conta de usuário.'
+        // Purposes
+        purposes: {
+          authentication: {
+            title: "Autenticação",
+            description: "Necessário para login e conta de usuário.",
+          },
+          analytics: {
+            title: "Analytics",
+            description:
+              "Ajuda-nos a entender como o site é usado para melhorar a experiência.",
+          },
+          location: {
+            title: "Localização",
+            description: "Usado para recolher localização para entregas.",
+          },
+          security: {
+            title: "Segurança",
+            description: "Protege o site contra spam e abuso.",
+          },
         },
-        analytics: {
-            title: 'Analytics',
-            description: 'Ajuda-nos a entender como o site é usado para melhorar a experiência.'
-        },
-        location: {
-            title: 'Localização',
-            description: 'Usado para recolher localização para entregas.'
-        },
-        security: {
-            title: 'Segurança',
-            description: 'Protege o site contra spam e abuso.'
-        }
-    },
 
-    // Translations
-    translations: {
-        pt: {
+        // Translations
+        translations: {
+          pt: {
             consentModal: {
-                title: 'Este site usa cookies',
-                description: 'Usamos cookies para melhorar sua experiência. Você pode escolher quais tipos de cookies aceitar.',
-                acceptAllBtn: 'Aceitar Todos',
-                acceptSelectedBtn: 'Aceitar Selecionados',
-                declineBtn: 'Rejeitar Todos',
-                saveBtn: 'Salvar Preferências'
+              title: "Este site usa cookies",
+              description:
+                "Usamos cookies para melhorar sua experiência. Você pode escolher quais tipos de cookies aceitar.",
+              acceptAllBtn: "Aceitar Todos",
+              acceptSelectedBtn: "Aceitar Selecionados",
+              declineBtn: "Rejeitar Todos",
+              saveBtn: "Salvar Preferências",
             },
             consentNotice: {
-                changeDescription: 'Houve mudanças desde sua última visita, por favor atualize seu consentimento.',
-                description: 'Usamos cookies para melhorar sua experiência. Você pode escolher quais tipos de cookies aceitar.',
-                learnMore: 'Saiba mais',
-                testing: 'Testing cookie banner!'
+              changeDescription:
+                "Houve mudanças desde sua última visita, por favor atualize seu consentimento.",
+              description:
+                "Usamos cookies para melhorar sua experiência. Você pode escolher quais tipos de cookies aceitar.",
+              learnMore: "Saiba mais",
+              testing: "Testing cookie banner!",
             },
             firebase: {
-                description: 'Usado para autenticação de usuários.'
+              description: "Usado para autenticação de usuários.",
             },
-            'google-analytics': {
-                description: 'Coleta dados sobre como os visitantes usam o site.'
+            "google-analytics": {
+              description: "Coleta dados sobre como os visitantes usam o site.",
             },
             location: {
-                description: 'Usado para recolher localização para entregas.'
+              description: "Usado para recolher localização para entregas.",
             },
             recaptcha: {
-                description: 'Protege contra spam e abuso.'
+              description: "Protege contra spam e abuso.",
             },
             purposes: {
-                authentication: 'Autenticação',
-                analytics: 'Analytics',
-                location: 'Localização',
-                security: 'Segurança'
-            }
-        }
-    },
+              authentication: "Autenticação",
+              analytics: "Analytics",
+              location: "Localização",
+              security: "Segurança",
+            },
+          },
+        },
 
-    // Callback when consent changes
-    callback: function(consent, app) {
-        // Track consent state to avoid repeated handling
-        window._klaroConsentState = window._klaroConsentState || {};
-        var prev = window._klaroConsentState[app.name];
-        if (prev === consent) return;
-        window._klaroConsentState[app.name] = consent;
-        if (app.name === 'firebase' && consent) {
+        // Callback when consent changes
+        callback: function (consent, app) {
+          // Track consent state to avoid repeated handling
+          window._klaroConsentState = window._klaroConsentState || {};
+          var prev = window._klaroConsentState[app.name];
+          if (prev === consent) return;
+          window._klaroConsentState[app.name] = consent;
+          if (app.name === "firebase" && consent) {
             if (window.initializeFirebase) window.initializeFirebase();
-        }
-    }
-};
-</script>
+          }
+        },
+      };
+    </script>
     <script>
-// Robust Klaro loader: try multiple CDNs, fallback to local banner if blocked
-(function(){
-    function setupKlaro(){
-        try{ if (typeof klaro !== 'undefined') klaro.setup(window.klaroConfig); }catch(e){}
-    }
-
-    var urls = [
-        'https://cdn.jsdelivr.net/npm/klaro@0.7.9/dist/klaro.js',
-        'https://cdn.kiprotect.com/klaro/0.7/klaro.js'
-    ];
-
-    function tryLoad(i){
-        if(i>=urls.length){ showFallback(); return; }
-        var s = document.createElement('script');
-        s.src = urls[i];
-        s.async = true;
-        s.onload = function(){ setTimeout(setupKlaro, 50); };
-        s.onerror = function(){ tryLoad(i+1); };
-        document.head.appendChild(s);
-    }
-
-    function setConsentCookie(){
-        var maxAge = 60*60*24*365; // 1 year
-        document.cookie = 'escritores_nogueira_consent=true; path=/; max-age=' + maxAge + '; SameSite=Lax';
-    }
-
-    function showFallback(){
-        if(document.getElementById('cookie-fallback')) return;
-        var css = '\n#cookie-fallback{position:fixed;left:20px;bottom:20px;z-index:10000;background:#ffffff;color:#0E1B4D;padding:20px;border-radius:12px;border:1px solid rgba(14,27,77,0.06);box-shadow:0 25px 100px rgba(14,27,77,0.25) !important;max-width:520px;font-family:Questrial, sans-serif}\n#cookie-fallback .cn-actions{margin-top:12px;text-align:right}\n#cookie-fallback button{border-radius:22px;padding:9px 16px;border:0;cursor:pointer;margin-left:8px}\n#cookie-fallback .cn-accept{background:#FFB100;color:#0E1B4D}\n#cookie-fallback .cn-decline{background:transparent;color:#0E1B4D;border:1px solid rgba(14,27,77,0.08)}\n#cookie-fallback .cn-title{font-size:1.2rem;font-weight:900;margin-bottom:10px;color:#0E1B4D !important;display:block !important}\n#cookie-fallback .cn-body{font-size:0.98rem;line-height:1.45;color:#0E1B4D !important}\n#cookie-fallback, #cookie-fallback *{color:inherit !important}\n';
-        var style = document.createElement('style'); style.appendChild(document.createTextNode(css)); document.head.appendChild(style);
-
-        var tpl = document.createElement('div'); tpl.id = 'cookie-fallback';
-        tpl.innerHTML = '<div class="cookie-notice"><div class="cn-body"><div class="cn-title">Cookies</div><p><span>Usamos cookies para melhorar sua experiência. Você pode escolher quais tipos de cookies aceitar.</span></p><div class="cn-ok"><a class="cm-link cn-learn-more" href="#">Saiba mais...</a><div class="cn-buttons"><button class="cm-btn cm-btn-danger cn-decline" type="button">Recuso-me</button><button class="cm-btn cm-btn-success cn-accept" type="button">Está tudo bem.</button></div></div></div></div>';
-        document.body.appendChild(tpl);
-
-        // Wire accept/decline handlers
-        tpl.querySelector('.cn-accept').addEventListener('click', function(){
-            setConsentCookie();
-            window.klaro = window.klaro || {};
-            window.klaro.getManager = function(){ return { consents: { firebase: true, 'google-analytics': true, location: true, recaptcha: true } }; };
-            if (window.initializeFirebase) window.initializeFirebase();
-            var el = document.getElementById('cookie-fallback'); if (el) el.remove();
-        });
-        tpl.querySelector('.cn-decline').addEventListener('click', function(){
-            setConsentCookie();
-            var el = document.getElementById('cookie-fallback'); if (el) el.remove();
-        });
-    }
-
-    // If Klaro state exists in localStorage but cookie was deleted, remove localStorage so banner appears
-    try {
-        if (window.localStorage) {
-            var hasLocal = !!localStorage.getItem('klaro');
-            var hasCookie = document.cookie.indexOf('escritores_nogueira_consent=') !== -1;
-            if (hasLocal && !hasCookie) {
-                localStorage.removeItem('klaro');
-            }
+      // Robust Klaro loader: try multiple CDNs, fallback to local banner if blocked
+      (function () {
+        function setupKlaro() {
+          try {
+            if (typeof klaro !== "undefined") klaro.setup(window.klaroConfig);
+          } catch (e) {}
         }
-    } catch (e) {}
 
-    // Start loading
-    tryLoad(0);
-})();
+        var urls = [
+          "https://cdn.jsdelivr.net/npm/klaro@0.7.9/dist/klaro.js",
+          "https://cdn.kiprotect.com/klaro/0.7/klaro.js",
+        ];
+
+        function tryLoad(i) {
+          if (i >= urls.length) {
+            showFallback();
+            return;
+          }
+          var s = document.createElement("script");
+          s.src = urls[i];
+          s.async = true;
+          s.onload = function () {
+            setTimeout(setupKlaro, 50);
+          };
+          s.onerror = function () {
+            tryLoad(i + 1);
+          };
+          document.head.appendChild(s);
+        }
+
+        function setConsentCookie() {
+          var maxAge = 60 * 60 * 24 * 365; // 1 year
+          document.cookie =
+            "escritores_nogueira_consent=true; path=/; max-age=" +
+            maxAge +
+            "; SameSite=Lax";
+        }
+
+        function showFallback() {
+          if (document.getElementById("cookie-fallback")) return;
+          var css =
+            "\n#cookie-fallback{position:fixed;left:20px;bottom:20px;z-index:10000;background:#ffffff;color:#0E1B4D;padding:20px;border-radius:12px;border:1px solid rgba(14,27,77,0.06);box-shadow:0 25px 100px rgba(14,27,77,0.25) !important;max-width:520px;font-family:Questrial, sans-serif}\n#cookie-fallback .cn-actions{margin-top:12px;text-align:right}\n#cookie-fallback button{border-radius:22px;padding:9px 16px;border:0;cursor:pointer;margin-left:8px}\n#cookie-fallback .cn-accept{background:#FFB100;color:#0E1B4D}\n#cookie-fallback .cn-decline{background:transparent;color:#0E1B4D;border:1px solid rgba(14,27,77,0.08)}\n#cookie-fallback .cn-title{font-size:1.2rem;font-weight:900;margin-bottom:10px;color:#0E1B4D !important;display:block !important}\n#cookie-fallback .cn-body{font-size:0.98rem;line-height:1.45;color:#0E1B4D !important}\n#cookie-fallback, #cookie-fallback *{color:inherit !important}\n";
+          var style = document.createElement("style");
+          style.appendChild(document.createTextNode(css));
+          document.head.appendChild(style);
+
+          var tpl = document.createElement("div");
+          tpl.id = "cookie-fallback";
+          tpl.innerHTML =
+            '<div class="cookie-notice"><div class="cn-body"><div class="cn-title">Cookies</div><p><span>Usamos cookies para melhorar sua experiência. Você pode escolher quais tipos de cookies aceitar.</span></p><div class="cn-ok"><a class="cm-link cn-learn-more" href="#">Saiba mais...</a><div class="cn-buttons"><button class="cm-btn cm-btn-danger cn-decline" type="button">Recuso-me</button><button class="cm-btn cm-btn-success cn-accept" type="button">Está tudo bem.</button></div></div></div></div>';
+          document.body.appendChild(tpl);
+
+          // Wire accept/decline handlers
+          tpl
+            .querySelector(".cn-accept")
+            .addEventListener("click", function () {
+              setConsentCookie();
+              window.klaro = window.klaro || {};
+              window.klaro.getManager = function () {
+                return {
+                  consents: {
+                    firebase: true,
+                    "google-analytics": true,
+                    location: true,
+                    recaptcha: true,
+                  },
+                };
+              };
+              if (window.initializeFirebase) window.initializeFirebase();
+              var el = document.getElementById("cookie-fallback");
+              if (el) el.remove();
+            });
+          tpl
+            .querySelector(".cn-decline")
+            .addEventListener("click", function () {
+              setConsentCookie();
+              var el = document.getElementById("cookie-fallback");
+              if (el) el.remove();
+            });
+        }
+
+        // If Klaro state exists in localStorage but cookie was deleted, remove localStorage so banner appears
+        try {
+          if (window.localStorage) {
+            var hasLocal = !!localStorage.getItem("klaro");
+            var hasCookie =
+              document.cookie.indexOf("escritores_nogueira_consent=") !== -1;
+            if (hasLocal && !hasCookie) {
+              localStorage.removeItem("klaro");
+            }
+          }
+        } catch (e) {}
+
+        // Start loading
+        tryLoad(0);
+      })();
     </script>
 
-<style>
-.cm-modal {
-    background: #FFFFFF !important;
-    color: #0E1B4D !important;
-    border-radius: 12px !important;
-    box-shadow: 0 20px 60px rgba(14,27,77,0.15) !important;
-    max-width: 600px !important;
-    margin: 20px auto !important;
-}
-.cm-modal .cm-header {
-    background: #FFFFFF !important;
-    color: #0E1B4D !important;
-    border-bottom: 1px solid rgba(14,27,77,0.1) !important;
-    padding: 20px !important;
-}
-.cm-modal .cm-header h1.title {
-    color: #0E1B4D !important;
-    font-size: 1.5rem !important;
-    font-weight: 700 !important;
-}
-.cm-modal .cm-header p {
-    color: #0E1B4D !important;
-    margin-top: 10px !important;
-}
-.cm-modal .cm-body {
-    background: #FFFFFF !important;
-    color: #0E1B4D !important;
-    padding: 20px !important;
-}
-.cm-modal .cm-footer {
-    background: #FFFFFF !important;
-    border-top: 1px solid rgba(14,27,77,0.1) !important;
-    padding: 20px !important;
-}
-.cm-modal .cm-btn {
-    background: #FFB100 !important;
-    color: #0E1B4D !important;
-    border: 2px solid #FFB100 !important;
-    border-radius: 8px !important;
-    padding: 10px 20px !important;
-    font-weight: 600 !important;
-    font-size: 0.9rem !important;
-    cursor: pointer !important;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
-    margin: 5px !important;
-}
-.cm-modal .cm-btn:hover {
-    background: #0E1B4D !important;
-    color: #FFB100 !important;
-    transform: translateY(-1px) !important;
-    box-shadow: 0 4px 16px rgba(14,27,77,0.12) !important;
-}
-.cm-modal .cm-btn.cm-btn-decline {
-    background: #FFFFFF !important;
-    color: #0E1B4D !important;
-    border-color: rgba(14,27,77,0.2) !important;
-}
-.cm-modal .cm-btn.cm-btn-decline:hover {
-    background: rgba(14,27,77,0.05) !important;
-}
-.cm-modal .cm-link {
-    color: #0E1B4D !important;
-    text-decoration: underline !important;
-}
-.cm-modal .cm-link:hover {
-    color: #FFB100 !important;
-}
-.cm-modal .cm-list-title,
-.cm-modal .cm-list-description,
-.cm-modal .purposes {
-    color: #0E1B4D !important;
-}
-</style>
-</head>
+    <style>
+      .cm-modal {
+        background: #ffffff !important;
+        color: #0e1b4d !important;
+        border-radius: 12px !important;
+        box-shadow: 0 20px 60px rgba(14, 27, 77, 0.15) !important;
+        max-width: 600px !important;
+        margin: 20px auto !important;
+      }
+      .cm-modal .cm-header {
+        background: #ffffff !important;
+        color: #0e1b4d !important;
+        border-bottom: 1px solid rgba(14, 27, 77, 0.1) !important;
+        padding: 20px !important;
+      }
+      .cm-modal .cm-header h1.title {
+        color: #0e1b4d !important;
+        font-size: 1.5rem !important;
+        font-weight: 700 !important;
+      }
+      .cm-modal .cm-header p {
+        color: #0e1b4d !important;
+        margin-top: 10px !important;
+      }
+      .cm-modal .cm-body {
+        background: #ffffff !important;
+        color: #0e1b4d !important;
+        padding: 20px !important;
+      }
+      .cm-modal .cm-footer {
+        background: #ffffff !important;
+        border-top: 1px solid rgba(14, 27, 77, 0.1) !important;
+        padding: 20px !important;
+      }
+      .cm-modal .cm-btn {
+        background: #ffb100 !important;
+        color: #0e1b4d !important;
+        border: 2px solid #ffb100 !important;
+        border-radius: 8px !important;
+        padding: 10px 20px !important;
+        font-weight: 600 !important;
+        font-size: 0.9rem !important;
+        cursor: pointer !important;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        margin: 5px !important;
+      }
+      .cm-modal .cm-btn:hover {
+        background: #0e1b4d !important;
+        color: #ffb100 !important;
+        transform: translateY(-1px) !important;
+        box-shadow: 0 4px 16px rgba(14, 27, 77, 0.12) !important;
+      }
+      .cm-modal .cm-btn.cm-btn-decline {
+        background: #ffffff !important;
+        color: #0e1b4d !important;
+        border-color: rgba(14, 27, 77, 0.2) !important;
+      }
+      .cm-modal .cm-btn.cm-btn-decline:hover {
+        background: rgba(14, 27, 77, 0.05) !important;
+      }
+      .cm-modal .cm-link {
+        color: #0e1b4d !important;
+        text-decoration: underline !important;
+      }
+      .cm-modal .cm-link:hover {
+        color: #ffb100 !important;
+      }
+      .cm-modal .cm-list-title,
+      .cm-modal .cm-list-description,
+      .cm-modal .purposes {
+        color: #0e1b4d !important;
+      }
+    </style>
+  </head>
 
-<!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-SF9CQEPSLJ"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
+  <!-- Google tag (gtag.js) -->
+  <script
+    async
+    src="https://www.googletagmanager.com/gtag/js?id=G-SF9CQEPSLJ"
+  ></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag() {
+      dataLayer.push(arguments);
+    }
+    gtag("js", new Date());
 
-  gtag('config', 'G-SF9CQEPSLJ');
-</script>
-<body class="page-livro">
-    
+    gtag("config", "G-SF9CQEPSLJ");
+  </script>
+  <body class="page-livro">
     <!-- Site Wrapper -->
     <div class="site-wrapper">
-    
-    <!-- Header -->
-    <header class="header" id="header">
+      <!-- Header -->
+      <header class="header" id="header">
         <div class="container">
-            <nav class="navbar">
-                 <a href="/" class="logo">
-                    <img src="/assets/logo.svg" alt="Logo" class="logo-img"><span class="logo-text">Escritores Nogueira</span>
-                </a>
-                
-                <ul class="nav-menu" id="navMenu">
-                    <li><a href="/livros" class="nav-link active">Livros</a></li>
-                    <li><a href="/servicos" class="nav-link">Serviços</a></li>
-                    <li><a href="/sobre" class="nav-link">Sobre</a></li>
-                    <li><a href="/blog" class="nav-link">Blog</a></li>
-                    <li><a href="/apoio" class="nav-link">Apoio</a></li>
-                </ul>
-                
-                <div class="nav-actions">
-                    <button class="icon-btn search-btn" id="searchBtn">
-                        <i class="fas fa-search"></i>
-                    </button>
-                    <button class="icon-btn cart-btn" id="cartBtn">
-                        <i class="fas fa-shopping-cart"></i>
-                        <span class="cart-count" id="cartCount">0</span>
-                    </button>
-                    <button class="icon-btn user-btn" id="userBtn">
-                        <i class="fas fa-user"></i>
-                    </button>
-                    <button class="hamburger" id="hamburger">
-                        <span></span>
-                        <span></span>
-                        <span></span>
-                    </button>
-                </div>
-            </nav>
-        </div>
-    </header>
+          <nav class="navbar">
+            <a href="/" class="logo">
+              <img src="/assets/logo.svg" alt="Logo" class="logo-img" /><span
+                class="logo-text"
+                >Escritores Nogueira</span
+              >
+            </a>
 
-    <!-- Search Overlay -->
-    <div class="search-overlay" id="searchOverlay">
+            <ul class="nav-menu" id="navMenu">
+              <li><a href="/livros" class="nav-link active">Livros</a></li>
+              <li><a href="/servicos" class="nav-link">Serviços</a></li>
+              <li><a href="/sobre" class="nav-link">Sobre</a></li>
+              <li><a href="/blog" class="nav-link">Blog</a></li>
+              <li><a href="/apoio" class="nav-link">Apoio</a></li>
+            </ul>
+
+            <div class="nav-actions">
+              <button class="icon-btn search-btn" id="searchBtn">
+                <i class="fas fa-search"></i>
+              </button>
+              <button class="icon-btn cart-btn" id="cartBtn">
+                <i class="fas fa-shopping-cart"></i>
+                <span class="cart-count" id="cartCount">0</span>
+              </button>
+              <button class="icon-btn user-btn" id="userBtn">
+                <i class="fas fa-user"></i>
+              </button>
+              <button class="hamburger" id="hamburger">
+                <span></span>
+                <span></span>
+                <span></span>
+              </button>
+            </div>
+          </nav>
+        </div>
+      </header>
+
+      <!-- Search Overlay -->
+      <div class="search-overlay" id="searchOverlay">
         <div class="search-container">
-            <button class="close-search" id="closeSearch">
-                <i class="fas fa-times"></i>
-            </button>
-            <input type="text" class="search-input" placeholder="Pesquisar livros..." id="searchInput">
-            <div class="search-results" id="searchResults"></div>
+          <button class="close-search" id="closeSearch">
+            <i class="fas fa-times"></i>
+          </button>
+          <input
+            type="text"
+            class="search-input"
+            placeholder="Pesquisar livros..."
+            id="searchInput"
+          />
+          <div class="search-results" id="searchResults"></div>
         </div>
-    </div>
+      </div>
 
-    <!-- Cart Sidebar -->
-    <div class="cart-sidebar" id="cartSidebar">
+      <!-- Cart Sidebar -->
+      <div class="cart-sidebar" id="cartSidebar">
         <div class="cart-header">
-            <h3>Carrinho de Compras</h3>
-            <button class="close-cart" id="closeCart">
-                <i class="fas fa-times"></i>
-            </button>
+          <h3>Carrinho de Compras</h3>
+          <button class="close-cart" id="closeCart">
+            <i class="fas fa-times"></i>
+          </button>
         </div>
         <div class="cart-items" id="cartItems"></div>
         <div class="cart-footer">
-            <div class="cart-total">
-                <span>Total:</span>
-                <span id="cartTotal">0,00€</span>
-            </div>
-            <button class="btn btn-primary btn-checkout">Finalizar Compra</button>
+          <div class="cart-total">
+            <span>Total:</span>
+            <span id="cartTotal">0,00€</span>
+          </div>
+          <button class="btn btn-primary btn-checkout">Finalizar Compra</button>
         </div>
-    </div>
+      </div>
 
-    <!-- User Sidebar -->
-    <div class="user-sidebar" id="userSidebar">
+      <!-- User Sidebar -->
+      <div class="user-sidebar" id="userSidebar">
         <div class="user-header">
-            <h3>Conta</h3>
-            <button class="close-user" id="closeUser">
-                <i class="fas fa-times"></i>
-            </button>
+          <h3>Conta</h3>
+          <button class="close-user" id="closeUser">
+            <i class="fas fa-times"></i>
+          </button>
         </div>
         <div class="user-content" id="userContent">
-            <div class="auth-form" id="loginForm">
-                <h4>Iniciar Sessão</h4>
-                <form id="loginFormElement">
-                    <div class="form-group">
-                        <input type="email" placeholder="Email" required>
-                    </div>
-                    <div class="form-group">
-                        <input type="password" placeholder="Password" required>
-                    </div>
-                    <button type="submit" class="btn btn-primary">Entrar</button>
-                </form>
-                <div class="auth-divider">
-                    <span>ou</span>
-                </div>
-                <button type="button" class="btn btn-google" id="googleSignInBtn">
-                    <i class="fab fa-google"></i>
-                    Continuar com Google
-                </button>
-                <p class="auth-toggle">Não tem conta? <a href="#" id="showRegister">Criar conta</a></p>
+          <div class="auth-form" id="loginForm">
+            <h4>Iniciar Sessão</h4>
+            <form id="loginFormElement">
+              <div class="form-group">
+                <input type="email" placeholder="Email" required />
+              </div>
+              <div class="form-group">
+                <input type="password" placeholder="Password" required />
+              </div>
+              <button type="submit" class="btn btn-primary">Entrar</button>
+            </form>
+            <div class="auth-divider">
+              <span>ou</span>
             </div>
-            <div class="auth-form hidden" id="registerForm">
-                <h4>Criar Conta</h4>
-                <form id="registerFormElement">
-                    <div class="form-group">
-                        <input type="text" placeholder="Nome" maxlength="50" required>
-                    </div>
-                    <div class="form-group">
-                        <input type="email" placeholder="Email" required>
-                    </div>
-                    <div class="form-group">
-                        <input type="password" placeholder="Password" required>
-                    </div>
-                    <button type="submit" class="btn btn-primary">Registar</button>
-                </form>
-                <div class="auth-divider">
-                    <span>ou</span>
-                </div>
-                <button type="button" class="btn btn-google" id="googleSignUpBtn">
-                    <i class="fab fa-google"></i>
-                    Registar com Google
-                </button>
-                <p class="auth-toggle">Já tem conta? <a href="#" id="showLogin">Iniciar sessão</a></p>
+            <button type="button" class="btn btn-google" id="googleSignInBtn">
+              <i class="fab fa-google"></i>
+              Continuar com Google
+            </button>
+            <p class="auth-toggle">
+              Não tem conta? <a href="#" id="showRegister">Criar conta</a>
+            </p>
+          </div>
+          <div class="auth-form hidden" id="registerForm">
+            <h4>Criar Conta</h4>
+            <form id="registerFormElement">
+              <div class="form-group">
+                <input type="text" placeholder="Nome" maxlength="50" required />
+              </div>
+              <div class="form-group">
+                <input type="email" placeholder="Email" required />
+              </div>
+              <div class="form-group">
+                <input type="password" placeholder="Password" required />
+              </div>
+              <button type="submit" class="btn btn-primary">Registar</button>
+            </form>
+            <div class="auth-divider">
+              <span>ou</span>
             </div>
-            <div class="user-profile hidden" id="userProfile">
-                <div class="profile-info">
-                    <div class="profile-avatar">
-                        <i class="fas fa-user"></i>
-                    </div>
-                    <h4 id="userName"></h4>
-                    <p id="userEmail"></p>
-                </div>
-                <div class="profile-actions">
-                    <a href="/conta" class="btn btn-outline">Ver Minha Conta</a>
-                    <button class="btn btn-secondary" id="logoutBtn">Terminar Sessão</button>
-                </div>
+            <button type="button" class="btn btn-google" id="googleSignUpBtn">
+              <i class="fab fa-google"></i>
+              Registar com Google
+            </button>
+            <p class="auth-toggle">
+              Já tem conta? <a href="#" id="showLogin">Iniciar sessão</a>
+            </p>
+          </div>
+          <div class="user-profile hidden" id="userProfile">
+            <div class="profile-info">
+              <div class="profile-avatar">
+                <i class="fas fa-user"></i>
+              </div>
+              <h4 id="userName"></h4>
+              <p id="userEmail"></p>
             </div>
+            <div class="profile-actions">
+              <a href="/conta" class="btn btn-outline">Ver Minha Conta</a>
+              <button class="btn btn-secondary" id="logoutBtn">
+                Terminar Sessão
+              </button>
+            </div>
+          </div>
         </div>
-    </div>
+      </div>
 
-    <!-- Main Content -->
-    <div class="site-container">
+      <!-- Main Content -->
+      <div class="site-container">
         <div>
-            <main class="transition-fade">
-                
-                <!-- Book Details Section -->
-                <section class="section book-details">
-            <div class="container">
+          <main class="transition-fade">
+            <!-- Book Details Section -->
+            <section class="section book-details">
+              <div class="container">
                 <div class="book-detail-content" id="bookDetail">
-                    <!-- Book details will be loaded dynamically -->
+                  <!-- Book details will be loaded dynamically -->
                 </div>
-            </div>
-        </section>
+              </div>
+            </section>
 
-        <!-- Reviews Section -->
-        <section class="section book-reviews">
-            <div class="container">
+            <!-- Book Content Section -->
+            <section class="section book-content-section">
+              <div class="container">
+                <h2 class="section-title" data-aos="fade-up">
+                  Conheça Melhor Este Livro
+                </h2>
+
+                <!-- Video Section -->
+                <div class="book-video-wrapper" data-aos="fade-up">
+                  <div class="video-container" id="bookVideoContainer">
+                    <!-- Video será carregado dinamicamente -->
+                    <div class="video-placeholder">
+                      <i class="fab fa-youtube"></i>
+                      <p>Vídeo não disponível</p>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Photo Gallery Section -->
+                <div class="book-gallery-wrapper" data-aos="fade-up">
+                  <h3 class="gallery-title">Galeria de Fotos</h3>
+                  <div class="book-gallery" id="bookGallery">
+                    <!-- Galeria será carregada dinamicamente -->
+                    <div class="gallery-placeholder">
+                      <i class="fas fa-images"></i>
+                      <p>Nenhuma foto disponível</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <!-- Reviews Section -->
+            <section class="section book-reviews">
+              <div class="container">
                 <div class="section-header">
-                    <h2 class="section-title">Avaliações dos Leitores</h2>
-                    <p class="section-subtitle">Veja o que outros leitores dizem sobre este livro</p>
+                  <h2 class="section-title">Avaliações dos Leitores</h2>
+                  <p class="section-subtitle">
+                    Veja o que outros leitores dizem sobre este livro
+                  </p>
                 </div>
 
                 <div class="reviews-summary">
-                    <div class="rating-overview">
-                        <div class="overall-rating">
-                            <!-- Rating calculated dynamically by commentsModule -->
-                        </div>
-
-                        <div class="rating-breakdown">
-                            <!-- Breakdown calculated dynamically by commentsModule -->
-                        </div>
+                  <div class="rating-overview">
+                    <div class="overall-rating">
+                      <!-- Rating calculated dynamically by commentsModule -->
                     </div>
 
-                    <div class="review-form">
-                        <h3>Escreva uma avaliação</h3>
-                        <form class="review-form-element">
-                            <div class="form-group">
-                                <label for="authorName">Seu Nome:</label>
-                                <input type="text" id="authorName" placeholder="Digite seu nome" required>
-                            </div>
-                            <div class="form-group">
-                                <label>Sua classificação:</label>
-                                <div class="star-rating-input">
-                                    <input type="radio" id="star5" name="rating" value="5">
-                                    <label for="star5"><i class="fas fa-star"></i></label>
-                                    <input type="radio" id="star4" name="rating" value="4">
-                                    <label for="star4"><i class="fas fa-star"></i></label>
-                                    <input type="radio" id="star3" name="rating" value="3">
-                                    <label for="star3"><i class="fas fa-star"></i></label>
-                                    <input type="radio" id="star2" name="rating" value="2">
-                                    <label for="star2"><i class="fas fa-star"></i></label>
-                                    <input type="radio" id="star1" name="rating" value="1">
-                                    <label for="star1"><i class="fas fa-star"></i></label>
-                                </div>
-                            </div>
-                            <div class="form-group">
-                                <label for="reviewTitle">Título da avaliação:</label>
-                                <input type="text" id="reviewTitle" placeholder="Dê um título à sua avaliação" required>
-                            </div>
-                            <div class="form-group">
-                                <label for="reviewText">Sua avaliação:</label>
-                                <textarea id="reviewText" rows="4" placeholder="Conte-nos a sua opinião sobre este livro..." required></textarea>
-                            </div>
-                            <button type="submit" class="btn btn-primary">Enviar Avaliação</button>
-                        </form>
+                    <div class="rating-breakdown">
+                      <!-- Breakdown calculated dynamically by commentsModule -->
                     </div>
+                  </div>
+
+                  <div class="review-form">
+                    <h3>Escreva uma avaliação</h3>
+                    <form class="review-form-element">
+                      <div class="form-group">
+                        <label for="authorName">Seu Nome:</label>
+                        <input
+                          type="text"
+                          id="authorName"
+                          placeholder="Digite seu nome"
+                          required
+                        />
+                      </div>
+                      <div class="form-group">
+                        <label>Sua classificação:</label>
+                        <div class="star-rating-input">
+                          <input
+                            type="radio"
+                            id="star5"
+                            name="rating"
+                            value="5"
+                          />
+                          <label for="star5"><i class="fas fa-star"></i></label>
+                          <input
+                            type="radio"
+                            id="star4"
+                            name="rating"
+                            value="4"
+                          />
+                          <label for="star4"><i class="fas fa-star"></i></label>
+                          <input
+                            type="radio"
+                            id="star3"
+                            name="rating"
+                            value="3"
+                          />
+                          <label for="star3"><i class="fas fa-star"></i></label>
+                          <input
+                            type="radio"
+                            id="star2"
+                            name="rating"
+                            value="2"
+                          />
+                          <label for="star2"><i class="fas fa-star"></i></label>
+                          <input
+                            type="radio"
+                            id="star1"
+                            name="rating"
+                            value="1"
+                          />
+                          <label for="star1"><i class="fas fa-star"></i></label>
+                        </div>
+                      </div>
+                      <div class="form-group">
+                        <label for="reviewTitle">Título da avaliação:</label>
+                        <input
+                          type="text"
+                          id="reviewTitle"
+                          placeholder="Dê um título à sua avaliação"
+                          required
+                        />
+                      </div>
+                      <div class="form-group">
+                        <label for="reviewText">Sua avaliação:</label>
+                        <textarea
+                          id="reviewText"
+                          rows="4"
+                          placeholder="Conte-nos a sua opinião sobre este livro..."
+                          required
+                        ></textarea>
+                      </div>
+                      <button type="submit" class="btn btn-primary">
+                        Enviar Avaliação
+                      </button>
+                    </form>
+                  </div>
                 </div>
 
                 <div class="reviews-list skeleton">
-                    <!-- Initial skeletons to reserve space and avoid CLS -->
-                    <div class="review-skeleton"></div>
-                    <div class="review-skeleton"></div>
-                    <div class="review-skeleton"></div>
+                  <!-- Initial skeletons to reserve space and avoid CLS -->
+                  <div class="review-skeleton"></div>
+                  <div class="review-skeleton"></div>
+                  <div class="review-skeleton"></div>
                 </div>
-            </div>
-        </section>
+              </div>
+            </section>
 
-        <!-- Related Books Section -->
-        <section class="section related-books">
-            <div class="container">
+            <!-- Related Books Section -->
+            <section class="section related-books">
+              <div class="container">
                 <div class="section-header">
-                    <h2 class="section-title">Livros Relacionados</h2>
-                    <p class="section-subtitle">Também pode gostar</p>
+                  <h2 class="section-title">Livros Relacionados</h2>
+                  <p class="section-subtitle">Também pode gostar</p>
                 </div>
 
                 <div class="swiper related-swiper skeleton">
-                    <div class="swiper-wrapper" id="relatedBooks">
-                        <!-- Initial skeleton slides to reserve space and avoid CLS -->
-                        <div class="swiper-slide"><div class="related-skeleton"></div></div>
-                        <div class="swiper-slide"><div class="related-skeleton"></div></div>
-                        <div class="swiper-slide"><div class="related-skeleton"></div></div>
-                        <div class="swiper-slide"><div class="related-skeleton"></div></div>
+                  <div class="swiper-wrapper" id="relatedBooks">
+                    <!-- Initial skeleton slides to reserve space and avoid CLS -->
+                    <div class="swiper-slide">
+                      <div class="related-skeleton"></div>
                     </div>
-                    <div class="swiper-pagination"></div>
-                    <div class="swiper-button-next"></div>
-                    <div class="swiper-button-prev"></div>
+                    <div class="swiper-slide">
+                      <div class="related-skeleton"></div>
+                    </div>
+                    <div class="swiper-slide">
+                      <div class="related-skeleton"></div>
+                    </div>
+                    <div class="swiper-slide">
+                      <div class="related-skeleton"></div>
+                    </div>
+                  </div>
+                  <div class="swiper-pagination"></div>
+                  <div class="swiper-button-next"></div>
+                  <div class="swiper-button-prev"></div>
                 </div>
-            </div>
-        </section>
-
-            </main>
+              </div>
+            </section>
+          </main>
         </div>
-    </div>
+      </div>
 
-     <!-- Footer -->
-    <footer class="footer">
+      <!-- Footer -->
+      <footer class="footer">
         <div class="container">
-            <div class="footer-content">
-                <div class="footer-section">
-                    <h3>Escritores Nogueira</h3>
-                    <p>A sua livraria online de referência para obras literárias de qualidade.</p>
-                    <div class="social-links">
-                        <a href="https://www.facebook.com/escritoresnogueira" aria-label="Facebook"><i class="fab fa-facebook"></i></a>
-                        <a href="https://www.instagram.com/escritoresnogueira/" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
-                        <a href="https://x.com/EscNogueira" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
-                        <a href="https://www.youtube.com/@EscritoresNogueira" aria-label="Youtube"><i class="fab fa-youtube"></i></a>
-                        <a href="https://www.tiktok.com/@escritoresnogueira" aria-label="Tiktok"><i class="fab fa-tiktok"></i></a>
-                    </div>
-                </div>
-
-                <div class="footer-section">
-                    <h4>Links Rápidos</h4>
-                    <ul>
-                        <li><a href="/">Início</a></li>
-                        <li><a href="/livros">Livros</a></li>
-                        <li><a href="/sobre">Sobre Nós</a></li>
-                        <li><a href="/blog">Blog</a></li>
-                        <li><a href="/apoio">Apoio ao Cliente</a></li>
-                    </ul>
-                </div>
-
-                <div class="footer-section">
-                    <h4>Apoio ao Cliente</h4>
-                    <ul>
-                        <li><a href="/apoio#faq">Perguntas Frequentes</a></li>
-                        <li><a href="/apoio#shipping">Envios e Devoluções</a></li>
-                        <li><a href="/apoio#terms">Termos e Condições</a></li>
-                        <li><a href="/apoio#privacy">Política de Privacidade</a></li>
-                    </ul>
-                </div>
-
-                <div class="footer-section">
-                    <h4>Contactos</h4>
-                    <ul class="contact-info">
-                        <li><i class="fas fa-envelope"></i> geral@escritoresnogueira.com</li>
-                        <li><i class="fas fa-phone"></i> +351 967 733 272</li>
-                        <li><i class="fas fa-map-marker-alt"></i> Porto, Portugal</li>
-                    </ul>
-                </div>
+          <div class="footer-content">
+            <div class="footer-section">
+              <h3>Escritores Nogueira</h3>
+              <p>
+                A sua livraria online de referência para obras literárias de
+                qualidade.
+              </p>
+              <div class="social-links">
+                <a
+                  href="https://www.facebook.com/escritoresnogueira"
+                  aria-label="Facebook"
+                  ><i class="fab fa-facebook"></i
+                ></a>
+                <a
+                  href="https://www.instagram.com/escritoresnogueira/"
+                  aria-label="Instagram"
+                  ><i class="fab fa-instagram"></i
+                ></a>
+                <a href="https://x.com/EscNogueira" aria-label="Twitter"
+                  ><i class="fab fa-twitter"></i
+                ></a>
+                <a
+                  href="https://www.youtube.com/@EscritoresNogueira"
+                  aria-label="Youtube"
+                  ><i class="fab fa-youtube"></i
+                ></a>
+                <a
+                  href="https://www.tiktok.com/@escritoresnogueira"
+                  aria-label="Tiktok"
+                  ><i class="fab fa-tiktok"></i
+                ></a>
+              </div>
             </div>
 
-            <div class="footer-bottom">
-                <p>&copy; 2025 Escritores Nogueira. Todos os direitos reservados. | Desenvolvido por <a href="https://github.com/AfonsoPaiva">Afonso Paiva</a></p>
+            <div class="footer-section">
+              <h4>Links Rápidos</h4>
+              <ul>
+                <li><a href="/">Início</a></li>
+                <li><a href="/livros">Livros</a></li>
+                <li><a href="/sobre">Sobre Nós</a></li>
+                <li><a href="/blog">Blog</a></li>
+                <li><a href="/apoio">Apoio ao Cliente</a></li>
+              </ul>
             </div>
+
+            <div class="footer-section">
+              <h4>Apoio ao Cliente</h4>
+              <ul>
+                <li><a href="/apoio#faq">Perguntas Frequentes</a></li>
+                <li><a href="/apoio#shipping">Envios e Devoluções</a></li>
+                <li><a href="/apoio#terms">Termos e Condições</a></li>
+                <li><a href="/apoio#privacy">Política de Privacidade</a></li>
+              </ul>
+            </div>
+
+            <div class="footer-section">
+              <h4>Contactos</h4>
+              <ul class="contact-info">
+                <li>
+                  <i class="fas fa-envelope"></i> geral@escritoresnogueira.com
+                </li>
+                <li><i class="fas fa-phone"></i> +351 967 733 272</li>
+                <li><i class="fas fa-map-marker-alt"></i> Porto, Portugal</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="footer-bottom">
+            <p>
+              &copy; 2025 Escritores Nogueira. Todos os direitos reservados. |
+              Desenvolvido por
+              <a href="https://github.com/AfonsoPaiva">Afonso Paiva</a>
+            </p>
+          </div>
         </div>
-    </footer>
-    
-    </div> <!-- End Site Wrapper -->
+      </footer>
+    </div>
+    <!-- End Site Wrapper -->
 
     <!-- Book Preview Modal -->
     <div class="book-preview-modal" id="bookPreviewModal">
-        <div class="book-preview-overlay" id="bookPreviewOverlay"></div>
-        <div class="book-preview-content">
-            <div class="book-preview-header">
-                <div class="book-preview-info">
-                    <h3 id="previewBookTitle"></h3>
-                    <p id="previewBookAuthor"></p>
-                </div>
-                <button class="book-preview-close" id="bookPreviewClose">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-            <div class="book-preview-body">
-                <div class="book-pages-container">
-                    <button class="page-nav page-prev" id="prevPage">
-                        <i class="fas fa-chevron-left"></i>
-                    </button>
-                    <div class="book-page-viewer">
-                        <img id="currentPageImage" src="" alt="Página do livro" class="book-page-image" width="800" height="1100" loading="lazy">
-                        <div class="page-indicator">
-                            <span id="currentPageNumber">1</span> de <span id="totalPages">5</span>
-                        </div>
-                    </div>
-                    <button class="page-nav page-next" id="nextPage">
-                        <i class="fas fa-chevron-right"></i>
-                    </button>
-                </div>
-                <div class="book-preview-footer">
-                    <div class="preview-notice">
-                        <i class="fas fa-info-circle"></i>
-                        <span>Esta é apenas uma prévia do livro. Para ler a obra completa, adquira o livro.</span>
-                    </div>
-                    <button class="btn btn-primary" onclick="addToCart()">
-                        <i class="fas fa-shopping-cart"></i>
-                        Comprar Agora
-                    </button>
-                </div>
-            </div>
+      <div class="book-preview-overlay" id="bookPreviewOverlay"></div>
+      <div class="book-preview-content">
+        <div class="book-preview-header">
+          <div class="book-preview-info">
+            <h3 id="previewBookTitle"></h3>
+            <p id="previewBookAuthor"></p>
+          </div>
+          <button class="book-preview-close" id="bookPreviewClose">
+            <i class="fas fa-times"></i>
+          </button>
         </div>
+        <div class="book-preview-body">
+          <div class="book-pages-container">
+            <button class="page-nav page-prev" id="prevPage">
+              <i class="fas fa-chevron-left"></i>
+            </button>
+            <div class="book-page-viewer">
+              <img
+                id="currentPageImage"
+                src=""
+                alt="Página do livro"
+                class="book-page-image"
+                width="800"
+                height="1100"
+                loading="lazy"
+              />
+              <div class="page-indicator">
+                <span id="currentPageNumber">1</span> de
+                <span id="totalPages">5</span>
+              </div>
+            </div>
+            <button class="page-nav page-next" id="nextPage">
+              <i class="fas fa-chevron-right"></i>
+            </button>
+          </div>
+          <div class="book-preview-footer">
+            <div class="preview-notice">
+              <i class="fas fa-info-circle"></i>
+              <span
+                >Esta é apenas uma prévia do livro. Para ler a obra completa,
+                adquira o livro.</span
+              >
+            </div>
+            <button class="btn btn-primary" onclick="addToCart()">
+              <i class="fas fa-shopping-cart"></i>
+              Comprar Agora
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- Overlay -->
@@ -737,13 +921,13 @@ window.klaroConfig = {
     <!-- GSAP for animations -->
     <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.1/dist/gsap.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.1/dist/ScrollTrigger.min.js"></script>
-    
+
     <!-- DOMPurify for HTML sanitization -->
     <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.6/dist/purify.min.js"></script>
-    
+
     <!-- Runtime config MUST load first -->
     <script src="/js/runtime-config.js"></script>
-    
+
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
@@ -764,5 +948,5 @@ window.klaroConfig = {
     <script src="/js/formulario.js"></script>
     <script src="/js/pagamento.js"></script>
     <script src="/js/servicos.js"></script>
-</body>
+  </body>
 </html>

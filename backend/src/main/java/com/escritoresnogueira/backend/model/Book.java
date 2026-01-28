@@ -110,6 +110,17 @@ public class Book extends BaseEntity {
     @Column(name = "sample_pages", length = 2000)
     private String samplePages;
 
+    // Video URLs
+    @Column(name = "video_vertical_url", length = 500)
+    private String videoVerticalUrl;
+    
+    @Column(name = "video_horizontal_url", length = 500)
+    private String videoHorizontalUrl;
+    
+    // Gallery photos (stored as JSON array string)
+    @Column(name = "gallery_photos", length = 2000)
+    private String galleryPhotos;
+
     // Stripe Price ID (optional) to reference the product/price on Stripe
     @Column(name = "stripe_price_id", length = 255)
     private String stripePriceId;
@@ -126,6 +137,20 @@ public class Book extends BaseEntity {
         }
         // Parse JSON array string like ["url1", "url2"]
         String cleaned = samplePages.replace("[", "").replace("]", "").replace("\"", "");
+        if (cleaned.isEmpty()) {
+            return new ArrayList<>();
+        }
+        return List.of(cleaned.split(",\\s*"));
+    }
+    
+    // Helper method to get gallery photos as list
+    @Transient
+    public List<String> getGalleryPhotosList() {
+        if (galleryPhotos == null || galleryPhotos.isEmpty()) {
+            return new ArrayList<>();
+        }
+        // Parse JSON array string like ["url1", "url2"]
+        String cleaned = galleryPhotos.replace("[", "").replace("]", "").replace("\"", "");
         if (cleaned.isEmpty()) {
             return new ArrayList<>();
         }

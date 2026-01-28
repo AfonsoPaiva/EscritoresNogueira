@@ -72,6 +72,13 @@ public class AdminBookDTO {
     // Sample pages as array
     private List<String> samplePages;
     
+    // Video URLs
+    private String videoVerticalUrl;
+    private String videoHorizontalUrl;
+    
+    // Gallery photos as array
+    private List<String> galleryPhotos;
+    
     // Additional admin fields
     private Integer stock;
     private Boolean active;
@@ -100,8 +107,22 @@ public class AdminBookDTO {
                 }
             }
         }
-        
-        return AdminBookDTO.builder()
+                List<String> galleryPhotosList = new ArrayList<>();
+        if (book.getGalleryPhotos() != null && !book.getGalleryPhotos().isEmpty()) {
+            String cleaned = book.getGalleryPhotos()
+                .replace("[", "")
+                .replace("]", "")
+                .replace("\"", "")
+                .trim();
+            if (!cleaned.isEmpty()) {
+                for (String photo : cleaned.split(",\\s*")) {
+                    if (!photo.trim().isEmpty()) {
+                        galleryPhotosList.add(photo.trim());
+                    }
+                }
+            }
+        }
+                return AdminBookDTO.builder()
                 .id(book.getId())
                 .slug(book.getSlug())
                 .title(book.getTitle())
@@ -119,6 +140,9 @@ public class AdminBookDTO {
                 .promo(book.getPromo() != null ? book.getPromo() : false)
                 .image(book.getCoverImage() != null ? book.getCoverImage() : book.getCoverUrl())
                 .samplePages(samplePagesList)
+                .videoVerticalUrl(book.getVideoVerticalUrl())
+                .videoHorizontalUrl(book.getVideoHorizontalUrl())
+                .galleryPhotos(galleryPhotosList)
                 .stock(book.getStock())
                 .active(book.isActive())
                 .stripeProductId(book.getStripeProductId())
@@ -147,6 +171,9 @@ public class AdminBookDTO {
                 .promo(this.promo != null ? this.promo : false)
                 .coverImage(this.image)
                 .samplePages(this.samplePages != null ? convertListToJsonString(this.samplePages) : null)
+                .videoVerticalUrl(this.videoVerticalUrl)
+                .videoHorizontalUrl(this.videoHorizontalUrl)
+                .galleryPhotos(this.galleryPhotos != null ? convertListToJsonString(this.galleryPhotos) : null)
                 .stock(this.stock != null ? this.stock : 0)
                 .active(this.active != null ? this.active : true)
                 .stripeProductId(this.stripeProductId)
@@ -174,6 +201,9 @@ public class AdminBookDTO {
         if (this.promo != null) book.setPromo(this.promo);
         if (this.image != null) book.setCoverImage(this.image);
         if (this.samplePages != null) book.setSamplePages(convertListToJsonString(this.samplePages));
+        if (this.videoVerticalUrl != null) book.setVideoVerticalUrl(this.videoVerticalUrl);
+        if (this.videoHorizontalUrl != null) book.setVideoHorizontalUrl(this.videoHorizontalUrl);
+        if (this.galleryPhotos != null) book.setGalleryPhotos(convertListToJsonString(this.galleryPhotos));
         if (this.stock != null) book.setStock(this.stock);
         if (this.active != null) book.setActive(this.active);
         if (this.stripeProductId != null) book.setStripeProductId(this.stripeProductId);

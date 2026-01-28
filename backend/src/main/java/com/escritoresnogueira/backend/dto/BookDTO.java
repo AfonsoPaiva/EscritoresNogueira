@@ -40,6 +40,13 @@ public class BookDTO {
     private String image; // renamed from coverUrl/coverImage
     private List<String> samplePages; // as array instead of JSON string
     
+    // Video URLs
+    private String videoVerticalUrl;
+    private String videoHorizontalUrl;
+    
+    // Gallery photos
+    private List<String> galleryPhotos; // as array instead of JSON string
+    
     // Additional fields that might be useful
     private Integer stock;
     private Double rating;
@@ -74,6 +81,9 @@ public class BookDTO {
                 .promo(book.getPromo() != null ? book.getPromo() : false)
                 .image(book.getCoverUrl() != null ? book.getCoverUrl() : book.getCoverImage())
                 .samplePages(book.getSamplePagesList())
+                .videoVerticalUrl(book.getVideoVerticalUrl())
+                .videoHorizontalUrl(book.getVideoHorizontalUrl())
+                .galleryPhotos(book.getGalleryPhotosList())
                 .stock(book.getStock())
                 .rating(book.getRating())
                 .reviewCount(book.getReviewCount())
