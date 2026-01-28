@@ -5,178 +5,185 @@
 // API base URL can be injected at runtime via `window.API_BASE` (useful for Vercel).
 // Falls back to localhost for local development.
 function resolveApiBase() {
-    const v = window.API_BASE;
-    if (typeof v === 'string' && v.trim() !== '' && v.toLowerCase() !== 'undefined') {
-        return v;
-    }
-    return 'http://localhost:8080/api';
+  const v = window.API_BASE;
+  if (
+    typeof v === "string" &&
+    v.trim() !== "" &&
+    v.toLowerCase() !== "undefined"
+  ) {
+    return v;
+  }
+  return "http://localhost:8080/api";
 }
 
 const API_CONFIG = {
-    baseUrl: resolveApiBase(),
-    timeout: 10000
+  baseUrl: resolveApiBase(),
+  timeout: 10000,
 };
 
 /**
  * API Service for communicating with the backend
  */
 const api = {
-    /**
-     * Make a fetch request with error handling
-     * @param {string} endpoint - API endpoint
-     * @param {Object} options - Fetch options
-     * @returns {Promise<any>} - Response data
-     */
-    async request(endpoint, options = {}) {
-        const url = `${API_CONFIG.baseUrl}${endpoint}`;
-        
-        const defaultOptions = {
-            headers: {
-                'Content-Type': 'application/json',
-            },
-        };
+  /**
+   * Make a fetch request with error handling
+   * @param {string} endpoint - API endpoint
+   * @param {Object} options - Fetch options
+   * @returns {Promise<any>} - Response data
+   */
+  async request(endpoint, options = {}) {
+    const url = `${API_CONFIG.baseUrl}${endpoint}`;
 
-        const config = { ...defaultOptions, ...options };
+    const defaultOptions = {
+      headers: {
+        "Content-Type": "application/json",
+      },
+    };
 
-        try {
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), API_CONFIG.timeout);
+    const config = { ...defaultOptions, ...options };
 
-            const response = await fetch(url, {
-                ...config,
-                signal: controller.signal
-            });
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(
+        () => controller.abort(),
+        API_CONFIG.timeout,
+      );
 
-            clearTimeout(timeoutId);
+      const response = await fetch(url, {
+        ...config,
+        signal: controller.signal,
+      });
 
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
+      clearTimeout(timeoutId);
 
-            return await response.json();
-        } catch (error) {
-            if (error.name === 'AbortError') {
-                console.error('Request timeout:', endpoint);
-                throw new Error('Request timeout');
-            }
-            console.error('API Error:', error);
-            throw error;
-        }
-    },
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
 
-    // ==================
-    // BOOKS ENDPOINTS
-    // ==================
-
-    /**
-     * Get all active books
-     * @returns {Promise<Array>} - List of books
-     */
-    async getBooks() {
-        return this.request('/books');
-    },
-
-    /**
-     * Get featured books
-     * @returns {Promise<Array>} - List of featured books
-     */
-    async getFeaturedBooks() {
-        return this.request('/books/featured');
-    },
-
-    /**
-     * Get a single book by slug
-     * @param {string} slug - Book slug
-     * @returns {Promise<Object>} - Book details
-     */
-    async getBookBySlug(slug) {
-        return this.request(`/books/${slug}`);
-    },
-
-    /**
-     * Get a single book by ID
-     * @param {number} id - Book ID
-     * @returns {Promise<Object>} - Book details
-     */
-    async getBookById(id) {
-        return this.request(`/books/${id}`);
-    },
-
-    // ==================
-    // BLOG ENDPOINTS
-    // ==================
-
-    /**
-     * Get all blog posts
-     * @returns {Promise<Array>} - List of blog posts
-     */
-    async getBlogPosts() {
-        return this.request('/blog/posts');
-    },
-
-    /**
-     * Get a single blog post by slug
-     * @param {string} slug - Blog post slug
-     * @returns {Promise<Object>} - Blog post details
-     */
-    async getBlogPostBySlug(slug) {
-        return this.request(`/blog/posts/${slug}`);
-    },
-
-    /**
-     * Get blog categories
-     * @returns {Promise<Array>} - List of blog categories
-     */
-    async getBlogCategories() {
-        return this.request('/blog/categories');
-    },
-
-    // ==================
-    // BOOK COMMENTS ENDPOINTS
-    // ==================
-
-    /**
-     * Get approved comments for a book
-     * @param {number} bookId - Book ID
-     * @param {number} page - Page number (default: 0)
-     * @param {number} size - Page size (default: 10)
-     * @returns {Promise<Object>} - Paginated comments
-     */
-    async getBookComments(bookId, page = 0, size = 10) {
-        return this.request(`/books/${bookId}/comments?page=${page}&size=${size}`);
-    },
-
-    /**
-     * Submit a new comment for a book
-     * @param {number} bookId - Book ID
-     * @param {Object} data - Comment data {authorName, authorEmail, rating, title, content}
-     * @returns {Promise<Object>} - Response with submitted comment
-     */
-    async submitBookComment(bookId, data) {
-        return this.request(`/books/${bookId}/comments`, {
-            method: 'POST',
-            body: JSON.stringify(data)
-        });
-    },
-
-    /**
-     * Mark a comment as helpful
-     * @param {number} commentId - Comment ID
-     * @returns {Promise<Object>} - Response with updated comment
-     */
-    async markCommentHelpful(commentId) {
-        return this.request(`/books/comments/${commentId}/helpful`, {
-            method: 'PUT'
-        });
-    },
-
-    /**
-     * Get service pricing
-     * @returns {Promise<Array>} - Array of pricing data
-     */
-    async getServicePricing() {
-        return this.request('/public/servicos-precos');
+      return await response.json();
+    } catch (error) {
+      if (error.name === "AbortError") {
+        console.error("Request timeout:", endpoint);
+        throw new Error("Request timeout");
+      }
+      console.error("API Error:", error);
+      throw error;
     }
+  },
+
+  // ==================
+  // BOOKS ENDPOINTS
+  // ==================
+
+  /**
+   * Get all active books
+   * @returns {Promise<Array>} - List of books
+   */
+  async getBooks() {
+    return this.request("/books");
+  },
+
+  /**
+   * Get featured books
+   * @returns {Promise<Array>} - List of featured books
+   */
+  async getFeaturedBooks() {
+    return this.request("/books/featured");
+  },
+
+  /**
+   * Get a single book by slug
+   * @param {string} slug - Book slug
+   * @returns {Promise<Object>} - Book details
+   */
+  async getBookBySlug(slug) {
+    return this.request(`/books/${slug}`);
+  },
+
+  /**
+   * Get a single book by ID
+   * @param {number} id - Book ID
+   * @returns {Promise<Object>} - Book details
+   */
+  async getBookById(id) {
+    return this.request(`/books/${id}`);
+  },
+
+  // ==================
+  // BLOG ENDPOINTS
+  // ==================
+
+  /**
+   * Get all blog posts
+   * @returns {Promise<Array>} - List of blog posts
+   */
+  async getBlogPosts() {
+    return this.request("/blog/posts");
+  },
+
+  /**
+   * Get a single blog post by slug
+   * @param {string} slug - Blog post slug
+   * @returns {Promise<Object>} - Blog post details
+   */
+  async getBlogPostBySlug(slug) {
+    return this.request(`/blog/posts/${slug}`);
+  },
+
+  /**
+   * Get blog categories
+   * @returns {Promise<Array>} - List of blog categories
+   */
+  async getBlogCategories() {
+    return this.request("/blog/categories");
+  },
+
+  // ==================
+  // BOOK COMMENTS ENDPOINTS
+  // ==================
+
+  /**
+   * Get approved comments for a book
+   * @param {number} bookId - Book ID
+   * @param {number} page - Page number (default: 0)
+   * @param {number} size - Page size (default: 10)
+   * @returns {Promise<Object>} - Paginated comments
+   */
+  async getBookComments(bookId, page = 0, size = 10) {
+    return this.request(`/books/${bookId}/comments?page=${page}&size=${size}`);
+  },
+
+  /**
+   * Submit a new comment for a book
+   * @param {number} bookId - Book ID
+   * @param {Object} data - Comment data {authorName, authorEmail, rating, title, content}
+   * @returns {Promise<Object>} - Response with submitted comment
+   */
+  async submitBookComment(bookId, data) {
+    return this.request(`/books/${bookId}/comments`, {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+  },
+
+  /**
+   * Mark a comment as helpful
+   * @param {number} commentId - Comment ID
+   * @returns {Promise<Object>} - Response with updated comment
+   */
+  async markCommentHelpful(commentId) {
+    return this.request(`/books/comments/${commentId}/helpful`, {
+      method: "PUT",
+    });
+  },
+
+  /**
+   * Get service pricing
+   * @returns {Promise<Array>} - Array of pricing data
+   */
+  async getServicePricing() {
+    return this.request("/public/servicos-precos");
+  },
 };
 
 /**
@@ -187,40 +194,61 @@ const api = {
  * @returns {Object} - Transformed book for frontend
  */
 function transformBook(book) {
-    // samplePages is already an array from the backend
-    let samplePages = book.samplePages || [];
-    
-    // Ensure samplePages is always an array
-    if (typeof samplePages === 'string') {
-        try {
-            samplePages = JSON.parse(samplePages);
-        } catch (e) {
-            samplePages = samplePages.split(',').map(s => s.trim()).filter(s => s);
-        }
+  // samplePages is already an array from the backend
+  let samplePages = book.samplePages || [];
+
+  // Ensure samplePages is always an array
+  if (typeof samplePages === "string") {
+    try {
+      samplePages = JSON.parse(samplePages);
+    } catch (e) {
+      samplePages = samplePages
+        .split(",")
+        .map((s) => s.trim())
+        .filter((s) => s);
     }
-    
-    return {
-        id: book.id,
-        slug: book.slug,
-        title: book.title,
-        author: book.author,
-        category: book.category || 'geral',
-        price: parseFloat(book.price) || 0,
-        oldPrice: book.oldPrice ? parseFloat(book.oldPrice) : null,
-        description: book.description || '',
-        isbn: book.isbn || '',
-        pages: book.pages || 0,
-        year: book.year || null,
-        language: book.language || 'Português',
-        publisher: book.publisher || '',
-        featured: book.featured || false,
-        promo: book.promo || false,
-        image: book.image || null,
-        stock: book.stock || 0,
-        rating: book.rating || 0,
-        reviewCount: book.reviewCount || 0,
-        samplePages: samplePages
-    };
+  }
+
+  // galleryPhotos is also an array from the backend
+  let galleryPhotos = book.galleryPhotos || [];
+
+  // Ensure galleryPhotos is always an array
+  if (typeof galleryPhotos === "string") {
+    try {
+      galleryPhotos = JSON.parse(galleryPhotos);
+    } catch (e) {
+      galleryPhotos = galleryPhotos
+        .split(",")
+        .map((s) => s.trim())
+        .filter((s) => s);
+    }
+  }
+
+  return {
+    id: book.id,
+    slug: book.slug,
+    title: book.title,
+    author: book.author,
+    category: book.category || "geral",
+    price: parseFloat(book.price) || 0,
+    oldPrice: book.oldPrice ? parseFloat(book.oldPrice) : null,
+    description: book.description || "",
+    isbn: book.isbn || "",
+    pages: book.pages || 0,
+    year: book.year || null,
+    language: book.language || "Português",
+    publisher: book.publisher || "",
+    featured: book.featured || false,
+    promo: book.promo || false,
+    image: book.image || null,
+    stock: book.stock || 0,
+    rating: book.rating || 0,
+    reviewCount: book.reviewCount || 0,
+    samplePages: samplePages,
+    videoHorizontalUrl: book.videoHorizontalUrl || null,
+    videoVerticalUrl: book.videoVerticalUrl || null,
+    galleryPhotos: galleryPhotos,
+  };
 }
 
 /**
@@ -229,7 +257,7 @@ function transformBook(book) {
  * @returns {Array} - Transformed books
  */
 function transformBooks(books) {
-    return books.map(transformBook);
+  return books.map(transformBook);
 }
 
 // Export for use in other modules
