@@ -798,109 +798,176 @@ window.klaroConfig = {
                     </div>
                 </section>
 
-                <!-- Calculator Section - Main content -->
-                <section class="section calculator-section-main" id="planos">
+                <!-- Intelligent Price Calculator Section -->
+                <section class="section calculator-section-main" id="calculadora">
                     <div class="container">
                         <div class="section-header">
-                            <h2 class="section-title">Calculadora de Planos</h2>
-                            <p class="section-subtitle">Descubra qual plano é ideal para o seu projeto</p>
+                            <h2 class="section-title">Calculadora de Preços Inteligente</h2>
+                            <p class="section-subtitle">Calcule o custo do seu livro baseado nas tarifas da Amazon KDP</p>
                         </div>
 
-                        <div class="plan-calculator">
-                            <!-- Step 1: Pages -->
-                            <div class="calculator-step">
-                                <label class="calculator-label">
-                                    <i class="fas fa-file-alt"></i>
-                                    Quantas páginas terá o seu livro?
-                                </label>
-                                <div class="calculator-options pages-options">
-                                    <button type="button" class="calc-option" data-pages="100">100</button>
-                                    <button type="button" class="calc-option" data-pages="150">150</button>
-                                    <button type="button" class="calc-option" data-pages="200">200</button>
-                                    <button type="button" class="calc-option" data-pages="250">250</button>
-                                    <button type="button" class="calc-option" data-pages="300">300</button>
-                                    <button type="button" class="calc-option" data-pages="400">400</button>
-                                    <button type="button" class="calc-option" data-pages="500">500</button>
+                        <div class="price-calculator-container">
+                            <div class="calculator-inputs">
+                                <!-- Pages Input -->
+                                <div class="calculator-field">
+                                    <label class="calculator-label">
+                                        <i class="fas fa-file-alt"></i>
+                                        Número de Páginas
+                                    </label>
+                                    <input type="number" id="pageCount" class="calculator-input" 
+                                           placeholder="Ex: 200" min="24" max="828" value="">
+                                    <small class="field-hint">Mínimo: 24 páginas | Máximo: 828 (P&B) / 550 (Cores)</small>
                                 </div>
-                            </div>
 
-                            <!-- Step 2: Cover Type -->
-                            <div class="calculator-step">
-                                <label class="calculator-label">
-                                    <i class="fas fa-book"></i>
-                                    Tipo de capa
-                                </label>
-                                <div class="calculator-options cover-options">
-                                    <button type="button" class="calc-option" data-cover="mole">
-                                        <i class="fas fa-book-open"></i>
-                                        Capa Mole
-                                    </button>
-                                    <button type="button" class="calc-option" data-cover="dura">
+                                <!-- Cover Type -->
+                                <div class="calculator-field">
+                                    <label class="calculator-label">
                                         <i class="fas fa-book"></i>
-                                        Capa Dura
-                                    </button>
+                                        Tipo de Capa
+                                    </label>
+                                    <div class="calculator-options">
+                                        <button type="button" class="calc-option-btn" data-cover="mole">
+                                            <i class="fas fa-book-open"></i>
+                                            <span>Capa Mole</span>
+                                        </button>
+                                        <button type="button" class="calc-option-btn" data-cover="dura">
+                                            <i class="fas fa-book"></i>
+                                            <span>Capa Dura</span>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <!-- Print Type -->
+                                <div class="calculator-field">
+                                    <label class="calculator-label">
+                                        <i class="fas fa-palette"></i>
+                                        Tipo de Impressão
+                                    </label>
+                                    <div class="calculator-options">
+                                        <button type="button" class="calc-option-btn" data-print="pb">
+                                            <i class="fas fa-adjust"></i>
+                                            <span>Preto & Branco</span>
+                                        </button>
+                                        <button type="button" class="calc-option-btn" data-print="cores">
+                                            <i class="fas fa-paint-brush"></i>
+                                            <span>A Cores</span>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <!-- Illustrations Checkbox -->
+                                <div class="calculator-field">
+                                    <label class="calculator-checkbox">
+                                        <input type="checkbox" id="hasIllustrations">
+                                        <span class="checkbox-label">
+                                            <i class="fas fa-images"></i>
+                                            O livro tem ilustrações (+75€)
+                                        </span>
+                                    </label>
+                                </div>
+
+                                <!-- Quantity -->
+                                <div class="calculator-field">
+                                    <label class="calculator-label">
+                                        <i class="fas fa-layer-group"></i>
+                                        Quantidade de Livros
+                                    </label>
+                                    <div class="quantity-control">
+                                        <button type="button" class="qty-btn" onclick="adjustQuantity(-1)">
+                                            <i class="fas fa-minus"></i>
+                                        </button>
+                                        <input type="number" id="bookQuantity" class="qty-input" 
+                                               value="1" min="1" max="500">
+                                        <button type="button" class="qty-btn" onclick="adjustQuantity(1)">
+                                            <i class="fas fa-plus"></i>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <!-- Calculate Button -->
+                                <button type="button" class="btn-calculate-price" onclick="calculatePrice()">
+                                    <i class="fas fa-calculator"></i>
+                                    Calcular Preço
+                                </button>
+                            </div>
+
+                            <!-- Price Summary (Right Side) -->
+                            <div class="price-summary">
+                                <div class="summary-header">
+                                    <h3><i class="fas fa-receipt"></i> Resumo de Custos</h3>
+                                </div>
+                                
+                                <div id="priceBreakdown" class="price-breakdown" style="display: none;">
+                                    <!-- Service Costs -->
+                                    <div class="cost-section">
+                                        <h4>Custo do Serviço</h4>
+                                        <div class="cost-item">
+                                            <span>Serviço Base</span>
+                                            <span class="cost-value">50,00€</span>
+                                        </div>
+                                        <div class="cost-item" id="illustrationCost" style="display: none;">
+                                            <span>Ilustrações</span>
+                                            <span class="cost-value">+75,00€</span>
+                                        </div>
+                                        <div class="cost-item" id="pagesCost300" style="display: none;">
+                                            <span>Mais de 300 páginas</span>
+                                            <span class="cost-value">+20,00€</span>
+                                        </div>
+                                        <div class="cost-item" id="pagesCost400" style="display: none;">
+                                            <span>Mais de 400 páginas</span>
+                                            <span class="cost-value">+50,00€</span>
+                                        </div>
+                                        <div class="cost-item" id="pagesCost500" style="display: none;">
+                                            <span>Mais de 500 páginas</span>
+                                            <span class="cost-value">+50,00€</span>
+                                        </div>
+                                        <div class="cost-item" id="pagesCost600" style="display: none;">
+                                            <span>Mais de 600 páginas</span>
+                                            <span class="cost-value">+50,00€</span>
+                                        </div>
+                                        <div class="cost-subtotal">
+                                            <span>Subtotal Serviço</span>
+                                            <span class="cost-value" id="serviceTotal">50,00€</span>
+                                        </div>
+                                    </div>
+
+                                    <!-- Printing Costs -->
+                                    <div class="cost-section">
+                                        <h4>Custo de Impressão (Amazon KDP)</h4>
+                                        <div class="cost-item">
+                                            <span>Custo por Livro</span>
+                                            <span class="cost-value" id="printCostPerBook">0,00€</span>
+                                        </div>
+                                        <div class="cost-item">
+                                            <span>Quantidade × <span id="quantityDisplay">1</span></span>
+                                            <span class="cost-value" id="printCostTotal">0,00€</span>
+                                        </div>
+                                    </div>
+
+                                    <!-- Total -->
+                                    <div class="cost-total">
+                                        <span>Total Geral</span>
+                                        <span class="total-value" id="grandTotal">50,00€</span>
+                                    </div>
+
+                                    <!-- Action Button -->
+                                    <a href="/formulario" class="btn-goto-form">
+                                        <i class="fas fa-arrow-right"></i>
+                                        Prosseguir para Formulário
+                                    </a>
+                                </div>
+
+                                <div id="priceEmptyState" class="empty-state">
+                                    <i class="fas fa-calculator"></i>
+                                    <p>Preencha os campos e clique em "Calcular Preço" para ver o resumo de custos</p>
                                 </div>
                             </div>
+                        </div>
 
-                            <!-- Step 3: Print Type -->
-                            <div class="calculator-step">
-                                <label class="calculator-label">
-                                    <i class="fas fa-palette"></i>
-                                    Tipo de impressão
-                                </label>
-                                <div class="calculator-options print-options">
-                                    <button type="button" class="calc-option" data-print="pb">
-                                        <i class="fas fa-adjust"></i>
-                                        Preto & Branco
-                                    </button>
-                                    <button type="button" class="calc-option" data-print="cores">
-                                        <i class="fas fa-paint-brush"></i>
-                                        A Cores
-                                    </button>
-                                </div>
-                            </div>
-
-                            <!-- Step 4: Quantity -->
-                            <div class="calculator-step">
-                                <label class="calculator-label">
-                                    <i class="fas fa-layer-group"></i>
-                                    Quantos livros precisa?
-                                </label>
-                                <div class="quantity-input-wrapper">
-                                    <button type="button" class="qty-btn" onclick="changeQuantity(-1)">
-                                        <i class="fas fa-minus"></i>
-                                    </button>
-                                    <input type="number" id="bookQuantity" class="quantity-input" value="5" min="1" max="50">
-                                    <button type="button" class="qty-btn" onclick="changeQuantity(1)">
-                                        <i class="fas fa-plus"></i>
-                                    </button>
-                                </div>
-                            </div>
-
-                            <!-- Calculate Button -->
-                            <button type="button" class="btn-calculate" onclick="calculatePlan()">
-                                <i class="fas fa-search"></i>
-                                Ver Plano Recomendado
-                            </button>
-
-                            <!-- Error Message -->
-                            <div id="calculatorError" class="calculator-error" style="display: none;">
-                                <i class="fas fa-exclamation-circle"></i>
-                                <span id="errorMessage"></span>
-                            </div>
-
-                            <!-- Result -->
-                            <div id="calculatorResult" class="calculator-result" style="display: none;">
-                                <div class="result-icon">
-                                    <i class="fas fa-check-circle"></i>
-                                </div>
-                                <h3 id="resultTitle">Plano Recomendado</h3>
-                                <p id="resultDescription"></p>
-                                <div id="resultDetails" class="result-details"></div>
-                                <a href="#" id="resultChooseBtn" class="btn-choose-plan">
-                                    Escolher Plano <i class="fas fa-arrow-right"></i>
-                                </a>
-                            </div>
+                        <!-- Error Message -->
+                        <div id="calculatorError" class="calculator-error-msg" style="display: none;">
+                            <i class="fas fa-exclamation-circle"></i>
+                            <span id="errorMessage"></span>
                         </div>
                     </div>
                 </section>
@@ -1209,6 +1276,7 @@ if (!(window.auth && window.auth.currentUser)) {
     <script src="/js/animations.js"></script>
     <script src="/js/main.js"></script>
     <script src="/js/servicos.js"></script>
+    <script src="/js/price-calculator.js"></script>
     <script src="/js/books.js"></script>
     <script src="/js/blog.js"></script>
     <script src="/js/apoio.js"></script>
@@ -1332,325 +1400,6 @@ if (!(window.auth && window.auth.currentUser)) {
                 closeBookComparisonModal();
             }
         });
-
-        // Plan Calculator Data
-        const planData = {
-            // Pages index: 0=100, 1=150, 2=200, 3=250, 4=300, 5=400, 6=500
-            essencial: {
-                mole_pb: [15, 13, 11, 10, 9, 7, 6],
-                dura_pb: [6, 5, 5, 5, 4, 4, 4],
-                mole_cores: [5, 4, 4, 3, 3, 2, 2],
-                dura_cores: [3, 3, 2, 2, 2, 2, 1]
-            },
-            profissional: {
-                mole_pb: [30, 26, 23, 20, 18, 15, 13],
-                dura_pb: [12, 11, 10, 10, 9, 8, 8],
-                mole_cores: [11, 9, 8, 7, 6, 5, 4],
-                dura_cores: [7, 6, 5, 5, 4, 4, 3]
-            },
-            premium: {
-                mole_pb: [47, 40, 35, 31, 28, 23, 20],
-                dura_pb: [19, 17, 16, 15, 15, 13, 12],
-                mole_cores: [18, 14, 12, 11, 9, 7, 6],
-                dura_cores: [11, 10, 9, 8, 7, 6, 5]
-            }
-        };
-
-        const pageIndexMap = {100: 0, 150: 1, 200: 2, 250: 3, 300: 4, 400: 5, 500: 6};
-        
-        // Plan prices - fixed values
-        let planPrices = {essencial: 150, profissional: 320, premium: 560};
-
-        // Calculator state
-        let calcState = {
-            pages: null,
-            cover: null,
-            print: null,
-            quantity: 5
-        };
-
-        // Option selection handlers
-        document.querySelectorAll('.calc-option[data-pages]').forEach(btn => {
-            btn.addEventListener('click', function() {
-                document.querySelectorAll('.pages-options .calc-option').forEach(b => b.classList.remove('selected'));
-                this.classList.add('selected');
-                calcState.pages = parseInt(this.dataset.pages);
-            });
-        });
-
-        document.querySelectorAll('.calc-option[data-cover]').forEach(btn => {
-            btn.addEventListener('click', function() {
-                document.querySelectorAll('.cover-options .calc-option').forEach(b => b.classList.remove('selected'));
-                this.classList.add('selected');
-                calcState.cover = this.dataset.cover;
-            });
-        });
-
-        document.querySelectorAll('.calc-option[data-print]').forEach(btn => {
-            btn.addEventListener('click', function() {
-                document.querySelectorAll('.print-options .calc-option').forEach(b => b.classList.remove('selected'));
-                this.classList.add('selected');
-                calcState.print = this.dataset.print;
-            });
-        });
-
-        // Quantity controls
-        function changeQuantity(delta) {
-            const input = document.getElementById('bookQuantity');
-            let value = parseInt(input.value) || 1;
-            value = Math.max(1, Math.min(50, value + delta));
-            input.value = value;
-            calcState.quantity = value;
-        }
-
-        document.getElementById('bookQuantity')?.addEventListener('change', function() {
-            let value = parseInt(this.value) || 1;
-            value = Math.max(1, Math.min(50, value));
-            this.value = value;
-            calcState.quantity = value;
-        });
-
-        // Reset calculator
-        function resetCalculator() {
-            calcState = { pages: null, cover: null, print: null, quantity: 5 };
-            document.querySelectorAll('.calc-option').forEach(b => b.classList.remove('selected'));
-            document.getElementById('bookQuantity').value = 5;
-            document.getElementById('calculatorResult').style.display = 'none';
-            hideCalculatorError();
-        }
-
-        // Show error message
-        function showCalculatorError(message, stepClass) {
-            const errorDiv = document.getElementById('calculatorError');
-            const errorMessage = document.getElementById('errorMessage');
-            
-            // Remove previous error states
-            document.querySelectorAll('.calculator-step').forEach(step => {
-                step.classList.remove('has-error');
-            });
-            
-            // Add error state to specific step
-            if (stepClass) {
-                const step = document.querySelector(`.calculator-step:has(.${stepClass})`);
-                if (step) {
-                    step.classList.add('has-error');
-                    setTimeout(() => step.classList.remove('has-error'), 500);
-                }
-            }
-            
-            errorMessage.textContent = message;
-            errorDiv.style.display = 'flex';
-            
-            // Animate with GSAP if available
-            if (typeof gsap !== 'undefined') {
-                gsap.fromTo(errorDiv, 
-                    { opacity: 0, y: -10 },
-                    { opacity: 1, y: 0, duration: 0.3, ease: 'power2.out' }
-                );
-            }
-            
-            // Scroll to error
-            errorDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-        }
-
-        // Hide error message
-        function hideCalculatorError() {
-            const errorDiv = document.getElementById('calculatorError');
-            errorDiv.style.display = 'none';
-        }
-
-        // Calculate and show result
-        function calculatePlan() {
-            // Hide previous error
-            hideCalculatorError();
-            
-            // Validate inputs
-            if (!calcState.pages) {
-                showCalculatorError('Por favor, selecione o número de páginas do livro.', 'pages-options');
-                return;
-            }
-            if (!calcState.cover) {
-                showCalculatorError('Por favor, selecione o tipo de capa pretendido.', 'cover-options');
-                return;
-            }
-            if (!calcState.print) {
-                showCalculatorError('Por favor, selecione o tipo de impressão.', 'print-options');
-                return;
-            }
-
-            calcState.quantity = parseInt(document.getElementById('bookQuantity').value) || 1;
-
-            const pageIndex = pageIndexMap[calcState.pages];
-            const formatKey = `${calcState.cover}_${calcState.print}`;
-
-            // Find the best plan
-            let recommendedPlan = null;
-            for (const plan of ['essencial', 'profissional', 'premium']) {
-                const available = planData[plan][formatKey][pageIndex];
-                if (available >= calcState.quantity) {
-                    recommendedPlan = plan;
-                    break;
-                }
-            }
-            // If none fits, recommend premium
-            if (!recommendedPlan) recommendedPlan = 'premium';
-
-            // Show result
-            const resultDiv = document.getElementById('calculatorResult');
-            
-            const planNames = {essencial: 'Essencial', profissional: 'Profissional', premium: 'Premium'};
-            const planFeatures = {
-                essencial: [
-                    { text: 'Revisão ortográfica básica', gain: false },
-                    { text: 'Design de capa simples', gain: false },
-                    { text: 'Suporte por email', gain: false },
-                    { text: 'Sem ilustrações', gain: false, loss: true },
-                    { text: 'Sem royalties', gain: false, loss: true }
-                ],
-                profissional: [
-                    { text: 'Revisão completa do manuscrito', gain: true },
-                    { text: 'Design de capa personalizado', gain: true },
-                    { text: 'Ilustrações detalhadas', gain: true },
-                    { text: 'Suporte prioritário', gain: true },
-                    { text: 'Sem royalties', gain: false, loss: true }
-                ],
-                premium: [
-                    { text: 'Edição profissional completa', gain: true },
-                    { text: 'Capa com ilustração premium', gain: true },
-                    { text: 'Royalties na venda de livros', gain: true },
-                    { text: 'Estratégia de lançamento', gain: true },
-                    { text: 'Suporte VIP', gain: true }
-                ]
-            };
-
-            // Valor adicional para cada plano - calculado dinamicamente com base nos preços da API
-            // A diferença de preço entre planos representa o valor dos benefícios adicionais
-            const profissionalDiff = planPrices['profissional'] - planPrices['essencial'];
-            const premiumDiff = planPrices['premium'] - planPrices['essencial'];
-            const premiumVsProfissional = planPrices['premium'] - planPrices['profissional'];
-            
-            const planValueItems = {
-                essencial: [],
-                profissional: [
-                    { name: 'Revisão Completa', value: Math.round(profissionalDiff * 0.40) },
-                    { name: 'Design Personalizado', value: Math.round(profissionalDiff * 0.35) },
-                    { name: 'Ilustrações', value: Math.round(profissionalDiff * 0.25) }
-                ],
-                premium: [
-                    { name: 'Edição Profissional', value: Math.round(premiumDiff * 0.25) },
-                    { name: 'Ilustração Premium', value: Math.round(premiumDiff * 0.20) },
-                    { name: 'Estratégia de Lançamento', value: Math.round(premiumDiff * 0.20) },
-                    { name: 'Programa de Royalties', value: Math.round(premiumDiff * 0.35) }
-                ]
-            };
-
-            let comparisonHtml = `
-                <div class="result-header">
-                    <h3><i class="fas fa-balance-scale"></i> Comparação de Planos</h3>
-                    <p>Baseado em ${calcState.quantity} livros, ${calcState.pages} páginas, ${calcState.cover === 'mole' ? 'Capa Mole' : 'Capa Dura'}</p>
-                </div>
-                <div class="comparison-grid">
-            `;
-
-            const essencialPrice = planPrices['essencial'];
-
-            ['essencial', 'profissional', 'premium'].forEach(plan => {
-                const isRecommended = plan === recommendedPlan;
-                const books = planData[plan][formatKey][pageIndex];
-                const features = planFeatures[plan];
-                const valueItems = planValueItems[plan];
-                const totalValue = valueItems.reduce((sum, item) => sum + item.value, 0);
-                const upgradeCost = planPrices[plan] - essencialPrice;
-                const isPremium = plan === 'premium';
-                
-                // Gerar secção de valor adicional
-                let valueSection = '';
-                if (valueItems.length > 0) {
-                    valueSection = `
-                        <div class="comp-value-section">
-                            <div class="comp-value-header">
-                                <i class="fas fa-gift"></i> Valor Adicional Incluído
-                            </div>
-                            <div class="comp-value-items">
-                                ${valueItems.map(item => `
-                                    <div class="comp-value-item">
-                                        <span class="value-name">${item.name}</span>
-                                        <span class="value-amount">€${item.value}</span>
-                                    </div>
-                                `).join('')}
-                            </div>
-                            <div class="comp-value-total">
-                                <span class="total-label">Valor Total</span>
-                                <span class="total-amount">€${totalValue}</span>
-                            </div>
-                        </div>
-                    `;
-                }
-                
-                // Determinar texto e classe do botão
-                let buttonText, buttonClass;
-                if (isRecommended) {
-                    buttonText = '<i class="fas fa-star"></i> Plano Ideal';
-                    buttonClass = 'btn-recommended';
-                } else if (plan === 'essencial') {
-                    buttonText = 'Escolher';
-                    buttonClass = '';
-                } else {
-                    buttonText = `Upgrade <span class="btn-upgrade-price">+€${upgradeCost}</span>`;
-                    buttonClass = 'btn-upgrade';
-                }
-                
-                comparisonHtml += `
-                    <div class="comparison-card ${isRecommended ? 'recommended' : ''} ${isPremium ? 'premium-card' : ''}">
-                        ${isRecommended ? '<div class="recommended-badge"><i class="fas fa-crown"></i> Recomendado</div>' : ''}
-                        ${isPremium && !isRecommended ? '<div class="premium-badge"><i class="fas fa-gem"></i> Premium</div>' : ''}
-                        <div class="comp-plan-name">${planNames[plan]}</div>
-                        <div class="comp-plan-price">€${planPrices[plan]}</div>
-                        <div class="comp-plan-price-per">por publicação</div>
-                        <div class="comp-plan-books">
-                            <i class="fas fa-book"></i> ${books} livros incluídos
-                        </div>
-                        ${valueSection}
-                        <ul class="comp-features">
-                            ${features.map(f => `
-                                <li class="${f.gain ? 'gain' : ''} ${f.loss ? 'loss' : ''}">
-                                    <i class="fas ${f.loss ? 'fa-times-circle' : 'fa-check-circle'}"></i>
-                                    ${f.text}
-                                </li>
-                            `).join('')}
-                        </ul>
-                        <button type="button" class="btn-choose-plan ${buttonClass}" onclick="closeBookComparisonModal()">
-                            ${buttonText}
-                        </button>
-                    </div>
-                `;
-            });
-
-            comparisonHtml += `</div>`;
-            
-            resultDiv.innerHTML = comparisonHtml;
-            resultDiv.style.display = 'block';
-            
-            // Animate result entry - use fromTo to ensure final opacity is 1
-            if (typeof gsap !== 'undefined') {
-                gsap.fromTo('.comparison-card', 
-                    {
-                        opacity: 0,
-                        y: 20
-                    },
-                    {
-                        opacity: 1,
-                        y: 0,
-                        stagger: 0.1,
-                        duration: 0.5,
-                        ease: 'power2.out',
-                        clearProps: 'all' // Remove inline styles after animation
-                    }
-                );
-            }
-            
-            resultDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-        }
     </script>
 </body>
 </html>

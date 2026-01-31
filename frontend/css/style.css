@@ -11487,3 +11487,515 @@ body.page-apoio .btn-primary {
     border-radius: 8px;
   }
 }
+
+/* ========================================
+   PRICE CALCULATOR STYLES
+   ======================================== */
+
+.calculator-section-main {
+    background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+    padding: 80px 0;
+}
+
+.price-calculator-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 40px;
+    margin-top: 40px;
+}
+
+/* Calculator Inputs (Left Side) */
+.calculator-inputs {
+    background: white;
+    border-radius: 16px;
+    padding: 32px;
+    box-shadow: 0 4px 24px rgba(14, 27, 77, 0.08);
+}
+
+.calculator-field {
+    margin-bottom: 28px;
+}
+
+.calculator-field:last-child {
+    margin-bottom: 0;
+}
+
+.calculator-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: 'EB Garamond', serif;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--primary-color);
+    margin-bottom: 12px;
+}
+
+.calculator-label i {
+    color: var(--accent-color);
+    font-size: 1.2rem;
+}
+
+.calculator-input {
+    width: 100%;
+    padding: 14px 18px;
+    border: 2px solid rgba(14, 27, 77, 0.1);
+    border-radius: 10px;
+    font-family: 'Questrial', sans-serif;
+    font-size: 1rem;
+    color: var(--text-color);
+    transition: all 0.3s ease;
+}
+
+.calculator-input:focus {
+    outline: none;
+    border-color: var(--accent-color);
+    box-shadow: 0 0 0 4px rgba(255, 177, 0, 0.1);
+}
+
+.field-hint {
+    display: block;
+    margin-top: 8px;
+    font-size: 0.85rem;
+    color: #6c757d;
+    font-style: italic;
+}
+
+/* Calculator Options (Buttons) */
+.calculator-options {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+
+.calc-option-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 20px 16px;
+    background: white;
+    border: 2px solid rgba(14, 27, 77, 0.1);
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-family: 'Questrial', sans-serif;
+    font-size: 0.95rem;
+    color: var(--text-color);
+}
+
+.calc-option-btn i {
+    font-size: 1.8rem;
+    color: var(--primary-color);
+    transition: all 0.3s ease;
+}
+
+.calc-option-btn:hover {
+    border-color: var(--accent-color);
+    background: rgba(255, 177, 0, 0.05);
+    transform: translateY(-2px);
+}
+
+.calc-option-btn.selected {
+    border-color: var(--accent-color);
+    background: var(--accent-color);
+    color: var(--primary-color);
+    box-shadow: 0 4px 16px rgba(255, 177, 0, 0.3);
+}
+
+.calc-option-btn.selected i {
+    color: var(--primary-color);
+}
+
+/* Checkbox */
+.calculator-checkbox {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+    padding: 16px;
+    border: 2px solid rgba(14, 27, 77, 0.1);
+    border-radius: 10px;
+    transition: all 0.3s ease;
+}
+
+.calculator-checkbox:hover {
+    border-color: var(--accent-color);
+    background: rgba(255, 177, 0, 0.03);
+}
+
+.calculator-checkbox input[type="checkbox"] {
+    width: 22px;
+    height: 22px;
+    cursor: pointer;
+    accent-color: var(--accent-color);
+}
+
+.checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: 'Questrial', sans-serif;
+    font-size: 1rem;
+    color: var(--text-color);
+}
+
+.checkbox-label i {
+    color: var(--accent-color);
+    font-size: 1.1rem;
+}
+
+/* Quantity Control */
+.quantity-control {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.qty-btn {
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--accent-color);
+    color: var(--primary-color);
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 1.1rem;
+}
+
+.qty-btn:hover {
+    background: #e6a000;
+    transform: scale(1.05);
+}
+
+.qty-btn:active {
+    transform: scale(0.95);
+}
+
+.qty-input {
+    flex: 1;
+    text-align: center;
+    padding: 12px;
+    border: 2px solid rgba(14, 27, 77, 0.1);
+    border-radius: 10px;
+    font-family: 'Questrial', sans-serif;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--text-color);
+}
+
+.qty-input:focus {
+    outline: none;
+    border-color: var(--accent-color);
+}
+
+/* Calculate Button */
+.btn-calculate-price {
+    width: 100%;
+    padding: 18px 32px;
+    margin-top: 32px;
+    background: linear-gradient(135deg, var(--accent-color) 0%, #e6a000 100%);
+    color: var(--primary-color);
+    border: none;
+    border-radius: 12px;
+    font-family: 'EB Garamond', serif;
+    font-size: 1.2rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 16px rgba(255, 177, 0, 0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+}
+
+.btn-calculate-price:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(255, 177, 0, 0.4);
+}
+
+.btn-calculate-price:active {
+    transform: translateY(0);
+}
+
+/* Price Summary (Right Side) */
+.price-summary {
+    background: white;
+    border-radius: 16px;
+    padding: 32px;
+    box-shadow: 0 4px 24px rgba(14, 27, 77, 0.08);
+    position: sticky;
+    top: 100px;
+    max-height: calc(100vh - 120px);
+    overflow-y: auto;
+}
+
+.summary-header {
+    margin-bottom: 24px;
+    padding-bottom: 20px;
+    border-bottom: 2px solid rgba(14, 27, 77, 0.1);
+}
+
+.summary-header h3 {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-family: 'EB Garamond', serif;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--primary-color);
+    margin: 0;
+}
+
+.summary-header i {
+    color: var(--accent-color);
+    font-size: 1.4rem;
+}
+
+/* Price Breakdown */
+.price-breakdown {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.cost-section {
+    padding: 20px;
+    background: rgba(14, 27, 77, 0.02);
+    border-radius: 12px;
+}
+
+.cost-section h4 {
+    font-family: 'EB Garamond', serif;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--primary-color);
+    margin: 0 0 16px 0;
+    padding-bottom: 12px;
+    border-bottom: 1px solid rgba(14, 27, 77, 0.1);
+}
+
+.cost-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    font-family: 'Questrial', sans-serif;
+    font-size: 0.95rem;
+    color: var(--text-color);
+}
+
+.cost-item span:first-child {
+    color: #6c757d;
+}
+
+.cost-value {
+    font-weight: 600;
+    color: var(--text-color);
+}
+
+.cost-subtotal {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 0 0 0;
+    margin-top: 12px;
+    border-top: 1px solid rgba(14, 27, 77, 0.1);
+    font-family: 'Questrial', sans-serif;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--primary-color);
+}
+
+/* Total */
+.cost-total {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 24px;
+    background: linear-gradient(135deg, var(--primary-color) 0%, #1a2d6f 100%);
+    border-radius: 12px;
+    margin-top: 8px;
+}
+
+.cost-total span:first-child {
+    font-family: 'EB Garamond', serif;
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: white;
+}
+
+.total-value {
+    font-family: 'EB Garamond', serif;
+    font-size: 2rem;
+    font-weight: 800;
+    color: var(--accent-color);
+}
+
+/* Go to Form Button */
+.btn-goto-form {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    width: 100%;
+    padding: 16px 28px;
+    margin-top: 20px;
+    background: var(--accent-color);
+    color: var(--primary-color);
+    text-decoration: none;
+    border-radius: 12px;
+    font-family: 'EB Garamond', serif;
+    font-size: 1.1rem;
+    font-weight: 700;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 16px rgba(255, 177, 0, 0.3);
+}
+
+.btn-goto-form:hover {
+    background: #e6a000;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(255, 177, 0, 0.4);
+}
+
+/* Empty State */
+.empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 20px;
+    text-align: center;
+    color: #6c757d;
+}
+
+.empty-state i {
+    font-size: 4rem;
+    color: rgba(14, 27, 77, 0.1);
+    margin-bottom: 20px;
+}
+
+.empty-state p {
+    font-family: 'Questrial', sans-serif;
+    font-size: 1rem;
+    line-height: 1.6;
+    max-width: 300px;
+}
+
+/* Error Message */
+.calculator-error-msg {
+    display: none;
+    align-items: center;
+    gap: 12px;
+    padding: 16px 20px;
+    margin-top: 24px;
+    background: #fff3cd;
+    border: 2px solid #ffc107;
+    border-radius: 10px;
+    color: #856404;
+    font-family: 'Questrial', sans-serif;
+    font-size: 0.95rem;
+}
+
+.calculator-error-msg i {
+    font-size: 1.3rem;
+    color: #ffc107;
+}
+
+/* Responsive Design */
+@media (max-width: 992px) {
+    .price-calculator-container {
+        grid-template-columns: 1fr;
+        gap: 30px;
+    }
+
+    .price-summary {
+        position: static;
+        max-height: none;
+    }
+
+    .calculator-section-main {
+        padding: 60px 0;
+    }
+}
+
+@media (max-width: 768px) {
+    .calculator-inputs,
+    .price-summary {
+        padding: 24px;
+    }
+
+    .calculator-options {
+        grid-template-columns: 1fr;
+    }
+
+    .calc-option-btn {
+        padding: 16px 14px;
+    }
+
+    .calculator-label {
+        font-size: 1rem;
+    }
+
+    .summary-header h3 {
+        font-size: 1.3rem;
+    }
+
+    .total-value {
+        font-size: 1.7rem;
+    }
+
+    .btn-calculate-price,
+    .btn-goto-form {
+        padding: 14px 24px;
+        font-size: 1rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .calculator-section-main {
+        padding: 40px 0;
+    }
+
+    .calculator-inputs,
+    .price-summary {
+        padding: 20px;
+        border-radius: 12px;
+    }
+
+    .calculator-field {
+        margin-bottom: 20px;
+    }
+
+    .calc-option-btn {
+        padding: 14px 12px;
+        gap: 8px;
+    }
+
+    .calc-option-btn i {
+        font-size: 1.5rem;
+    }
+
+    .quantity-control {
+        gap: 8px;
+    }
+
+    .qty-btn {
+        width: 40px;
+        height: 40px;
+    }
+
+    .cost-total {
+        padding: 20px;
+    }
+
+    .total-value {
+        font-size: 1.5rem;
+    }
+}
