@@ -120,6 +120,9 @@ function initPriceCalculator() {
     
     document.querySelectorAll('.calc-option-btn[data-cover]').forEach(btn => {
         btn.addEventListener('click', function() {
+            // Don't allow clicking disabled buttons
+            if (this.disabled) return;
+            
             document.querySelectorAll('.calc-option-btn[data-cover]').forEach(b => b.classList.remove('selected'));
             this.classList.add('selected');
             priceCalcState.cover = this.dataset.cover;
@@ -157,6 +160,33 @@ function initPriceCalculator() {
     if (bookSizeSelect) {
         bookSizeSelect.addEventListener('change', function() {
             priceCalcState.bookSize = this.value || null;
+            
+            // Check if selected size supports hardcover
+            const selectedOption = this.options[this.selectedIndex];
+            const supportsHardcover = selectedOption.getAttribute('data-hardcover') === 'true';
+            
+            // Enable/disable hardcover button
+            const hardcoverBtn = document.querySelector('.calc-option-btn[data-cover="dura"]');
+            if (hardcoverBtn) {
+                if (!supportsHardcover && this.value) {
+                    hardcoverBtn.disabled = true;
+                    hardcoverBtn.style.opacity = '0.5';
+                    hardcoverBtn.style.cursor = 'not-allowed';
+                    hardcoverBtn.title = 'Este tamanho não está disponível em capa dura';
+                    
+                    // If hardcover was selected, deselect it
+                    if (priceCalcState.cover === 'dura') {
+                        hardcoverBtn.classList.remove('selected');
+                        priceCalcState.cover = null;
+                    }
+                } else {
+                    hardcoverBtn.disabled = false;
+                    hardcoverBtn.style.opacity = '1';
+                    hardcoverBtn.style.cursor = 'pointer';
+                    hardcoverBtn.title = '';
+                }
+            }
+            
             calculatePriceRealTime();
         });
     }
