@@ -12770,6 +12770,7 @@ body.page-apoio .btn-primary {
 
 .breakdown-item span:first-child {
     color: var(--text-gray);
+    text-align: left;
     font-size: 0.9rem;
     flex: 1;
     min-width: 120px;
