@@ -1157,6 +1157,16 @@ function escapeHtml(unsafe) {
 // BOOK PREVIEW MODAL FUNCTIONALITY
 // ==================================
 
+// Preload image helper function
+function preloadImage(src) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => resolve(img);
+    img.onerror = reject;
+    img.src = src;
+  });
+}
+
 let currentPageIndex = 0;
 let currentBookPages = [];
 
