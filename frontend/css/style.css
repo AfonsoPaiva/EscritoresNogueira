@@ -11507,21 +11507,20 @@ body.page-apoio .btn-primary {
 
 /* Calculator Inputs (Left Side) */
 .calculator-inputs {
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 20px;
-    padding: 40px;
-    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.1);
-    border: 1px solid rgba(255, 255, 255, 0.15);
+    background: transparent;
+    border-radius: 0;
+    padding: 0;
+    box-shadow: none;
+    border: none;
     transition: all 0.3s ease;
 }
 
 .calculator-inputs:hover {
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
-    border-color: rgba(255, 255, 255, 0.25);
+    box-shadow: none;
 }
 
 .calculator-field {
-    margin-bottom: 32px;
+    margin-bottom: 40px;
     position: relative;
 }
 
@@ -11547,42 +11546,49 @@ body.page-apoio .btn-primary {
 .calculator-label {
     display: flex;
     align-items: center;
+    justify-content: space-between;
     gap: 10px;
     font-family: 'EB Garamond', serif;
-    font-size: 1.15rem;
+    font-size: 1.2rem;
     font-weight: 600;
     color: white;
-    margin-bottom: 14px;
+    margin-bottom: 16px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
 .calculator-label i {
-    color: var(--accent-color);
+    color: white;
     font-size: 1.3rem;
+    order: 2;
 }
 
 .calculator-input {
     width: 100%;
     padding: 16px 20px;
-    border: 2px solid rgba(255, 255, 255, 0.2);
-    border-radius: 12px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 8px;
     font-family: 'Questrial', sans-serif;
     font-size: 1.05rem;
-    color: var(--text-color);
+    color: white;
     transition: all 0.3s ease;
-    background: rgba(255, 255, 255, 0.95);
+    background: transparent;
+}
+
+.calculator-input::placeholder {
+    color: rgba(255, 255, 255, 0.5);
 }
 
 .calculator-input:hover {
-    border-color: rgba(255, 255, 255, 0.3);
-    background: white;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    border-color: rgba(255, 255, 255, 0.5);
+    background: rgba(255, 255, 255, 0.05);
 }
 
 .calculator-input:focus {
     outline: none;
     border-color: var(--accent-color);
-    background: white;
-    box-shadow: 0 0 0 3px rgba(255, 177, 0, 0.2);
+    background: rgba(255, 255, 255, 0.08);
+    box-shadow: 0 0 0 3px rgba(255, 177, 0, 0.15);
 }
 
 .field-hint {
@@ -11608,49 +11614,45 @@ body.page-apoio .btn-primary {
     justify-content: center;
     gap: 12px;
     padding: 24px 18px;
-    background: rgba(255, 255, 255, 0.95);
+    background: transparent;
     border: 2px solid rgba(255, 255, 255, 0.3);
-    border-radius: 14px;
+    border-radius: 8px;
     cursor: pointer;
     transition: all 0.3s ease;
     font-family: 'Questrial', sans-serif;
     font-size: 0.98rem;
     font-weight: 500;
-    color: var(--text-color);
+    color: white;
 }
 
 .calc-option-btn i {
     font-size: 2rem;
-    color: var(--primary-color);
+    color: white;
     transition: all 0.3s ease;
 }
 
 .calc-option-btn:hover {
     border-color: var(--accent-color);
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    background: white;
+    background: rgba(255, 255, 255, 0.05);
 }
 
 .calc-option-btn:disabled {
-    opacity: 0.5;
+    opacity: 0.3;
     cursor: not-allowed;
-    background: #e9ecef;
-    border-color: #dee2e6;
+    background: transparent;
+    border-color: rgba(255, 255, 255, 0.1);
 }
 
 .calc-option-btn:disabled:hover {
     transform: none;
-    box-shadow: none;
-    border-color: #dee2e6;
+    border-color: rgba(255, 255, 255, 0.1);
 }
 
 .calc-option-btn.selected {
     border-color: var(--accent-color);
     background: var(--accent-color);
     color: var(--primary-color);
-    box-shadow: 0 4px 16px rgba(255, 177, 0, 0.3);
-    transform: translateY(-2px);
 }
 
 .calc-option-btn.selected i {
@@ -11757,29 +11759,29 @@ body.page-apoio .btn-primary {
     text-align: center;
     padding: 14px;
     border: 2px solid rgba(255, 255, 255, 0.3);
-    border-radius: 12px;
+    border-radius: 8px;
     font-family: 'EB Garamond', serif;
     font-size: 1.3rem;
     font-weight: 700;
-    color: var(--primary-color);
-    background: rgba(255, 255, 255, 0.95);
+    color: white;
+    background: transparent;
     transition: all 0.3s ease;
 }
 
 .qty-input:focus {
     outline: none;
     border-color: var(--accent-color);
-    background: white;
-    box-shadow: 0 0 0 3px rgba(255, 177, 0, 0.2);
+    background: rgba(255, 255, 255, 0.08);
+    box-shadow: 0 0 0 3px rgba(255, 177, 0, 0.15);
 }
 
-/* Price Summary (Right Side) */
+/* Price Summary (Right Side) - Invoice Style */
 .price-summary {
-    background: rgba(255, 255, 255, 0.05);
-    border-radius: 20px;
-    padding: 40px;
-    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.1);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: white;
+    border-radius: 0;
+    padding: 0;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.15);
+    border: none;
     position: sticky;
     top: 100px;
     max-height: calc(100vh - 120px);
@@ -11788,14 +11790,14 @@ body.page-apoio .btn-primary {
 }
 
 .price-summary:hover {
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
-    border-color: rgba(255, 255, 255, 0.2);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
 }
 
 .summary-header {
-    margin-bottom: 28px;
-    padding-bottom: 24px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    margin-bottom: 0;
+    padding: 32px;
+    border-bottom: 3px solid var(--primary-color);
+    background: var(--primary-color);
 }
 
 .summary-header h3 {
@@ -11803,10 +11805,12 @@ body.page-apoio .btn-primary {
     align-items: center;
     gap: 12px;
     font-family: 'EB Garamond', serif;
-    font-size: 1.6rem;
+    font-size: 1.4rem;
     font-weight: 700;
     color: white;
     margin: 0;
+    text-transform: uppercase;
+    letter-spacing: 1px;
 }
 
 .summary-header i {
@@ -11851,12 +11855,12 @@ body.page-apoio .btn-primary {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 14px 0;
+    padding: 12px 0;
     font-family: 'Questrial', sans-serif;
-    font-size: 0.98rem;
-    color: rgba(255, 255, 255, 0.9);
+    font-size: 0.95rem;
+    color: #333;
     transition: all 0.3s ease;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    border-bottom: 1px dotted #e0e0e0;
 }
 
 .cost-item:last-of-type {
@@ -11864,12 +11868,12 @@ body.page-apoio .btn-primary {
 }
 
 .cost-item span:first-child {
-    color: rgba(255, 255, 255, 0.7);
+    color: #666;
 }
 
 .cost-value {
     font-weight: 600;
-    color: white;
+    color: var(--primary-color);
     font-family: 'EB Garamond', serif;
     font-size: 1.05rem;
 }
@@ -11879,16 +11883,16 @@ body.page-apoio .btn-primary {
     justify-content: space-between;
     align-items: center;
     padding: 16px 0 0 0;
-    margin-top: 14px;
-    border-top: 1px solid rgba(255, 255, 255, 0.2);
+    margin-top: 16px;
+    border-top: 2px solid var(--primary-color);
     font-family: 'Questrial', sans-serif;
     font-size: 1.05rem;
-    font-weight: 600;
-    color: white;
+    font-weight: 700;
+    color: var(--primary-color);
 }
 
 .cost-subtotal .cost-value {
-    font-size: 1.15rem;
+    font-size: 1.2rem;
     font-weight: 700;
 }
 
@@ -11898,31 +11902,31 @@ body.page-apoio .btn-primary {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    padding: 32px;
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 14px;
-    margin-top: 12px;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    gap: 8px;
+    padding: 40px 32px;
+    background: var(--primary-color);
+    border-radius: 0;
+    margin-top: 0;
+    box-shadow: none;
+    border: none;
+    gap: 12px;
 }
 
 .total-value {
     font-family: 'EB Garamond', serif;
-    font-size: 3rem;
+    font-size: 3.5rem;
     font-weight: 800;
-    color: white;
+    color: var(--accent-color);
     letter-spacing: -1px;
-    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    text-shadow: none;
 }
 
 .cost-total span:last-child {
     font-family: 'Questrial', sans-serif;
-    font-size: 1rem;
+    font-size: 0.95rem;
     font-weight: 500;
-    color: rgba(255, 255, 255, 0.8);
+    color: rgba(255, 255, 255, 0.9);
     text-transform: uppercase;
-    letter-spacing: 1px;
+    letter-spacing: 2px;
 }
 
 /* Go to Form Button */
@@ -11932,19 +11936,21 @@ body.page-apoio .btn-primary {
     justify-content: center;
     gap: 12px;
     width: 100%;
-    padding: 18px 32px;
-    margin-top: 24px;
+    padding: 20px 32px;
+    margin-top: 0;
     background: var(--accent-color);
     color: var(--primary-color);
     text-decoration: none;
-    border-radius: 14px;
+    border-radius: 0;
     font-family: 'EB Garamond', serif;
     font-size: 1.15rem;
     font-weight: 700;
     transition: all 0.3s ease;
-    box-shadow: 0 4px 16px rgba(255, 177, 0, 0.3);
+    box-shadow: none;
     opacity: 0;
     transform: translateY(10px);
+    text-transform: uppercase;
+    letter-spacing: 1px;
 }
 
 .btn-goto-form.show {
@@ -11961,7 +11967,7 @@ body.page-apoio .btn-primary {
 
 .btn-goto-form:hover {
     transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(255, 177, 0, 0.4);
+    box-shadow: 0 4px 16px rgba(255, 177, 0, 0.3);
     background: #f5a623;
 }
 
