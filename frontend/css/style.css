@@ -11507,17 +11507,16 @@ body.page-apoio .btn-primary {
 
 /* Calculator Inputs (Left Side) */
 .calculator-inputs {
-    background: rgba(255, 255, 255, 0.05);
+    background: white;
     border-radius: 20px;
     padding: 40px;
     box-shadow: 0 4px 24px rgba(0, 0, 0, 0.1);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border: none;
     transition: all 0.3s ease;
 }
 
 .calculator-inputs:hover {
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
-    border-color: rgba(255, 255, 255, 0.2);
 }
 
 .calculator-field {
@@ -11535,7 +11534,7 @@ body.page-apoio .btn-primary {
     font-family: 'EB Garamond', serif;
     font-size: 1.15rem;
     font-weight: 600;
-    color: white;
+    color: var(--primary-color);
     margin-bottom: 14px;
 }
 
@@ -11547,13 +11546,13 @@ body.page-apoio .btn-primary {
 .calculator-input {
     width: 100%;
     padding: 16px 20px;
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    border: 2px solid #e8ecef;
     border-radius: 12px;
     font-family: 'Questrial', sans-serif;
     font-size: 1.05rem;
     color: var(--text-color);
     transition: all 0.3s ease;
-    background: rgba(255, 255, 255, 0.95);
+    background: #f8f9fa;
 }
 
 .calculator-input:hover {
@@ -11572,7 +11571,7 @@ body.page-apoio .btn-primary {
     display: block;
     margin-top: 10px;
     font-size: 0.88rem;
-    color: rgba(255, 255, 255, 0.7);
+    color: #6c757d;
     font-style: italic;
     line-height: 1.4;
 }
@@ -11591,8 +11590,8 @@ body.page-apoio .btn-primary {
     justify-content: center;
     gap: 12px;
     padding: 24px 18px;
-    background: rgba(255, 255, 255, 0.95);
-    border: 1px solid rgba(255, 255, 255, 0.3);
+    background: #f8f9fa;
+    border: 2px solid #e8ecef;
     border-radius: 14px;
     cursor: pointer;
     transition: all 0.3s ease;
@@ -11634,8 +11633,8 @@ body.page-apoio .btn-primary {
     gap: 14px;
     cursor: pointer;
     padding: 20px;
-    background: rgba(255, 255, 255, 0.95);
-    border: 1px solid rgba(255, 255, 255, 0.3);
+    background: #f8f9fa;
+    border: 2px solid #e8ecef;
     border-radius: 12px;
     transition: all 0.3s ease;
 }
@@ -11643,7 +11642,7 @@ body.page-apoio .btn-primary {
 .calculator-checkbox:hover {
     border-color: var(--accent-color);
     background: white;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
 .calculator-checkbox input[type="checkbox"] {
@@ -11706,13 +11705,13 @@ body.page-apoio .btn-primary {
     flex: 1;
     text-align: center;
     padding: 14px;
-    border: 1px solid rgba(255, 255, 255, 0.3);
+    border: 2px solid #e8ecef;
     border-radius: 12px;
     font-family: 'EB Garamond', serif;
     font-size: 1.3rem;
     font-weight: 700;
     color: var(--primary-color);
-    background: rgba(255, 255, 255, 0.95);
+    background: #f8f9fa;
     transition: all 0.3s ease;
 }
 
@@ -11840,34 +11839,39 @@ body.page-apoio .btn-primary {
 /* Total */
 .cost-total {
     display: flex;
-    justify-content: space-between;
+    flex-direction: column;
     align-items: center;
-    padding: 28px;
+    justify-content: center;
+    padding: 32px;
     background: rgba(255, 255, 255, 0.1);
     border-radius: 14px;
     margin-top: 12px;
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
     border: 1px solid rgba(255, 255, 255, 0.2);
-}
-
-.cost-total span:first-child {
-    font-family: 'EB Garamond', serif;
-    font-size: 1.25rem;
-    font-weight: 700;
-    color: white;
+    gap: 8px;
 }
 
 .total-value {
     font-family: 'EB Garamond', serif;
-    font-size: 2.2rem;
+    font-size: 3rem;
     font-weight: 800;
-    color: var(--accent-color);
-    letter-spacing: -0.5px;
+    color: white;
+    letter-spacing: -1px;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.cost-total span:last-child {
+    font-family: 'Questrial', sans-serif;
+    font-size: 1rem;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.8);
+    text-transform: uppercase;
+    letter-spacing: 1px;
 }
 
 /* Go to Form Button */
 .btn-goto-form {
-    display: flex;
+    display: none;
     align-items: center;
     justify-content: center;
     gap: 12px;
@@ -11883,6 +11887,20 @@ body.page-apoio .btn-primary {
     font-weight: 700;
     transition: all 0.3s ease;
     box-shadow: 0 4px 16px rgba(255, 177, 0, 0.3);
+    opacity: 0;
+    transform: translateY(10px);
+}
+
+.btn-goto-form.show {
+    display: flex;
+    animation: slideIn 0.4s ease forwards;
+}
+
+@keyframes slideIn {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 .btn-goto-form:hover {

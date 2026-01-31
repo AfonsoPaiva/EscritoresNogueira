@@ -7,6 +7,7 @@ let priceCalcState = {
     pages: null,
     cover: null,
     print: null,
+    bookSize: null,
     hasIllustrations: false,
     quantity: 1
 };
@@ -16,7 +17,7 @@ let isAnimating = false;
 
 // Amazon KDP Printing Cost Calculator (Spain marketplace)
 // Based on: https://kdp.amazon.com/en_US/help/topic/G201834330
-function calculateKDPPrintingCost(pages, coverType, printType) {
+function calculateKDPPrintingCost(pages, coverType, printType, bookSize) {
     // Fixed costs and per-page costs (in EUR for Spain)
     let fixedCost = 0;
     let costPerPage = 0;
@@ -46,7 +47,18 @@ function calculateKDPPrintingCost(pages, coverType, printType) {
         }
     }
 
-    const totalCost = fixedCost + (pages * costPerPage);
+    // Apply size multiplier for larger formats (optional enhancement)
+    let sizeMultiplier = 1.0;
+    if (bookSize) {
+        // Larger books may have slightly higher costs
+        if (bookSize === '8x10' || bookSize === '8.5x11') {
+            sizeMultiplier = 1.05; // 5% increase for large formats
+        } else if (bookSize === '7x10') {
+            sizeMultiplier = 1.02; // 2% increase
+        }
+    }
+
+    const totalCost = (fixedCost + (pages * costPerPage)) * sizeMultiplier;
     return totalCost;
 }
 
@@ -140,6 +152,15 @@ function initPriceCalculator() {
         });
     }
 
+    // Book size dropdown
+    const bookSizeSelect = document.getElementById('bookSize');
+    if (bookSizeSelect) {
+        bookSizeSelect.addEventListener('change', function() {
+            priceCalcState.bookSize = this.value || null;
+            calculatePriceRealTime();
+        });
+    }
+
     // Illustrations checkbox
     const illustrationsCheckbox = document.getElementById('hasIllustrations');
     if (illustrationsCheckbox) {
@@ -228,6 +249,7 @@ function calculatePriceRealTime() {
     const pages = priceCalcState.pages;
     const cover = priceCalcState.cover;
     const print = priceCalcState.print;
+    const bookSize = priceCalcState.bookSize;
     const hasIllustrations = priceCalcState.hasIllustrations;
     const quantity = priceCalcState.quantity;
 
@@ -241,7 +263,7 @@ function calculatePriceRealTime() {
     if (pages && cover && print) {
         const pageValidation = validatePageCount(pages, print);
         if (pageValidation.valid) {
-            printCostPerBook = calculateKDPPrintingCost(pages, cover, print);
+            printCostPerBook = calculateKDPPrintingCost(pages, cover, print, bookSize);
             printCostTotal = printCostPerBook * quantity;
         }
     }
@@ -250,6 +272,27 @@ function calculatePriceRealTime() {
 
     // Update UI with animation
     updatePriceSummaryAnimated(serviceCost, printCostPerBook, printCostTotal, grandTotal, quantity, pages, hasIllustrations);
+    
+    // Show/hide button based on whether all options are selected
+    updateButtonVisibility();
+}
+
+// Check if all required options are selected and show/hide button
+function updateButtonVisibility() {
+    const btnGotoForm = document.getElementById('btnGotoForm');
+    if (!btnGotoForm) return;
+    
+    const pages = priceCalcState.pages;
+    const cover = priceCalcState.cover;
+    const print = priceCalcState.print;
+    const bookSize = priceCalcState.bookSize;
+    
+    // Show button only if pages, cover, print type, and book size are all selected
+    if (pages && cover && print && bookSize && pages >= 24) {
+        btnGotoForm.classList.add('show');
+    } else {
+        btnGotoForm.classList.remove('show');
+    }
 }
 
 // Get current numeric value from formatted EUR string

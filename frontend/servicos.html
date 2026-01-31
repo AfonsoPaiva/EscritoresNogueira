@@ -819,6 +819,26 @@ window.klaroConfig = {
                                     <small class="field-hint">Mínimo: 24 páginas | Máximo: 828 (P&B) / 550 (Cores)</small>
                                 </div>
 
+                                <!-- Book Size (Trim Size) -->
+                                <div class="calculator-field">
+                                    <label class="calculator-label">
+                                        <i class="fas fa-ruler-combined"></i>
+                                        Tamanho do Livro
+                                    </label>
+                                    <select id="bookSize" class="calculator-input">
+                                        <option value="">Selecione o tamanho</option>
+                                        <option value="5x8">5" x 8" (12.7 x 20.32 cm) - Romance</option>
+                                        <option value="5.5x8.5">5.5" x 8.5" (13.97 x 21.59 cm)</option>
+                                        <option value="6x9">6" x 9" (15.24 x 22.86 cm) - Popular</option>
+                                        <option value="6.14x9.21">6.14" x 9.21" (A5 - 15.6 x 23.39 cm)</option>
+                                        <option value="6.69x9.61">6.69" x 9.61" (16.99 x 24.41 cm)</option>
+                                        <option value="7x10">7" x 10" (17.78 x 25.4 cm)</option>
+                                        <option value="8x10">8" x 10" (20.32 x 25.4 cm)</option>
+                                        <option value="8.5x11">8.5" x 11" (21.59 x 27.94 cm) - A4</option>
+                                    </select>
+                                    <small class="field-hint">Escolha o formato do seu livro (Amazon KDP)</small>
+                                </div>
+
                                 <!-- Cover Type -->
                                 <div class="calculator-field">
                                     <label class="calculator-label">
@@ -940,12 +960,12 @@ window.klaroConfig = {
 
                                     <!-- Total -->
                                     <div class="cost-total">
-                                        <span>Total Geral</span>
                                         <span class="total-value" id="grandTotal">50,00€</span>
+                                        <span>Total Geral</span>
                                     </div>
 
-                                    <!-- Action Button -->
-                                    <a href="/formulario" class="btn-goto-form">
+                                    <!-- Action Button (shown only when all options selected) -->
+                                    <a href="/formulario" class="btn-goto-form" id="btnGotoForm">
                                         <i class="fas fa-arrow-right"></i>
                                         Prosseguir para Formulário
                                     </a>
