@@ -12237,6 +12237,8 @@ body.page-apoio .btn-primary {
     border-radius: 20px;
     box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
     text-align: center;
+    min-height: 400px;
+    height: auto;
 }
 
 .slide-icon {
@@ -12570,6 +12572,8 @@ body.page-apoio .btn-primary {
     display: flex;
     flex-direction: column;
     align-items: center;
+    min-height: auto;
+    height: auto;
 }
 
 .result-header {
@@ -12754,7 +12758,9 @@ body.page-apoio .btn-primary {
     border-radius: 12px;
     transition: all 0.3s ease;
     box-shadow: 0 4px 16px rgba(255, 177, 0, 0.3);
-    margin-top: 12px;
+    margin-top: 24px;
+    opacity: 0;
+    transform: scale(0.9);
 }
 
 .result-cta-btn:hover {

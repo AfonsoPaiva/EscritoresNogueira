@@ -380,8 +380,9 @@ function goToSlide(slideNum) {
 function updateProgress() {
     const progressFill = document.getElementById('progressFill');
     const currentSlideNum = document.getElementById('currentSlideNum');
+    const totalSlides = document.getElementById('totalSlides');
     
-    if (progressFill && currentSlideNum) {
+    if (progressFill) {
         const progress = ((calcState.currentSlide - 1) / (calcState.totalSlides - 1)) * 100;
         
         gsap.to(progressFill, {
@@ -389,8 +390,14 @@ function updateProgress() {
             duration: 0.5,
             ease: 'power2.out'
         });
-        
+    }
+    
+    if (currentSlideNum) {
         currentSlideNum.textContent = calcState.currentSlide;
+    }
+    
+    if (totalSlides) {
+        totalSlides.textContent = calcState.totalSlides;
     }
 }
 
@@ -564,9 +571,9 @@ function animateResultSlide() {
                     });
                     
                     // Animate CTA button
-                    gsap.from('.result-cta-btn', {
-                        opacity: 0,
-                        scale: 0.9,
+                    gsap.to('.result-cta-btn', {
+                        opacity: 1,
+                        scale: 1,
                         duration: 0.5,
                         delay: 1.2,
                         ease: 'back.out(1.7)'
