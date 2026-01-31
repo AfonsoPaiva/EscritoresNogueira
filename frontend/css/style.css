@@ -11493,8 +11493,23 @@ body.page-apoio .btn-primary {
    ======================================== */
 
 .calculator-section-main {
-    background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+    background: linear-gradient(135deg, #fafbfc 0%, #ffffff 50%, #f8f9fc 100%);
     padding: 80px 0;
+    position: relative;
+}
+
+.calculator-section-main::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, 
+        transparent 0%, 
+        rgba(14, 27, 77, 0.1) 50%, 
+        transparent 100%
+    );
 }
 
 .price-calculator-container {
@@ -11507,13 +11522,22 @@ body.page-apoio .btn-primary {
 /* Calculator Inputs (Left Side) */
 .calculator-inputs {
     background: white;
-    border-radius: 16px;
-    padding: 32px;
-    box-shadow: 0 4px 24px rgba(14, 27, 77, 0.08);
+    border-radius: 20px;
+    padding: 40px;
+    box-shadow: 
+        0 4px 24px rgba(14, 27, 77, 0.06),
+        0 0 0 1px rgba(14, 27, 77, 0.04);
+    transition: all 0.3s ease;
+}
+
+.calculator-inputs:hover {
+    box-shadow: 
+        0 8px 32px rgba(14, 27, 77, 0.08),
+        0 0 0 1px rgba(255, 177, 0, 0.2);
 }
 
 .calculator-field {
-    margin-bottom: 28px;
+    margin-bottom: 32px;
 }
 
 .calculator-field:last-child {
@@ -11523,49 +11547,61 @@ body.page-apoio .btn-primary {
 .calculator-label {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 10px;
     font-family: 'EB Garamond', serif;
-    font-size: 1.1rem;
+    font-size: 1.15rem;
     font-weight: 600;
     color: var(--primary-color);
-    margin-bottom: 12px;
+    margin-bottom: 14px;
 }
 
 .calculator-label i {
     color: var(--accent-color);
-    font-size: 1.2rem;
+    font-size: 1.3rem;
+    filter: drop-shadow(0 2px 4px rgba(255, 177, 0, 0.3));
 }
 
 .calculator-input {
     width: 100%;
-    padding: 14px 18px;
-    border: 2px solid rgba(14, 27, 77, 0.1);
-    border-radius: 10px;
+    padding: 16px 20px;
+    border: 2px solid rgba(14, 27, 77, 0.08);
+    border-radius: 12px;
     font-family: 'Questrial', sans-serif;
-    font-size: 1rem;
+    font-size: 1.05rem;
     color: var(--text-color);
-    transition: all 0.3s ease;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    background: #fafbfc;
+}
+
+.calculator-input:hover {
+    border-color: rgba(14, 27, 77, 0.15);
+    background: white;
 }
 
 .calculator-input:focus {
     outline: none;
     border-color: var(--accent-color);
-    box-shadow: 0 0 0 4px rgba(255, 177, 0, 0.1);
+    background: white;
+    box-shadow: 
+        0 0 0 4px rgba(255, 177, 0, 0.1),
+        0 4px 12px rgba(255, 177, 0, 0.15);
+    transform: translateY(-1px);
 }
 
 .field-hint {
     display: block;
-    margin-top: 8px;
-    font-size: 0.85rem;
+    margin-top: 10px;
+    font-size: 0.88rem;
     color: #6c757d;
     font-style: italic;
+    line-height: 1.4;
 }
 
 /* Calculator Options (Buttons) */
 .calculator-options {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 12px;
+    gap: 14px;
 }
 
 .calc-option-btn {
@@ -11573,151 +11609,237 @@ body.page-apoio .btn-primary {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 10px;
-    padding: 20px 16px;
-    background: white;
-    border: 2px solid rgba(14, 27, 77, 0.1);
-    border-radius: 12px;
+    gap: 12px;
+    padding: 24px 18px;
+    background: linear-gradient(135deg, #fafbfc 0%, white 100%);
+    border: 2px solid rgba(14, 27, 77, 0.08);
+    border-radius: 14px;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     font-family: 'Questrial', sans-serif;
-    font-size: 0.95rem;
+    font-size: 0.98rem;
+    font-weight: 500;
     color: var(--text-color);
+    position: relative;
+    overflow: hidden;
+}
+
+.calc-option-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(255, 177, 0, 0.1) 0%, transparent 100%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.calc-option-btn:hover::before {
+    opacity: 1;
 }
 
 .calc-option-btn i {
-    font-size: 1.8rem;
+    font-size: 2rem;
     color: var(--primary-color);
-    transition: all 0.3s ease;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .calc-option-btn:hover {
     border-color: var(--accent-color);
-    background: rgba(255, 177, 0, 0.05);
-    transform: translateY(-2px);
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(255, 177, 0, 0.15);
+}
+
+.calc-option-btn:hover i {
+    transform: scale(1.1);
+    filter: drop-shadow(0 4px 8px rgba(255, 177, 0, 0.3));
 }
 
 .calc-option-btn.selected {
     border-color: var(--accent-color);
-    background: var(--accent-color);
+    background: linear-gradient(135deg, var(--accent-color) 0%, #f5a623 100%);
     color: var(--primary-color);
-    box-shadow: 0 4px 16px rgba(255, 177, 0, 0.3);
+    box-shadow: 
+        0 8px 24px rgba(255, 177, 0, 0.35),
+        0 0 0 4px rgba(255, 177, 0, 0.1);
+    transform: translateY(-2px);
+}
+
+.calc-option-btn.selected::before {
+    opacity: 0;
 }
 
 .calc-option-btn.selected i {
     color: var(--primary-color);
+    transform: scale(1.05);
 }
 
 /* Checkbox */
 .calculator-checkbox {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 14px;
     cursor: pointer;
-    padding: 16px;
-    border: 2px solid rgba(14, 27, 77, 0.1);
+    padding: 20px;
+    background: linear-gradient(135deg, #fafbfc 0%, white 100%);
+    border: 2px solid rgba(14, 27, 77, 0.08);
+    border-radius: 12px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+}
+
+.calculator-checkbox::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(255, 177, 0, 0.05) 0%, transparent 100%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
     border-radius: 10px;
-    transition: all 0.3s ease;
+}
+
+.calculator-checkbox:hover::before {
+    opacity: 1;
 }
 
 .calculator-checkbox:hover {
     border-color: var(--accent-color);
-    background: rgba(255, 177, 0, 0.03);
+    transform: translateX(3px);
+    box-shadow: 0 4px 12px rgba(255, 177, 0, 0.1);
 }
 
 .calculator-checkbox input[type="checkbox"] {
-    width: 22px;
-    height: 22px;
+    width: 24px;
+    height: 24px;
     cursor: pointer;
     accent-color: var(--accent-color);
+    transition: transform 0.2s ease;
+}
+
+.calculator-checkbox input[type="checkbox"]:checked {
+    transform: scale(1.1);
 }
 
 .checkbox-label {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 10px;
     font-family: 'Questrial', sans-serif;
-    font-size: 1rem;
+    font-size: 1.05rem;
     color: var(--text-color);
+    font-weight: 500;
 }
 
 .checkbox-label i {
     color: var(--accent-color);
-    font-size: 1.1rem;
+    font-size: 1.2rem;
 }
 
 /* Quantity Control */
 .quantity-control {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 14px;
 }
 
 .qty-btn {
-    width: 44px;
-    height: 44px;
+    width: 48px;
+    height: 48px;
     display: flex;
     align-items: center;
     justify-content: center;
-    background: var(--accent-color);
+    background: linear-gradient(135deg, var(--accent-color) 0%, #f5a623 100%);
     color: var(--primary-color);
     border: none;
-    border-radius: 10px;
+    border-radius: 12px;
     cursor: pointer;
-    transition: all 0.3s ease;
-    font-size: 1.1rem;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    font-size: 1.2rem;
+    font-weight: 600;
+    box-shadow: 0 4px 12px rgba(255, 177, 0, 0.3);
 }
 
 .qty-btn:hover {
-    background: #e6a000;
-    transform: scale(1.05);
+    background: linear-gradient(135deg, #f5a623 0%, var(--accent-color) 100%);
+    transform: translateY(-2px) scale(1.05);
+    box-shadow: 0 6px 16px rgba(255, 177, 0, 0.4);
 }
 
 .qty-btn:active {
-    transform: scale(0.95);
+    transform: translateY(0) scale(0.98);
 }
 
 .qty-input {
     flex: 1;
     text-align: center;
-    padding: 12px;
-    border: 2px solid rgba(14, 27, 77, 0.1);
-    border-radius: 10px;
-    font-family: 'Questrial', sans-serif;
-    font-size: 1.1rem;
-    font-weight: 600;
-    color: var(--text-color);
+    padding: 14px;
+    border: 2px solid rgba(14, 27, 77, 0.08);
+    border-radius: 12px;
+    font-family: 'EB Garamond', serif;
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: var(--primary-color);
+    background: linear-gradient(135deg, #fafbfc 0%, white 100%);
+    transition: all 0.3s ease;
 }
 
 .qty-input:focus {
     outline: none;
     border-color: var(--accent-color);
+    background: white;
+    box-shadow: 0 0 0 4px rgba(255, 177, 0, 0.1);
 }
 
-/* Calculate Button */
+/* Calculate Button - Now optional */
 .btn-calculate-price {
     width: 100%;
     padding: 18px 32px;
     margin-top: 32px;
-    background: linear-gradient(135deg, var(--accent-color) 0%, #e6a000 100%);
-    color: var(--primary-color);
-    border: none;
-    border-radius: 12px;
+    background: linear-gradient(135deg, var(--primary-color) 0%, #1a2d6f 100%);
+    color: white;
+    border: 2px solid var(--primary-color);
+    border-radius: 14px;
     font-family: 'EB Garamond', serif;
-    font-size: 1.2rem;
+    font-size: 1.15rem;
     font-weight: 700;
     cursor: pointer;
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 16px rgba(255, 177, 0, 0.3);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 4px 16px rgba(14, 27, 77, 0.2);
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 12px;
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-calculate-price::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.2);
+    transform: translate(-50%, -50%);
+    transition: width 0.6s, height 0.6s;
+}
+
+.btn-calculate-price:hover::before {
+    width: 300px;
+    height: 300px;
 }
 
 .btn-calculate-price:hover {
     transform: translateY(-2px);
-    box-shadow: 0 8px 24px rgba(255, 177, 0, 0.4);
+    box-shadow: 0 8px 24px rgba(14, 27, 77, 0.3);
+    border-color: var(--accent-color);
 }
 
 .btn-calculate-price:active {
@@ -11726,28 +11848,48 @@ body.page-apoio .btn-primary {
 
 /* Price Summary (Right Side) */
 .price-summary {
-    background: white;
-    border-radius: 16px;
-    padding: 32px;
-    box-shadow: 0 4px 24px rgba(14, 27, 77, 0.08);
+    background: linear-gradient(135deg, white 0%, #fafbfc 100%);
+    border-radius: 20px;
+    padding: 40px;
+    box-shadow: 
+        0 8px 32px rgba(14, 27, 77, 0.08),
+        0 0 0 1px rgba(14, 27, 77, 0.04);
     position: sticky;
     top: 100px;
     max-height: calc(100vh - 120px);
     overflow-y: auto;
+    transition: all 0.3s ease;
+}
+
+.price-summary:hover {
+    box-shadow: 
+        0 12px 40px rgba(14, 27, 77, 0.1),
+        0 0 0 1px rgba(255, 177, 0, 0.15);
 }
 
 .summary-header {
-    margin-bottom: 24px;
-    padding-bottom: 20px;
-    border-bottom: 2px solid rgba(14, 27, 77, 0.1);
+    margin-bottom: 28px;
+    padding-bottom: 24px;
+    border-bottom: 2px solid rgba(14, 27, 77, 0.08);
+    position: relative;
+}
+
+.summary-header::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    width: 60px;
+    height: 2px;
+    background: var(--accent-color);
 }
 
 .summary-header h3 {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 12px;
     font-family: 'EB Garamond', serif;
-    font-size: 1.5rem;
+    font-size: 1.6rem;
     font-weight: 700;
     color: var(--primary-color);
     margin: 0;
@@ -11755,62 +11897,85 @@ body.page-apoio .btn-primary {
 
 .summary-header i {
     color: var(--accent-color);
-    font-size: 1.4rem;
+    font-size: 1.5rem;
+    filter: drop-shadow(0 2px 4px rgba(255, 177, 0, 0.3));
 }
 
 /* Price Breakdown */
 .price-breakdown {
     display: flex;
     flex-direction: column;
-    gap: 24px;
+    gap: 28px;
 }
 
 .cost-section {
-    padding: 20px;
+    padding: 24px;
     background: rgba(14, 27, 77, 0.02);
-    border-radius: 12px;
+    border-radius: 14px;
+    border: 1px solid rgba(14, 27, 77, 0.05);
+    transition: all 0.3s ease;
+}
+
+.cost-section:hover {
+    background: rgba(14, 27, 77, 0.03);
+    border-color: rgba(255, 177, 0, 0.2);
 }
 
 .cost-section h4 {
     font-family: 'EB Garamond', serif;
-    font-size: 1.1rem;
+    font-size: 1.15rem;
     font-weight: 600;
     color: var(--primary-color);
-    margin: 0 0 16px 0;
-    padding-bottom: 12px;
+    margin: 0 0 18px 0;
+    padding-bottom: 14px;
     border-bottom: 1px solid rgba(14, 27, 77, 0.1);
+    display: flex;
+    align-items: center;
+    gap: 8px;
 }
 
 .cost-item {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 10px 0;
+    padding: 12px 0;
     font-family: 'Questrial', sans-serif;
-    font-size: 0.95rem;
+    font-size: 0.98rem;
     color: var(--text-color);
+    transition: all 0.3s ease;
+}
+
+.cost-item:hover {
+    padding-left: 8px;
 }
 
 .cost-item span:first-child {
-    color: #6c757d;
+    color: #5a6c7d;
 }
 
 .cost-value {
     font-weight: 600;
     color: var(--text-color);
+    font-family: 'EB Garamond', serif;
+    font-size: 1.05rem;
 }
 
 .cost-subtotal {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 14px 0 0 0;
-    margin-top: 12px;
-    border-top: 1px solid rgba(14, 27, 77, 0.1);
+    padding: 16px 0 0 0;
+    margin-top: 14px;
+    border-top: 2px solid rgba(14, 27, 77, 0.1);
     font-family: 'Questrial', sans-serif;
-    font-size: 1rem;
+    font-size: 1.05rem;
     font-weight: 600;
     color: var(--primary-color);
+}
+
+.cost-subtotal .cost-value {
+    font-size: 1.15rem;
+    font-weight: 700;
 }
 
 /* Total */
@@ -11818,24 +11983,43 @@ body.page-apoio .btn-primary {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 24px;
+    padding: 28px;
     background: linear-gradient(135deg, var(--primary-color) 0%, #1a2d6f 100%);
-    border-radius: 12px;
-    margin-top: 8px;
+    border-radius: 14px;
+    margin-top: 12px;
+    box-shadow: 0 8px 24px rgba(14, 27, 77, 0.25);
+    position: relative;
+    overflow: hidden;
+}
+
+.cost-total::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(255, 177, 0, 0.1) 0%, transparent 70%);
 }
 
 .cost-total span:first-child {
     font-family: 'EB Garamond', serif;
-    font-size: 1.2rem;
+    font-size: 1.25rem;
     font-weight: 700;
     color: white;
+    position: relative;
+    z-index: 1;
 }
 
 .total-value {
     font-family: 'EB Garamond', serif;
-    font-size: 2rem;
+    font-size: 2.2rem;
     font-weight: 800;
     color: var(--accent-color);
+    text-shadow: 0 2px 8px rgba(255, 177, 0, 0.4);
+    position: relative;
+    z-index: 1;
+    letter-spacing: -0.5px;
 }
 
 /* Go to Form Button */
@@ -11843,25 +12027,48 @@ body.page-apoio .btn-primary {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 10px;
+    gap: 12px;
     width: 100%;
-    padding: 16px 28px;
-    margin-top: 20px;
-    background: var(--accent-color);
+    padding: 18px 32px;
+    margin-top: 24px;
+    background: linear-gradient(135deg, var(--accent-color) 0%, #f5a623 100%);
     color: var(--primary-color);
     text-decoration: none;
-    border-radius: 12px;
+    border-radius: 14px;
     font-family: 'EB Garamond', serif;
-    font-size: 1.1rem;
+    font-size: 1.15rem;
     font-weight: 700;
-    transition: all 0.3s ease;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     box-shadow: 0 4px 16px rgba(255, 177, 0, 0.3);
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-goto-form::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.3);
+    transform: translate(-50%, -50%);
+    transition: width 0.6s, height 0.6s;
+}
+
+.btn-goto-form:hover::before {
+    width: 400px;
+    height: 400px;
 }
 
 .btn-goto-form:hover {
-    background: #e6a000;
-    transform: translateY(-2px);
-    box-shadow: 0 8px 24px rgba(255, 177, 0, 0.4);
+    transform: translateY(-3px);
+    box-shadow: 0 8px 28px rgba(255, 177, 0, 0.45);
+}
+
+.btn-goto-form:active {
+    transform: translateY(-1px);
 }
 
 /* Empty State */
@@ -11870,49 +12077,52 @@ body.page-apoio .btn-primary {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    padding: 60px 20px;
+    padding: 80px 20px;
     text-align: center;
     color: #6c757d;
 }
 
 .empty-state i {
-    font-size: 4rem;
-    color: rgba(14, 27, 77, 0.1);
-    margin-bottom: 20px;
+    font-size: 4.5rem;
+    color: rgba(14, 27, 77, 0.08);
+    margin-bottom: 24px;
+    filter: drop-shadow(0 4px 8px rgba(14, 27, 77, 0.05));
 }
 
 .empty-state p {
     font-family: 'Questrial', sans-serif;
-    font-size: 1rem;
+    font-size: 1.05rem;
     line-height: 1.6;
-    max-width: 300px;
+    max-width: 320px;
 }
 
 /* Error Message */
 .calculator-error-msg {
     display: none;
     align-items: center;
-    gap: 12px;
-    padding: 16px 20px;
-    margin-top: 24px;
-    background: #fff3cd;
+    gap: 14px;
+    padding: 18px 24px;
+    margin-top: 28px;
+    background: linear-gradient(135deg, #fff3cd 0%, #fffaeb 100%);
     border: 2px solid #ffc107;
-    border-radius: 10px;
+    border-radius: 12px;
     color: #856404;
     font-family: 'Questrial', sans-serif;
-    font-size: 0.95rem;
+    font-size: 0.98rem;
+    box-shadow: 0 4px 12px rgba(255, 193, 7, 0.2);
 }
 
 .calculator-error-msg i {
-    font-size: 1.3rem;
+    font-size: 1.4rem;
     color: #ffc107;
+    filter: drop-shadow(0 2px 4px rgba(255, 193, 7, 0.3));
 }
 
 /* Responsive Design */
 @media (max-width: 992px) {
     .price-calculator-container {
         grid-template-columns: 1fr;
-        gap: 30px;
+        gap: 32px;
     }
 
     .price-summary {
@@ -11928,7 +12138,8 @@ body.page-apoio .btn-primary {
 @media (max-width: 768px) {
     .calculator-inputs,
     .price-summary {
-        padding: 24px;
+        padding: 28px;
+        border-radius: 16px;
     }
 
     .calculator-options {
@@ -11936,25 +12147,25 @@ body.page-apoio .btn-primary {
     }
 
     .calc-option-btn {
-        padding: 16px 14px;
+        padding: 20px 16px;
     }
 
     .calculator-label {
-        font-size: 1rem;
+        font-size: 1.05rem;
     }
 
     .summary-header h3 {
-        font-size: 1.3rem;
+        font-size: 1.4rem;
     }
 
     .total-value {
-        font-size: 1.7rem;
+        font-size: 1.9rem;
     }
 
     .btn-calculate-price,
     .btn-goto-form {
-        padding: 14px 24px;
-        font-size: 1rem;
+        padding: 16px 28px;
+        font-size: 1.05rem;
     }
 }
 
@@ -11965,37 +12176,37 @@ body.page-apoio .btn-primary {
 
     .calculator-inputs,
     .price-summary {
-        padding: 20px;
-        border-radius: 12px;
+        padding: 24px;
+        border-radius: 14px;
     }
 
     .calculator-field {
-        margin-bottom: 20px;
+        margin-bottom: 24px;
     }
 
     .calc-option-btn {
-        padding: 14px 12px;
-        gap: 8px;
+        padding: 18px 14px;
+        gap: 10px;
     }
 
     .calc-option-btn i {
-        font-size: 1.5rem;
+        font-size: 1.7rem;
     }
 
     .quantity-control {
-        gap: 8px;
+        gap: 10px;
     }
 
     .qty-btn {
-        width: 40px;
-        height: 40px;
+        width: 44px;
+        height: 44px;
     }
 
     .cost-total {
-        padding: 20px;
+        padding: 24px;
     }
 
     .total-value {
-        font-size: 1.5rem;
+        font-size: 1.7rem;
     }
 }
