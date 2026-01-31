@@ -12003,18 +12003,19 @@ body.page-apoio .btn-primary {
 /* Error Message */
 .calculator-error-msg {
     display: none;
-    align-items: center;
-    gap: 14px;
-    padding: 18px 24px;
-    margin-top: 28px;
-    background: #fff3e0;
-    border-left: 4px solid #ff9800;
-    border-radius: 8px;
-    color: #e65100;
-    font-family: 'Questrial', sans-serif;
-    font-size: 0.98rem;
-    box-shadow: 0 2px 8px rgba(255, 152, 0, 0.15);
+    background: white;
+    border-radius: 12px;
+    padding: 16px 20px;
+    margin-top: 24px;
+    box-shadow: 0 4px 16px rgba(220, 53, 69, 0.2);
+    border-left: 4px solid #dc3545;
     animation: slideDown 0.3s ease;
+}
+
+.calculator-error-msg.show {
+    display: flex;
+    align-items: center;
+    gap: 12px;
 }
 
 @keyframes slideDown {
@@ -12029,8 +12030,17 @@ body.page-apoio .btn-primary {
 }
 
 .calculator-error-msg i {
-    font-size: 1.4rem;
-    color: #ff9800;
+    font-size: 1.3rem;
+    color: #dc3545;
+    flex-shrink: 0;
+}
+
+.calculator-error-msg #errorMessage {
+    color: #721c24;
+    font-family: 'Questrial', sans-serif;
+    font-size: 0.95rem;
+    line-height: 1.4;
+    font-weight: 500;
 }
 
 /* Responsive Design */
@@ -12130,6 +12140,37 @@ body.page-apoio .btn-primary {
    SLIDE-BASED CALCULATOR STYLES
    =================================== */
 
+/* Error Notification - Top of Screen */
+.error-notification {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: white;
+    border-left: 4px solid #e74c3c;
+    padding: 16px 24px;
+    border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    z-index: 10000;
+    min-width: 300px;
+    max-width: 500px;
+}
+
+.error-notification i {
+    color: #e74c3c;
+    font-size: 1.5rem;
+}
+
+.error-notification span {
+    color: var(--primary-color);
+    font-family: 'Questrial', sans-serif;
+    font-size: 1rem;
+    line-height: 1.4;
+}
+
 .price-calculator-slides {
     max-width: 900px;
     margin: 40px auto 0;
@@ -12144,11 +12185,12 @@ body.page-apoio .btn-primary {
 
 .progress-bar {
     width: 100%;
-    height: 8px;
-    background: rgba(255, 255, 255, 0.2);
+    height: 10px;
+    background: rgba(255, 255, 255, 0.3);
     border-radius: 10px;
     overflow: hidden;
     margin-bottom: 12px;
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .progress-fill {
@@ -12156,20 +12198,21 @@ body.page-apoio .btn-primary {
     width: 0%;
     background: var(--accent-color);
     transition: width 0.5s ease;
-    box-shadow: 0 0 10px rgba(255, 177, 0, 0.5);
+    box-shadow: 0 0 10px rgba(255, 177, 0, 0.6);
+    border-radius: 10px;
 }
 
 .progress-text {
     font-family: 'Questrial', sans-serif;
     font-size: 0.95rem;
-    color: rgba(255, 255, 255, 0.8);
-    font-weight: 500;
+    color: rgba(255, 255, 255, 0.9);
+    font-weight: 600;
 }
 
 /* Slides Wrapper */
 .calculator-slides-wrapper {
     position: relative;
-    min-height: 700px;
+    min-height: 800px;
     overflow: visible;
 }
 
@@ -12302,8 +12345,77 @@ body.page-apoio .btn-primary {
 
 /* Select Input */
 .slide-select-wrapper {
-    max-width: 500px;
+    max-width: 700px;
     margin: 0 auto;
+}
+
+/* Book Size Cards */
+.book-size-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 16px;
+    max-width: 700px;
+    margin: 0 auto;
+}
+
+.book-size-card {
+    background: white;
+    border: 3px solid var(--primary-color);
+    border-radius: 12px;
+    padding: 16px 12px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-align: center;
+    position: relative;
+}
+
+.book-size-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+    border-color: var(--accent-color);
+}
+
+.book-size-card.selected {
+    background: var(--accent-color);
+    border-color: var(--accent-color);
+}
+
+.book-size-card.selected .size-icon,
+.book-size-card.selected .size-name,
+.book-size-card.selected .size-dimensions {
+    color: var(--primary-color);
+}
+
+.book-size-card .size-icon {
+    font-size: 2.5rem;
+    color: var(--primary-color);
+    margin-bottom: 8px;
+}
+
+.book-size-card .size-name {
+    font-family: 'EB Garamond', serif;
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--primary-color);
+    margin-bottom: 4px;
+}
+
+.book-size-card .size-dimensions {
+    font-family: 'Questrial', sans-serif;
+    font-size: 0.85rem;
+    color: var(--text-gray);
+}
+
+.book-size-card .size-badge {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    background: var(--accent-color);
+    color: var(--primary-color);
+    font-size: 0.7rem;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-weight: 700;
 }
 
 .slide-select {

@@ -48,7 +48,7 @@ public class EscritoresNogueiraBackendApplication {
         
         System.out.println("\n==============================================");
         System.out.println("  Escritores Nogueira Backend");
-        System.out.println("  VERSION 8.0.0");
+        System.out.println("  VERSION 10.0.0");
         System.out.println("==============================================\n");
     }
 }

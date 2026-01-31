@@ -47,9 +47,16 @@ public class FormSubmissionService {
                 .bookGenre(req.getBookGenre())
                 .wordCount(req.getWordCount())
                 .manuscriptStatus(req.getManuscriptStatus())
-                .bookType(req.getBookType())
                 .bookSynopsis(req.getBookSynopsis())
                 .additionalInfo(req.getAdditionalInfo())
+                // Calculator data
+                .printType(req.getPrintType())
+                .coverType(req.getCoverType())
+                .bookSize(req.getBookSize())
+                .pages(req.getPages())
+                .hasIllustrations(req.getHasIllustrations())
+                .quantity(req.getQuantity())
+                .calculatedPrice(req.getCalculatedPrice())
                 .submittedAt(LocalDateTime.now())
                 .build();
 
@@ -67,7 +74,33 @@ public class FormSubmissionService {
             content.append("<li style='margin:8px 0;'><span style='display:inline-block;width:28px;'>🏷️</span><strong>Género:</strong> " + safe(saved.getBookGenre()) + "</li>");
             content.append("<li style='margin:8px 0;'><span style='display:inline-block;width:28px;'>🔢</span><strong>Nº de palavras:</strong> " + safe(saved.getWordCount()) + "</li>");
             content.append("<li style='margin:8px 0;'><span style='display:inline-block;width:28px;'>📝</span><strong>Estado do manuscrito:</strong> " + safe(saved.getManuscriptStatus()) + "</li>");
-            content.append("<li style='margin:8px 0;'><span style='display:inline-block;width:28px;'>📚</span><strong>Tipo de livro:</strong> " + safe(saved.getBookType()) + "</li>");
+            
+            // Calculator data if provided
+            if (saved.getPrintType() != null) {
+                String printTypeLabel = "pb".equals(saved.getPrintType()) ? "Preto & Branco" : "A Cores";
+                content.append("<li style='margin:8px 0;'><span style='display:inline-block;width:28px;'>🖨️</span><strong>Impressão:</strong> " + printTypeLabel + "</li>");
+            }
+            if (saved.getCoverType() != null) {
+                String coverTypeLabel = "mole".equals(saved.getCoverType()) ? "Capa Mole" : "Capa Dura";
+                content.append("<li style='margin:8px 0;'><span style='display:inline-block;width:28px;'>📕</span><strong>Tipo de Capa:</strong> " + coverTypeLabel + "</li>");
+            }
+            if (saved.getBookSize() != null) {
+                content.append("<li style='margin:8px 0;'><span style='display:inline-block;width:28px;'>📐</span><strong>Tamanho:</strong> " + safe(saved.getBookSize()) + "</li>");
+            }
+            if (saved.getPages() != null) {
+                content.append("<li style='margin:8px 0;'><span style='display:inline-block;width:28px;'>📄</span><strong>Páginas:</strong> " + saved.getPages() + "</li>");
+            }
+            if (saved.getHasIllustrations() != null) {
+                String illustrationsLabel = saved.getHasIllustrations() ? "Sim" : "Não";
+                content.append("<li style='margin:8px 0;'><span style='display:inline-block;width:28px;'>🎨</span><strong>Ilustrações:</strong> " + illustrationsLabel + "</li>");
+            }
+            if (saved.getQuantity() != null) {
+                content.append("<li style='margin:8px 0;'><span style='display:inline-block;width:28px;'>📦</span><strong>Quantidade:</strong> " + saved.getQuantity() + "</li>");
+            }
+            if (saved.getCalculatedPrice() != null) {
+                content.append("<li style='margin:8px 0;'><span style='display:inline-block;width:28px;'>💰</span><strong>Preço Calculado:</strong> " + String.format("%.2f€", saved.getCalculatedPrice()) + "</li>");
+            }
+            
             content.append("<li style='margin:8px 0;'><span style='display:inline-block;width:28px;'>✍️</span><strong>Sinopse:</strong> " + safe(saved.getBookSynopsis()) + "</li>");
             content.append("<li style='margin:8px 0;'><span style='display:inline-block;width:28px;'>🗒️</span><strong>Informações adicionais:</strong> " + safe(saved.getAdditionalInfo()) + "</li>");
             content.append("<li style='margin:8px 0;'><span style='display:inline-block;width:28px;'>💬</span><strong>Mensagem:</strong> " + safe(saved.getMessage()) + "</li>");
@@ -110,9 +143,16 @@ public class FormSubmissionService {
                 .bookGenre(s.getBookGenre())
                 .wordCount(s.getWordCount())
                 .manuscriptStatus(s.getManuscriptStatus())
-                .bookType(s.getBookType())
                 .bookSynopsis(s.getBookSynopsis())
                 .additionalInfo(s.getAdditionalInfo())
+                // Calculator data
+                .printType(s.getPrintType())
+                .coverType(s.getCoverType())
+                .bookSize(s.getBookSize())
+                .pages(s.getPages())
+                .hasIllustrations(s.getHasIllustrations())
+                .quantity(s.getQuantity())
+                .calculatedPrice(s.getCalculatedPrice())
                 .submittedAt(s.getSubmittedAt())
                 .build();
     }

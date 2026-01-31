@@ -206,7 +206,6 @@
     if (name === "orders") loadOrders();
     if (name === "forms") loadForms();
     if (name === "newsletters") loadNewsletters();
-    if (name === "services") loadServices();
     if (name === "users") loadUsers();
   }
 
@@ -1361,11 +1360,18 @@
       "formType",
       "plan",
       "bookTitle",
-      "bookType",
       "bookGenre",
       "manuscriptStatus",
       "wordCount",
+      "bookSynopsis",
       "additionalInfo",
+      "printType",
+      "coverType",
+      "bookSize",
+      "pages",
+      "hasIllustrations",
+      "quantity",
+      "calculatedPrice",
       "submittedAt",
       "createdAt",
       "date",
@@ -1374,9 +1380,32 @@
     commonOrder.forEach((k) => {
       if (f[k] !== undefined && f[k] !== null) {
         let val = f[k];
+        let displayKey = k;
+        
+        // Format calculator fields nicely
+        if (k === 'printType') {
+          displayKey = 'Tipo de Impressão';
+          val = val === 'pb' ? 'Preto & Branco' : 'A Cores';
+        } else if (k === 'coverType') {
+          displayKey = 'Tipo de Capa';
+          val = val === 'mole' ? 'Capa Mole' : 'Capa Dura';
+        } else if (k === 'bookSize') {
+          displayKey = 'Tamanho do Livro';
+        } else if (k === 'pages') {
+          displayKey = 'Número de Páginas';
+        } else if (k === 'hasIllustrations') {
+          displayKey = 'Com Ilustrações';
+          val = val ? 'Sim' : 'Não';
+        } else if (k === 'quantity') {
+          displayKey = 'Quantidade';
+        } else if (k === 'calculatedPrice') {
+          displayKey = 'Preço Calculado';
+          val = '€' + parseFloat(val).toFixed(2);
+        }
+        
         if (Array.isArray(val)) val = JSON.stringify(val, null, 2);
         rows.push(
-          `<div><strong>${escapeHtml(k)}:</strong> ${escapeHtml(String(val))}</div>`,
+          `<div><strong>${escapeHtml(displayKey)}:</strong> ${escapeHtml(String(val))}</div>`,
         );
         used.add(k);
       }
@@ -1515,167 +1544,6 @@
   }
 
   // USERS
-  async function loadServices() {
-    const el = document.getElementById("servicesList");
-    if (!el) return;
-    el.innerHTML =
-      '<div style="text-align: center; padding: 20px; color: #6b7280;">Carregando serviços...</div>';
-    try {
-      const services = await fetchJson("/admin/servicos-precos");
-      if (!Array.isArray(services)) {
-        el.innerHTML =
-          '<div style="color: #dc2626; padding: 20px;">Erro: resposta inválida do servidor</div>';
-        return;
-      }
-
-      // Filter to only show the 3 allowed service plans
-      const allowedPlans = ["essencial", "profissional", "premium"];
-      const filteredServices = services.filter((s) =>
-        allowedPlans.includes(s.plano),
-      );
-
-      if (filteredServices.length === 0) {
-        el.innerHTML =
-          '<div style="text-align: center; padding: 20px; color: #6b7280;">Nenhum serviço encontrado. Os serviços serão inicializados automaticamente.</div>';
-        return;
-      }
-
-      const table = document.createElement("table");
-      table.innerHTML = `<thead><tr><th>Plano</th><th>Preço Atual</th><th>Preço Antigo</th><th>Desconto (%)</th><th>Em Promoção</th><th>Descrição Promoção</th><th>Ações</th></tr></thead>`;
-      const tbody = document.createElement("tbody");
-
-      filteredServices.forEach((s) => {
-        const tr = document.createElement("tr");
-        const discountPercent = s.descontoPercentagem || 0;
-        const emPromocao = s.emPromocao ? "Sim" : "Não";
-        const descricaoPromocao = s.descricaoPromocao || "";
-
-        tr.innerHTML = `
-          <td><strong>${escapeHtml(s.plano || "")}</strong></td>
-          <td><strong>€${s.precoAtual || "0.00"}</strong></td>
-          <td>€${s.precoAntigo || "0.00"}</td>
-          <td>${discountPercent}%</td>
-          <td><span style="color: ${s.emPromocao ? "#16a34a" : "#6b7280"}">${emPromocao}</span></td>
-          <td>${escapeHtml(descricaoPromocao)}</td>
-        `;
-
-        const actions = document.createElement("td");
-        actions.className = "actions";
-        const editBtn = document.createElement("button");
-        editBtn.className = "btn primary";
-        editBtn.textContent = "Editar";
-        editBtn.addEventListener("click", () => editService(s));
-        actions.appendChild(editBtn);
-        tr.appendChild(actions);
-        tbody.appendChild(tr);
-      });
-
-      table.appendChild(tbody);
-      el.innerHTML = "";
-      el.appendChild(table);
-
-      // Add summary info
-      const summary = document.createElement("div");
-      summary.style.cssText =
-        "margin-top: 15px; padding: 10px; background: #f8fafc; border-radius: 4px; font-size: 0.9em; color: #374151;";
-      summary.innerHTML = `<strong>Total:</strong> ${filteredServices.length} serviços gerenciados`;
-      el.appendChild(summary);
-    } catch (e) {
-      el.innerHTML = `<div style="color: #dc2626; padding: 20px;">Erro ao carregar serviços: ${e.message}</div>`;
-    }
-  }
-
-  function editService(s) {
-    // Create a more user-friendly edit interface
-    const planName = s.plano.charAt(0).toUpperCase() + s.plano.slice(1);
-
-    const newPrecoAtual = prompt(
-      `Editar preço atual do plano ${planName} (€):`,
-      s.precoAtual || "",
-    );
-    if (newPrecoAtual === null) return; // User cancelled
-
-    const newPrecoAntigo = prompt(
-      `Preço antigo do plano ${planName} (€) - deixe vazio se não houver desconto:`,
-      s.precoAntigo || "",
-    );
-    const newDescontoPercentagem = prompt(
-      `Percentagem de desconto para ${planName} (%):`,
-      s.descontoPercentagem || "0",
-    );
-
-    const currentPromoStatus = s.emPromocao ? "SIM" : "NÃO";
-    const newEmPromocao = confirm(
-      `Plano ${planName} em promoção? (Atualmente: ${currentPromoStatus})`,
-    );
-
-    let newDescricaoPromocao = "";
-    if (newEmPromocao) {
-      newDescricaoPromocao = prompt(
-        `Descrição da promoção para ${planName} (opcional):`,
-        s.descricaoPromocao || "",
-      );
-    }
-
-    // Validate input
-    const precoAtualNum = parseFloat(newPrecoAtual);
-    if (isNaN(precoAtualNum) || precoAtualNum < 0) {
-      alert("Preço atual deve ser um número válido maior ou igual a zero.");
-      return;
-    }
-
-    const descontoNum = parseInt(newDescontoPercentagem);
-    if (isNaN(descontoNum) || descontoNum < 0 || descontoNum > 100) {
-      alert("Percentagem de desconto deve ser um número entre 0 e 100.");
-      return;
-    }
-
-    const updateData = {
-      plano: s.plano,
-      precoAtual: precoAtualNum,
-      precoAntigo: newPrecoAntigo ? parseFloat(newPrecoAntigo) : null,
-      descontoPercentagem: descontoNum,
-      emPromocao: newEmPromocao,
-      descricaoPromocao: newDescricaoPromocao || null,
-    };
-
-    // Show confirmation
-    const confirmMessage = `
-Confirme as alterações para o plano ${planName}:
-
-• Preço atual: €${precoAtualNum}
-• Preço antigo: €${updateData.precoAntigo || "N/A"}
-• Desconto: ${descontoNum}%
-• Em promoção: ${newEmPromocao ? "Sim" : "Não"}
-${newEmPromocao && newDescricaoPromocao ? `• Descrição: ${newDescricaoPromocao}` : ""}
-
-Deseja salvar estas alterações?
-    `.trim();
-
-    if (!confirm(confirmMessage)) return;
-
-    updateServicePricing(s.plano, updateData);
-  }
-
-  async function updateServicePricing(plano, data) {
-    try {
-      const res = await tryCandidates("/admin/servicos-precos/" + plano, {
-        method: "PUT",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
-      });
-      if (!res.ok) {
-        const t = await res.text();
-        throw new Error("Update failed: " + res.status + "\n" + t);
-      }
-      alert("Preço atualizado com sucesso!");
-      loadServices();
-    } catch (e) {
-      alert("Erro ao atualizar preço: " + e.message);
-    }
-  }
-
   async function loadUsers() {
     const el = document.getElementById("usersList");
     if (!el) return;
@@ -1788,11 +1656,6 @@ Deseja salvar estas alterações?
         alert("Export failed: " + e.message);
       }
     });
-
-  // Refresh services button
-  const refreshServicesBtn = document.getElementById("refreshServicesBtn");
-  if (refreshServicesBtn)
-    refreshServicesBtn.addEventListener("click", () => loadServices());
 
   function escapeHtml(s) {
     if (!s) return "";

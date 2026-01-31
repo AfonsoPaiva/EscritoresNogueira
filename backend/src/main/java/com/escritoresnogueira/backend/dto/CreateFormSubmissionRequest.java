@@ -19,9 +19,18 @@ public class CreateFormSubmissionRequest {
     private String bookGenre;
     private String wordCount;
     private String manuscriptStatus;
-    private String bookType;
     private String bookSynopsis;
     private String additionalInfo;
+    
+    // Calculator data from services page
+    private String printType;
+    private String coverType;
+    private String bookSize;
+    private Integer pages;
+    private Boolean hasIllustrations;
+    private Integer quantity;
+    private Double calculatedPrice;
+    
     private String recaptchaToken;
     private Boolean privacyConsent;
 }

@@ -37,7 +37,12 @@ function calculateKDPPrintingCost(pages, coverType, printType, bookSize) {
 }
 
 // Validate page limits
-function validatePageCount(pages, printType, coverType) {
+function validatePageCount(pages, printType, coverType, hasIllustrations) {
+    // Minimum 24 pages if has illustrations
+    if (hasIllustrations && pages < 24) {
+        return { valid: false, message: 'Livros com ilustrações requerem no mínimo 24 páginas' };
+    }
+    
     if (coverType === 'dura') {
         if (pages < 75) return { valid: false, message: 'Capa dura requer no mínimo 75 páginas' };
         if (pages > 550) return { valid: false, message: 'Capa dura permite no máximo 550 páginas' };
@@ -72,6 +77,36 @@ function calculateServiceCost(pages, hasIllustrations) {
 // Format currency
 function formatEUR(amount) {
     return amount.toFixed(2).replace('.', ',') + '€';
+}
+
+// Show error notification
+function showError(message) {
+    // Create notification element
+    const notification = document.createElement('div');
+    notification.className = 'notification error-notification';
+    notification.innerHTML = `
+        <i class="fas fa-exclamation-circle"></i>
+        <span>${message}</span>
+    `;
+    
+    // Add to body
+    document.body.appendChild(notification);
+    
+    // Animate in
+    gsap.fromTo(notification, 
+        { opacity: 0, y: -20 },
+        { opacity: 1, y: 0, duration: 0.3 }
+    );
+    
+    // Remove after 4 seconds
+    setTimeout(() => {
+        gsap.to(notification, {
+            opacity: 0,
+            y: -20,
+            duration: 0.3,
+            onComplete: () => notification.remove()
+        });
+    }, 4000);
 }
 
 // Initialize calculator
@@ -158,52 +193,83 @@ function setupOptionButtons() {
 
 // Setup input fields
 function setupInputFields() {
-    // Book size select
-    const sizeSelect = document.getElementById('bookSizeSlide');
-    const sizeNextBtn = document.getElementById('sizeNextBtn');
+    // Book size cards
+    const sizeCards = document.querySelectorAll('.book-size-card');
     
-    if (sizeSelect && sizeNextBtn) {
-        sizeSelect.addEventListener('change', () => {
-            calcState.answers.bookSize = sizeSelect.value;
-            sizeNextBtn.disabled = !sizeSelect.value;
+    sizeCards.forEach(card => {
+        card.addEventListener('click', () => {
+            const size = card.dataset.size;
+            const hardcoverSupported = card.dataset.hardcover === 'true';
             
-            // Update available options based on cover type
-            if (calcState.answers.cover === 'dura') {
-                const options = sizeSelect.querySelectorAll('option');
-                options.forEach(opt => {
-                    if (opt.value && opt.dataset.hardcover === 'false') {
-                        opt.disabled = true;
-                    }
-                });
+            // Check if valid for current cover type
+            if (calcState.answers.cover === 'dura' && !hardcoverSupported) {
+                showError('Este tamanho não está disponível para capa dura. Por favor, escolha outro tamanho.');
+                return;
             }
-        });
-        
-        sizeNextBtn.addEventListener('click', () => {
-            if (calcState.answers.bookSize) {
+            
+            calcState.answers.bookSize = size;
+            
+            // Visual feedback
+            sizeCards.forEach(c => c.classList.remove('selected'));
+            card.classList.add('selected');
+            
+            // Animate card
+            gsap.to(card, {
+                scale: 0.95,
+                duration: 0.1,
+                yoyo: true,
+                repeat: 1
+            });
+            
+            // Auto-advance after short delay
+            setTimeout(() => {
                 advanceToNextSlide();
-            }
+                showBackButton();
+            }, 400);
         });
-    }
+    });
     
-    // Pages input
+    // Pages input - round up and add 4 pages
     const pagesInput = document.getElementById('pageCountSlide');
     const pagesNextBtn = document.getElementById('pagesNextBtn');
     
     if (pagesInput && pagesNextBtn) {
         pagesInput.addEventListener('input', () => {
-            const pages = parseInt(pagesInput.value);
-            calcState.answers.pages = pages || null;
+            let pages = parseInt(pagesInput.value);
+            
+            if (pages) {
+                // Round up and add 4 pages
+                pages = Math.ceil(pages / 4) * 4 + 4;
+                calcState.answers.pages = pages;
+                
+                // Update display to show rounded value
+                pagesInput.value = pages;
+            } else {
+                calcState.answers.pages = null;
+            }
             
             // Validate
             if (pages && calcState.answers.cover && calcState.answers.print) {
-                const validation = validatePageCount(pages, calcState.answers.print, calcState.answers.cover);
+                const validation = validatePageCount(
+                    pages, 
+                    calcState.answers.print, 
+                    calcState.answers.cover,
+                    calcState.answers.illustrations
+                );
                 
-                if (validation.valid) {
-                    pagesNextBtn.disabled = false;
-                    hideError();
-                } else {
+                const errorMsg = pagesInput.parentElement.querySelector('.calculator-error-msg');
+                
+                if (!validation.valid) {
                     pagesNextBtn.disabled = true;
-                    showError(validation.message);
+                    if (errorMsg) {
+                        errorMsg.textContent = validation.message;
+                        errorMsg.classList.add('show');
+                    }
+                } else {
+                    pagesNextBtn.disabled = false;
+                    if (errorMsg) {
+                        errorMsg.classList.remove('show');
+                    }
                 }
             } else {
                 pagesNextBtn.disabled = !pages;
@@ -426,6 +492,18 @@ function calculateFinalResults() {
     document.getElementById('summarySize').textContent = bookSize.replace('x', ' × ') + '"';
     document.getElementById('summaryPages').textContent = pages + ' páginas';
     document.getElementById('summaryIllustrations').textContent = illustrations ? 'Sim (+75€)' : 'Não';
+    
+    // Save calculator data to localStorage for form submission
+    const calculatorData = {
+        printType: print,
+        coverType: cover,
+        bookSize: bookSize,
+        pages: pages,
+        hasIllustrations: illustrations,
+        quantity: quantity,
+        calculatedPrice: grandTotal
+    };
+    localStorage.setItem('calculatorData', JSON.stringify(calculatorData));
     
     // Animate result slide
     animateResultSlide();

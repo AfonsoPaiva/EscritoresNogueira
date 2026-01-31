@@ -871,28 +871,39 @@ window.klaroConfig = {
                                             <i class="fas fa-ruler-combined"></i>
                                         </div>
                                         <h3 class="slide-question">Qual o tamanho do livro?</h3>
-                                        <div class="slide-select-wrapper">
-                                            <select id="bookSizeSlide" class="slide-select">
-                                                <option value="">Selecione o tamanho</option>
-                                                <option value="5x8" data-hardcover="true">5" × 8" (12.7 × 20.32 cm)</option>
-                                                <option value="5.06x7.81" data-hardcover="false">5.06" × 7.81" (12.9 × 19.8 cm)</option>
-                                                <option value="5.25x8" data-hardcover="false">5.25" × 8" (13.3 × 20.3 cm)</option>
-                                                <option value="5.5x8.5" data-hardcover="true">5.5" × 8.5" (14 × 21.6 cm)</option>
-                                                <option value="6x9" data-hardcover="true">6" × 9" (15.2 × 22.9 cm) ⭐ Popular</option>
-                                                <option value="6.14x9.21" data-hardcover="true">6.14" × 9.21" (A5 - 15.6 × 23.4 cm)</option>
-                                                <option value="6.69x9.61" data-hardcover="true">6.69" × 9.61" (17 × 24.4 cm)</option>
-                                                <option value="7x10" data-hardcover="true">7" × 10" (17.8 × 25.4 cm)</option>
-                                                <option value="7.44x9.69" data-hardcover="true">7.44" × 9.69" (18.9 × 24.6 cm)</option>
-                                                <option value="7.5x9.25" data-hardcover="false">7.5" × 9.25" (19.1 × 23.5 cm)</option>
-                                                <option value="8x10" data-hardcover="true">8" × 10" (20.3 × 25.4 cm)</option>
-                                                <option value="8.25x6" data-hardcover="false">8.25" × 6" (21 × 15.2 cm) - Paisagem</option>
-                                                <option value="8.25x8.25" data-hardcover="false">8.25" × 8.25" (21 × 21 cm) - Quadrado</option>
-                                                <option value="8.5x8.5" data-hardcover="false">8.5" × 8.5" (21.6 × 21.6 cm) - Quadrado</option>
-                                                <option value="8.5x11" data-hardcover="true">8.5" × 11" (21.6 × 27.9 cm) - Letter</option>
-                                            </select>
-                                            <button type="button" class="slide-next-btn" id="sizeNextBtn" disabled>
-                                                Continuar <i class="fas fa-arrow-right"></i>
-                                            </button>
+                                        <div class="book-size-grid" id="bookSizeGrid">
+                                            <!-- Popular sizes with icons -->
+                                            <div class="book-size-card" data-size="6x9" data-hardcover="true" data-cm="15.2 × 22.9">
+                                                <div class="size-icon"><i class="fas fa-book"></i></div>
+                                                <div class="size-name">Standard</div>
+                                                <div class="size-dimensions">15.2 × 22.9 cm</div>
+                                                <span class="size-badge">⭐ Popular</span>
+                                            </div>
+                                            <div class="book-size-card" data-size="6.14x9.21" data-hardcover="true" data-cm="15.6 × 23.4">
+                                                <div class="size-icon"><i class="fas fa-book"></i></div>
+                                                <div class="size-name">A5</div>
+                                                <div class="size-dimensions">15.6 × 23.4 cm</div>
+                                            </div>
+                                            <div class="book-size-card" data-size="5.5x8.5" data-hardcover="true" data-cm="14 × 21.6">
+                                                <div class="size-icon"><i class="fas fa-book"></i></div>
+                                                <div class="size-name">Compact</div>
+                                                <div class="size-dimensions">14 × 21.6 cm</div>
+                                            </div>
+                                            <div class="book-size-card" data-size="8.5x11" data-hardcover="true" data-cm="21.6 × 27.9">
+                                                <div class="size-icon"><i class="fas fa-book-open"></i></div>
+                                                <div class="size-name">Letter</div>
+                                                <div class="size-dimensions">21.6 × 27.9 cm</div>
+                                            </div>
+                                            <div class="book-size-card" data-size="8.25x8.25" data-hardcover="false" data-cm="21 × 21">
+                                                <div class="size-icon"><i class="fas fa-square"></i></div>
+                                                <div class="size-name">Quadrado</div>
+                                                <div class="size-dimensions">21 × 21 cm</div>
+                                            </div>
+                                            <div class="book-size-card" data-size="8.25x6" data-hardcover="false" data-cm="21 × 15.2">
+                                                <div class="size-icon"><i class="fas fa-image"></i></div>
+                                                <div class="size-name">Paisagem</div>
+                                                <div class="size-dimensions">21 × 15.2 cm</div>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -906,8 +917,9 @@ window.klaroConfig = {
                                         <h3 class="slide-question">Quantas páginas terá o livro?</h3>
                                         <div class="slide-input-wrapper">
                                             <input type="number" id="pageCountSlide" class="slide-input" 
-                                                   placeholder="Ex: 200" min="24" max="828">
-                                            <small class="slide-hint" id="pageHint">Capa Mole: 24-828 (P&B) / 24-550 (Cores) | Capa Dura: 75-550 páginas</small>
+                                                   placeholder="Ex: 200" min="24" max="828" step="4">
+                                            <small class="slide-hint" id="pageHint">O número será automaticamente arredondado e ajustado (+4 páginas)</small>
+                                            <div class="calculator-error-msg"></div>
                                             <button type="button" class="slide-next-btn" id="pagesNextBtn" disabled>
                                                 Continuar <i class="fas fa-arrow-right"></i>
                                             </button>

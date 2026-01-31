@@ -246,23 +246,11 @@ function validateFormStep(step) {
             if (!isChecked) {
                 isValid = false;
                 let errorClass = '.plan-option'; // default for plan
-                if (field.name === 'bookType') {
-                    errorClass = '.book-type-option';
-                    // Show error message for book type
-                    const errorMsg = document.getElementById('bookTypeError');
-                    if (errorMsg) errorMsg.style.display = 'block';
-                }
                 radioGroup.forEach(radio => {
                     const option = radio.closest(errorClass);
                     if (option) option.classList.add('error');
                 });
                 showNotification('Por favor, selecione uma opção.', 'error');
-            } else {
-                // Clear error if selected
-                if (field.name === 'bookType') {
-                    const errorMsg = document.getElementById('bookTypeError');
-                    if (errorMsg) errorMsg.style.display = 'none';
-                }
             }
         } else if (field.type === 'checkbox') {
             if (!field.checked) {
@@ -297,12 +285,6 @@ function initFormSubmission() {
         radio.addEventListener('change', function() {
             // Clear error class from options
             let errorClass = '.plan-option';
-            if (this.name === 'bookType') {
-                errorClass = '.book-type-option';
-                // Hide error message
-                const errorMsg = document.getElementById('bookTypeError');
-                if (errorMsg) errorMsg.style.display = 'none';
-            }
             const group = form.querySelectorAll(`input[name="${this.name}"]`);
             group.forEach(r => {
                 const option = r.closest(errorClass);
@@ -424,6 +406,9 @@ function collectFormData() {
     const form = document.getElementById('publicationForm');
     const formData = new FormData(form);
     
+    // Get calculator data from localStorage
+    const calculatorData = JSON.parse(localStorage.getItem('calculatorData') || '{}');
+    
     return {
         name: formData.get('authorName'),
         email: formData.get('authorEmail'),
@@ -434,10 +419,17 @@ function collectFormData() {
         bookGenre: formData.get('bookGenre'),
         wordCount: formData.get('wordCount'),
         manuscriptStatus: formData.get('manuscriptStatus'),
-        bookType: formData.get('bookType'),
         bookSynopsis: formData.get('bookSynopsis'),
         additionalInfo: formData.get('additionalInfo'),
-        privacyConsent: formData.get('privacyConsent') ? true : false
+        privacyConsent: formData.get('privacyConsent') ? true : false,
+        // Calculator data from services page
+        printType: calculatorData.printType || null,
+        coverType: calculatorData.coverType || null,
+        bookSize: calculatorData.bookSize || null,
+        pages: calculatorData.pages || null,
+        hasIllustrations: calculatorData.hasIllustrations || false,
+        quantity: calculatorData.quantity || 1,
+        calculatedPrice: calculatorData.calculatedPrice || null
     };
 }
 
