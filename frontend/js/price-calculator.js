@@ -41,43 +41,52 @@ function calculateKDPPrintingCost(pages, coverType, printType, bookSize) {
             fixedCost = 3.50;
             costPerPage = 0.012;
         } else {
-            // Color Hardcover
+            // Color Hardcover (not available for most sizes)
             fixedCost = 4.25;
             costPerPage = 0.06;
         }
     }
 
-    // Apply size multiplier for larger formats (optional enhancement)
-    let sizeMultiplier = 1.0;
-    if (bookSize) {
-        // Larger books may have slightly higher costs
-        if (bookSize === '8x10' || bookSize === '8.5x11') {
-            sizeMultiplier = 1.05; // 5% increase for large formats
-        } else if (bookSize === '7x10') {
-            sizeMultiplier = 1.02; // 2% increase
-        }
-    }
-
-    const totalCost = (fixedCost + (pages * costPerPage)) * sizeMultiplier;
+    // Calculate total without size multiplier to avoid the 2€ difference
+    const totalCost = fixedCost + (pages * costPerPage);
     return totalCost;
 }
 
-// Validate page limits
-function validatePageCount(pages, printType) {
-    const minPages = 24;
-    const maxPagesPB = 828;
-    const maxPagesColor = 550;
+// Validate page limits based on cover type and print type
+function validatePageCount(pages, printType, coverType) {
+    let minPages = 24;
+    let maxPages = 828;
+    
+    // Hardcover has minimum of 75 pages
+    if (coverType === 'dura') {
+        minPages = 75;
+        maxPages = 550; // Hardcover max is 550
+    }
+    // Paperback limits
+    else if (coverType === 'mole') {
+        minPages = 24;
+        if (printType === 'pb') {
+            maxPages = 828; // P&B paperback
+        } else {
+            maxPages = 550; // Color paperback
+        }
+    }
 
     if (pages < minPages) {
+        if (coverType === 'dura') {
+            return { valid: false, message: `Livros de capa dura requerem mínimo de ${minPages} páginas.` };
+        }
         return { valid: false, message: `O número mínimo de páginas é ${minPages}.` };
     }
 
-    if (printType === 'pb' && pages > maxPagesPB) {
-        return { valid: false, message: `Para impressão P&B, o máximo é ${maxPagesPB} páginas.` };
-    }
-
-    if (printType === 'cores' && pages > maxPagesColor) {
-        return { valid: false, message: `Para impressão a cores, o máximo é ${maxPagesColor} páginas.` };
+    if (pages > maxPages) {
+        if (coverType === 'dura') {
+            return { valid: false, message: `Para capa dura, o máximo é ${maxPages} páginas.` };
+        }
+        if (printType === 'pb') {
+            return { valid: false, message: `Para impressão P&B, o máximo é ${maxPages} páginas.` };
+        }
+        return { valid: false, message: `Para impressão a cores, o máximo é ${maxPages} páginas.` };
     }
 
     return { valid: true };
@@ -122,6 +131,12 @@ function initPriceCalculator() {
         btn.addEventListener('click', function() {
             // Don't allow clicking disabled buttons
             if (this.disabled) return;
+            
+            // Check if selecting hardcover and pages are less than 75
+            if (this.dataset.cover === 'dura' && priceCalcState.pages && priceCalcState.pages < 75) {
+                showPriceError('Livros de capa dura requerem mínimo de 75 páginas.');
+                return;
+            }
             
             document.querySelectorAll('.calc-option-btn[data-cover]').forEach(b => b.classList.remove('selected'));
             this.classList.add('selected');
@@ -291,10 +306,13 @@ function calculatePriceRealTime() {
     let printCostTotal = 0;
     
     if (pages && cover && print) {
-        const pageValidation = validatePageCount(pages, print);
+        const pageValidation = validatePageCount(pages, print, cover);
         if (pageValidation.valid) {
             printCostPerBook = calculateKDPPrintingCost(pages, cover, print, bookSize);
             printCostTotal = printCostPerBook * quantity;
+        } else {
+            // Show validation error
+            showPriceError(pageValidation.message);
         }
     }
     
