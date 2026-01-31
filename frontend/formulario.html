@@ -568,63 +568,21 @@ window.klaroConfig = {
                     <form id="publicationForm" class="publication-form" novalidate>
                         <!-- Step 1: Plan Selection -->
                         <div class="form-step active" id="step1">
-                            <h2 class="step-title">Escolha o Seu Plano</h2>
-                            <p class="step-description">Selecione o plano que melhor se adapta às suas necessidades</p>
 
-                            <div class="plan-selection">
-                                <label class="plan-option">
-                                    <input type="radio" name="plan" value="essencial" required>
-                                    <div class="plan-option-content">
-                                        <div class="plan-option-header">
-                                            <h3>Essencial</h3>
-                                            <span class="plan-option-price">€199</span>
-                                            <small class="plan-note">Prazo: 1 semana</small>
-                                        </div>
-                                        <ul>
-                                            <li><i class="fas fa-check"></i> Revisão ortográfica básica</li>
-                                            <li><i class="fas fa-check"></i> Capa Mole ou Dura</li>
-                                            <li><i class="fas fa-check"></i> Design de capa simples</li>
-                                            <li><i class="fas fa-check"></i> Publicação e venda na nossa Loja</li>
-                                        </ul>
-                                    </div>
-                                </label>
+                            <h2 class="step-title">Resumo do Orçamento</h2>
+                            <p class="step-description">Confira os dados do seu orçamento calculado na página anterior:</p>
 
-                                <label class="plan-option featured">
-                                    <span class="plan-popular-badge">Mais Popular</span>
-                                    <input type="radio" name="plan" value="profissional">
-                                    <div class="plan-option-content">
-                                        <div class="plan-option-header">
-                                            <h3>Profissional</h3>
-                                            <span class="plan-option-price">€399</span>
-                                            <small class="plan-note">Prazo: 2 semanas</small>
-                                        </div>
-                                        <ul>
-                                            <li><i class="fas fa-check"></i> Revisão completa do manuscrito</li>
-                                            <li><i class="fas fa-check"></i> Design de capa personalizado</li>
-                                            <li><i class="fas fa-check"></i> Publicação em capa mole e capa dura</li>
-                                            <li><i class="fas fa-check"></i> Otimização de palavras-chave</li>
-                                            <li><i class="fas fa-check"></i> Venda na nossa loja</li>
-                                        </ul>
-                                    </div>
-                                </label>
-
-                                <label class="plan-option">
-                                    <input type="radio" name="plan" value="premium">
-                                    <div class="plan-option-content">
-                                        <div class="plan-option-header">
-                                            <h3>Premium</h3>
-                                            <span class="plan-option-price">€699</span>
-                                            <small class="plan-note">Prazo: 3 semanas</small>
-                                        </div>
-                                        <ul>
-                                            <li><i class="fas fa-check"></i> Edição profissional completa</li>
-                                            <li><i class="fas fa-check"></i> Capa premium com ilustração</li>
-                                            <li><i class="fas fa-check"></i> Publicação em capa mole e capa dura</li>
-                                            <li><i class="fas fa-check"></i> Estratégia de lançamento</li>
-                                            <li><i class="fas fa-check"></i> Venda na nossa loja (autor recebe 25% por venda)</li>
-                                        </ul>
-                                    </div>
-                                </label>
+                            <div class="calculator-summary-box">
+                                <ul class="calculator-summary-list">
+                                    <li><strong>Tipo de Impressão:</strong> <span id="formSummaryPrint">-</span></li>
+                                    <li><strong>Tipo de Capa:</strong> <span id="formSummaryCover">-</span></li>
+                                    <li><strong>Tamanho:</strong> <span id="formSummarySize">-</span></li>
+                                    <li><strong>Páginas:</strong> <span id="formSummaryPages">-</span></li>
+                                    <li><strong>Ilustrações:</strong> <span id="formSummaryIllustrations">-</span></li>
+                                    <li><strong>Quantidade:</strong> <span id="formSummaryQuantity">-</span></li>
+                                    <li><strong>Total Estimado:</strong> <span id="formSummaryTotal">-</span></li>
+                                </ul>
+                                <div class="form-summary-note">Esses dados foram preenchidos automaticamente com base no seu cálculo anterior.</div>
                             </div>
 
                             <div class="form-navigation">

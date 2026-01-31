@@ -12427,8 +12427,8 @@ body.page-apoio .btn-primary {
 
 .book-size-card .size-badge {
     position: absolute;
-    top: -8px;
-    right: -8px;
+    top: -1px;
+    right: -1px;
     background: var(--accent-color);
     color: var(--primary-color);
     font-size: 0.7rem;

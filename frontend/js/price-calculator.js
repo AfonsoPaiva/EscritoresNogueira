@@ -10,7 +10,8 @@ let calcState = {
         print: null,
         cover: null,
         bookSize: null,
-        pages: null,
+        pages: null, // valor exibido ao usuário
+        rawPages: null, // valor digitado pelo usuário
         illustrations: false,
         quantity: 1
     }
@@ -229,36 +230,33 @@ function setupInputFields() {
         });
     });
     
-    // Pages input - round up and add 4 pages
+    // Pages input - mostrar exatamente o valor do usuário, mas adicionar 4 páginas extras só no cálculo
     const pagesInput = document.getElementById('pageCountSlide');
     const pagesNextBtn = document.getElementById('pagesNextBtn');
-    
+
     if (pagesInput && pagesNextBtn) {
         pagesInput.addEventListener('input', () => {
-            let pages = parseInt(pagesInput.value);
-            
-            if (pages) {
-                // Round up and add 4 pages
-                pages = Math.ceil(pages / 4) * 4 + 4;
-                calcState.answers.pages = pages;
-                
-                // Update display to show rounded value
-                pagesInput.value = pages;
+            let rawPages = parseInt(pagesInput.value);
+            if (rawPages) {
+                // Exibe exatamente o valor digitado
+                calcState.answers.rawPages = rawPages;
+                calcState.answers.pages = rawPages;
             } else {
+                calcState.answers.rawPages = null;
                 calcState.answers.pages = null;
             }
-            
-            // Validate
-            if (pages && calcState.answers.cover && calcState.answers.print) {
+
+            // Validação (usa o valor digitado)
+            if (rawPages && calcState.answers.cover && calcState.answers.print) {
                 const validation = validatePageCount(
-                    pages, 
-                    calcState.answers.print, 
+                    rawPages,
+                    calcState.answers.print,
                     calcState.answers.cover,
                     calcState.answers.illustrations
                 );
-                
+
                 const errorMsg = pagesInput.parentElement.querySelector('.calculator-error-msg');
-                
+
                 if (!validation.valid) {
                     pagesNextBtn.disabled = true;
                     if (errorMsg) {
@@ -272,10 +270,10 @@ function setupInputFields() {
                     }
                 }
             } else {
-                pagesNextBtn.disabled = !pages;
+                pagesNextBtn.disabled = !rawPages;
             }
         });
-        
+
         pagesNextBtn.addEventListener('click', () => {
             if (calcState.answers.pages) {
                 advanceToNextSlide();
@@ -372,8 +370,11 @@ function goToSlide(slideNum) {
     
     // Update state
     calcState.currentSlide = slideNum;
-    updateProgress();
-    updateBackButton();
+    // Aguarda o fim da animação para garantir que DOM está atualizado
+    setTimeout(() => {
+        updateProgress();
+        updateBackButton();
+    }, 10);
 }
 
 // Update progress bar
@@ -382,17 +383,14 @@ function updateProgress() {
     const currentSlideNum = document.getElementById('currentSlideNum');
     const totalSlides = document.getElementById('totalSlides');
 
-    // Corrige o progresso para nunca ficar "1 de 7" se não estiver no slide 1
+    // Atualiza barra e texto de progresso de forma robusta
     if (progressFill) {
         let progress = 0;
         if (calcState.totalSlides > 1) {
             progress = ((calcState.currentSlide - 1) / (calcState.totalSlides - 1)) * 100;
         }
-        gsap.to(progressFill, {
-            width: `${progress}%`,
-            duration: 0.5,
-            ease: 'power2.out'
-        });
+        progress = Math.max(0, Math.min(progress, 100));
+        progressFill.style.width = `${progress}%`;
     }
     if (currentSlideNum) {
         currentSlideNum.textContent = calcState.currentSlide;
@@ -426,21 +424,23 @@ function showBackButton() {
 
 // Calculate final results
 function calculateFinalResults() {
-    const { pages, cover, print, bookSize, illustrations, quantity } = calcState.answers;
-    
+    const { rawPages, cover, print, bookSize, illustrations, quantity } = calcState.answers;
+    // Adiciona 4 páginas extras só para o cálculo
+    const pagesForCalc = rawPages ? (Math.ceil(rawPages / 4) * 4 + 4) : 0;
+
     // Calculate costs
-    const serviceCost = calculateServiceCost(pages, illustrations);
-    const printCostPerBook = calculateKDPPrintingCost(pages, cover, print, bookSize);
+    const serviceCost = calculateServiceCost(rawPages, illustrations);
+    const printCostPerBook = calculateKDPPrintingCost(pagesForCalc, cover, print, bookSize);
     const totalPrintCost = printCostPerBook * quantity;
     const grandTotal = serviceCost + totalPrintCost;
-    
+
     // Update final slide
     document.getElementById('finalTotalPrice').textContent = formatEUR(grandTotal);
     document.getElementById('serviceSubtotal').textContent = formatEUR(serviceCost);
     document.getElementById('printCostPer').textContent = formatEUR(printCostPerBook);
     document.getElementById('printCostTotal').textContent = formatEUR(totalPrintCost);
     document.getElementById('qtyDisplay').textContent = quantity;
-    
+
     // Service breakdown
     const serviceBreakdown = document.getElementById('serviceBreakdown');
     let breakdownHTML = `
@@ -449,7 +449,7 @@ function calculateFinalResults() {
             <span>50,00€</span>
         </div>
     `;
-    
+
     if (illustrations) {
         breakdownHTML += `
             <div class="breakdown-item">
@@ -458,8 +458,8 @@ function calculateFinalResults() {
             </div>
         `;
     }
-    
-    if (pages > 300) {
+
+    if (rawPages > 300) {
         breakdownHTML += `
             <div class="breakdown-item">
                 <span>Mais de 300 páginas</span>
@@ -467,7 +467,7 @@ function calculateFinalResults() {
             </div>
         `;
     }
-    if (pages > 400) {
+    if (rawPages > 400) {
         breakdownHTML += `
             <div class="breakdown-item">
                 <span>Mais de 400 páginas</span>
@@ -475,7 +475,7 @@ function calculateFinalResults() {
             </div>
         `;
     }
-    if (pages > 500) {
+    if (rawPages > 500) {
         breakdownHTML += `
             <div class="breakdown-item">
                 <span>Mais de 500 páginas</span>
@@ -483,7 +483,7 @@ function calculateFinalResults() {
             </div>
         `;
     }
-    if (pages > 600) {
+    if (rawPages > 600) {
         breakdownHTML += `
             <div class="breakdown-item">
                 <span>Mais de 600 páginas</span>
@@ -491,15 +491,15 @@ function calculateFinalResults() {
             </div>
         `;
     }
-    
+
     serviceBreakdown.innerHTML = breakdownHTML;
-    
+
     // Summary
     document.getElementById('summaryPrint').textContent = print === 'pb' ? 'Preto & Branco' : 'A Cores';
     document.getElementById('summaryCover').textContent = cover === 'mole' ? 'Capa Mole' : 'Capa Dura';
-    document.getElementById('summarySize').textContent = bookSize.replace('x', ' × ') + '"';
-    document.getElementById('summaryPages').textContent = pages + ' páginas';
-    document.getElementById('summaryIllustrations').textContent = illustrations ? 'Sim (+75€)' : 'Não';
+    document.getElementById('summarySize').textContent = bookSize ? bookSize.replace('x', ' × ') + '"' : '';
+    document.getElementById('summaryPages').textContent = (rawPages ? rawPages : 0) + ' páginas';
+    document.getElementById('summaryIllustrations').textContent = illustrations ? 'Sim' : 'Não';
     
     // Save calculator data to localStorage for form submission
     const calculatorData = {
