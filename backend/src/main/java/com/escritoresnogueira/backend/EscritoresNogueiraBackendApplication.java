@@ -1,8 +1,5 @@
 package com.escritoresnogueira.backend;
 
-import com.escritoresnogueira.backend.service.ServicePricingService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
@@ -23,24 +20,9 @@ import org.springframework.web.client.RestTemplate;
 @EntityScan(basePackages = {"com.escritoresnogueira.backend.model", "main.java.com.escritoresnogueira.backend.model"})
 public class EscritoresNogueiraBackendApplication {
 
-    @Autowired
-    private ServicePricingService servicePricingService;
-
     @Bean
     public RestTemplate restTemplate() {
         return new RestTemplate();
-    }
-
-    @Bean
-    public CommandLineRunner initializeServicePricing() {
-        return args -> {
-            try {
-                servicePricingService.initializeDefaultPricing();
-                System.out.println("Preços dos serviços inicializados com sucesso!");
-            } catch (Exception e) {
-                System.err.println("Erro ao inicializar preços dos serviços: " + e.getMessage());
-            }
-        };
     }
 
     public static void main(String[] args) {
