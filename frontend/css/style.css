@@ -4569,8 +4569,8 @@ body.loading .footer {
 }
 
 .btn-preview:hover {
-  background: var(--primary-dark) !important;
-  border-color: var(--primary-dark) !important;
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
 }
 
 .btn-preview i {
