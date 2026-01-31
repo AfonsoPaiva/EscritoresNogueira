@@ -12556,15 +12556,14 @@ body.page-apoio .btn-primary {
     padding: 18px 32px;
     background: var(--accent-color);
     color: var(--primary-color);
-    font-family: 'EB Garamond', serif;
-    font-size: 1.2rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 1px;
+    font-family: 'Questrial', sans-serif;
+    font-size: 1.1rem;
+    font-weight: 600;
+    letter-spacing: 0.5px;
     border: none;
     border-radius: 12px;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -12572,9 +12571,8 @@ body.page-apoio .btn-primary {
 }
 
 .slide-next-btn:hover:not(:disabled) {
-    transform: translateY(-3px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    background: #f5a623;
+    transform: translateY(-4px);
+    box-shadow: 0 6px 16px rgba(255, 177, 0, 0.35);
 }
 
 .slide-next-btn:disabled {
@@ -12766,14 +12764,13 @@ body.page-apoio .btn-primary {
   padding: 16px 28px;
   background: var(--accent-color);
   color: var(--primary-color);
-  font-family: 'EB Garamond', serif;
+  font-family: 'Questrial', sans-serif;
   font-size: 1.1rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 1px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
   text-decoration: none;
   border-radius: 12px;
-  transition: all 0.3s ease;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
   box-shadow: 0 4px 16px rgba(255, 177, 0, 0.3);
   margin-top: 24px;
   opacity: 1 !important;
@@ -12782,14 +12779,13 @@ body.page-apoio .btn-primary {
 }
 
 .result-cta-btn:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 8px 24px rgba(255, 177, 0, 0.4);
-    background: #f5a623;
+    transform: translateY(-4px) !important;
+    box-shadow: 0 6px 20px rgba(255, 177, 0, 0.4);
 }
 
 /* Navigation */
 .calculator-navigation {
-    margin-top: 32px;
+    margin-top: 16px;
     text-align: center;
 }
 
@@ -12804,18 +12800,15 @@ body.page-apoio .btn-primary {
     border-radius: 8px;
     cursor: pointer;
     transition: all 0.3s ease;
-    display: none;
+    display: inline-flex;
     align-items: center;
     gap: 8px;
-}
-
-.nav-btn.visible {
-    display: inline-flex;
 }
 
 .nav-btn:hover:not(:disabled) {
     background: rgba(255, 255, 255, 0.1);
     border-color: rgba(255, 255, 255, 0.5);
+    transform: translateY(-3px);
 }
 
 .nav-btn:disabled {

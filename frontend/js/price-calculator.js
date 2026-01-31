@@ -120,6 +120,7 @@ function initPriceCalculator() {
         setupOptionButtons();
         setupInputFields();
         updateProgress();
+        updateBackButton();
     });
 }
 
@@ -381,22 +382,19 @@ function goToSlide(slideNum) {
 function updateProgress() {
     const progressFill = document.getElementById('progressFill');
     const currentSlideNum = document.getElementById('currentSlideNum');
-    const totalSlides = document.getElementById('totalSlides');
+    const totalSlidesEl = document.getElementById('totalSlides');
 
     // Atualiza barra e texto de progresso de forma robusta
     if (progressFill) {
-        let progress = 0;
-        if (calcState.totalSlides > 1) {
-            progress = ((calcState.currentSlide - 1) / (calcState.totalSlides - 1)) * 100;
-        }
-        progress = Math.max(0, Math.min(progress, 100));
+        // Calcula progresso: slide 1 = ~14%, slide 7 = 100%
+        const progress = (calcState.currentSlide / calcState.totalSlides) * 100;
         progressFill.style.width = `${progress}%`;
     }
     if (currentSlideNum) {
         currentSlideNum.textContent = calcState.currentSlide;
     }
-    if (totalSlides) {
-        totalSlides.textContent = calcState.totalSlides;
+    if (totalSlidesEl) {
+        totalSlidesEl.textContent = calcState.totalSlides;
     }
 }
 
@@ -408,18 +406,10 @@ function updateBackButton() {
     }
 }
 
-// Show back button (called after first answer)
+// Show back button (kept for compatibility, but no longer hides/shows)
 function showBackButton() {
-    const backBtn = document.getElementById('navBackBtn');
-    if (backBtn && !backBtn.classList.contains('visible')) {
-        backBtn.classList.add('visible');
-        gsap.from(backBtn, {
-            opacity: 0,
-            y: 10,
-            duration: 0.3,
-            ease: 'power2.out'
-        });
-    }
+    // Button is always visible now, just update its state
+    updateBackButton();
 }
 
 // Calculate final results
@@ -506,7 +496,7 @@ function calculateFinalResults() {
         printType: print,
         coverType: cover,
         bookSize: bookSize,
-        pages: pages,
+        pages: rawPages,
         hasIllustrations: illustrations,
         quantity: quantity,
         calculatedPrice: grandTotal
