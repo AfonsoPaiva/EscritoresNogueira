@@ -11493,23 +11493,9 @@ body.page-apoio .btn-primary {
    ======================================== */
 
 .calculator-section-main {
-    background: linear-gradient(135deg, #fafbfc 0%, #ffffff 50%, #f8f9fc 100%);
+    background: var(--primary-color);
     padding: 80px 0;
     position: relative;
-}
-
-.calculator-section-main::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 1px;
-    background: linear-gradient(90deg, 
-        transparent 0%, 
-        rgba(14, 27, 77, 0.1) 50%, 
-        transparent 100%
-    );
 }
 
 .price-calculator-container {
@@ -11521,19 +11507,17 @@ body.page-apoio .btn-primary {
 
 /* Calculator Inputs (Left Side) */
 .calculator-inputs {
-    background: white;
+    background: rgba(255, 255, 255, 0.05);
     border-radius: 20px;
     padding: 40px;
-    box-shadow: 
-        0 4px 24px rgba(14, 27, 77, 0.06),
-        0 0 0 1px rgba(14, 27, 77, 0.04);
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.1);
     transition: all 0.3s ease;
 }
 
 .calculator-inputs:hover {
-    box-shadow: 
-        0 8px 32px rgba(14, 27, 77, 0.08),
-        0 0 0 1px rgba(255, 177, 0, 0.2);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+    border-color: rgba(255, 255, 255, 0.2);
 }
 
 .calculator-field {
@@ -11551,30 +11535,29 @@ body.page-apoio .btn-primary {
     font-family: 'EB Garamond', serif;
     font-size: 1.15rem;
     font-weight: 600;
-    color: var(--primary-color);
+    color: white;
     margin-bottom: 14px;
 }
 
 .calculator-label i {
     color: var(--accent-color);
     font-size: 1.3rem;
-    filter: drop-shadow(0 2px 4px rgba(255, 177, 0, 0.3));
 }
 
 .calculator-input {
     width: 100%;
     padding: 16px 20px;
-    border: 2px solid rgba(14, 27, 77, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.2);
     border-radius: 12px;
     font-family: 'Questrial', sans-serif;
     font-size: 1.05rem;
     color: var(--text-color);
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    background: #fafbfc;
+    transition: all 0.3s ease;
+    background: rgba(255, 255, 255, 0.95);
 }
 
 .calculator-input:hover {
-    border-color: rgba(14, 27, 77, 0.15);
+    border-color: rgba(255, 255, 255, 0.3);
     background: white;
 }
 
@@ -11582,17 +11565,14 @@ body.page-apoio .btn-primary {
     outline: none;
     border-color: var(--accent-color);
     background: white;
-    box-shadow: 
-        0 0 0 4px rgba(255, 177, 0, 0.1),
-        0 4px 12px rgba(255, 177, 0, 0.15);
-    transform: translateY(-1px);
+    box-shadow: 0 0 0 3px rgba(255, 177, 0, 0.2);
 }
 
 .field-hint {
     display: block;
     margin-top: 10px;
     font-size: 0.88rem;
-    color: #6c757d;
+    color: rgba(255, 255, 255, 0.7);
     font-style: italic;
     line-height: 1.4;
 }
@@ -11611,69 +11591,40 @@ body.page-apoio .btn-primary {
     justify-content: center;
     gap: 12px;
     padding: 24px 18px;
-    background: linear-gradient(135deg, #fafbfc 0%, white 100%);
-    border: 2px solid rgba(14, 27, 77, 0.08);
+    background: rgba(255, 255, 255, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.3);
     border-radius: 14px;
     cursor: pointer;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: all 0.3s ease;
     font-family: 'Questrial', sans-serif;
     font-size: 0.98rem;
     font-weight: 500;
     color: var(--text-color);
-    position: relative;
-    overflow: hidden;
-}
-
-.calc-option-btn::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: linear-gradient(135deg, rgba(255, 177, 0, 0.1) 0%, transparent 100%);
-    opacity: 0;
-    transition: opacity 0.3s ease;
-}
-
-.calc-option-btn:hover::before {
-    opacity: 1;
 }
 
 .calc-option-btn i {
     font-size: 2rem;
     color: var(--primary-color);
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: all 0.3s ease;
 }
 
 .calc-option-btn:hover {
     border-color: var(--accent-color);
-    transform: translateY(-3px);
-    box-shadow: 0 8px 20px rgba(255, 177, 0, 0.15);
-}
-
-.calc-option-btn:hover i {
-    transform: scale(1.1);
-    filter: drop-shadow(0 4px 8px rgba(255, 177, 0, 0.3));
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    background: white;
 }
 
 .calc-option-btn.selected {
     border-color: var(--accent-color);
-    background: linear-gradient(135deg, var(--accent-color) 0%, #f5a623 100%);
+    background: var(--accent-color);
     color: var(--primary-color);
-    box-shadow: 
-        0 8px 24px rgba(255, 177, 0, 0.35),
-        0 0 0 4px rgba(255, 177, 0, 0.1);
+    box-shadow: 0 4px 16px rgba(255, 177, 0, 0.3);
     transform: translateY(-2px);
-}
-
-.calc-option-btn.selected::before {
-    opacity: 0;
 }
 
 .calc-option-btn.selected i {
     color: var(--primary-color);
-    transform: scale(1.05);
 }
 
 /* Checkbox */
@@ -11683,34 +11634,16 @@ body.page-apoio .btn-primary {
     gap: 14px;
     cursor: pointer;
     padding: 20px;
-    background: linear-gradient(135deg, #fafbfc 0%, white 100%);
-    border: 2px solid rgba(14, 27, 77, 0.08);
+    background: rgba(255, 255, 255, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.3);
     border-radius: 12px;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    position: relative;
-}
-
-.calculator-checkbox::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: linear-gradient(135deg, rgba(255, 177, 0, 0.05) 0%, transparent 100%);
-    opacity: 0;
-    transition: opacity 0.3s ease;
-    border-radius: 10px;
-}
-
-.calculator-checkbox:hover::before {
-    opacity: 1;
+    transition: all 0.3s ease;
 }
 
 .calculator-checkbox:hover {
     border-color: var(--accent-color);
-    transform: translateX(3px);
-    box-shadow: 0 4px 12px rgba(255, 177, 0, 0.1);
+    background: white;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .calculator-checkbox input[type="checkbox"] {
@@ -11718,11 +11651,6 @@ body.page-apoio .btn-primary {
     height: 24px;
     cursor: pointer;
     accent-color: var(--accent-color);
-    transition: transform 0.2s ease;
-}
-
-.calculator-checkbox input[type="checkbox"]:checked {
-    transform: scale(1.1);
 }
 
 .checkbox-label {
@@ -11753,38 +11681,38 @@ body.page-apoio .btn-primary {
     display: flex;
     align-items: center;
     justify-content: center;
-    background: linear-gradient(135deg, var(--accent-color) 0%, #f5a623 100%);
+    background: var(--accent-color);
     color: var(--primary-color);
     border: none;
     border-radius: 12px;
     cursor: pointer;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: all 0.3s ease;
     font-size: 1.2rem;
     font-weight: 600;
-    box-shadow: 0 4px 12px rgba(255, 177, 0, 0.3);
+    box-shadow: 0 2px 8px rgba(255, 177, 0, 0.3);
 }
 
 .qty-btn:hover {
-    background: linear-gradient(135deg, #f5a623 0%, var(--accent-color) 100%);
-    transform: translateY(-2px) scale(1.05);
-    box-shadow: 0 6px 16px rgba(255, 177, 0, 0.4);
+    background: #f5a623;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(255, 177, 0, 0.4);
 }
 
 .qty-btn:active {
-    transform: translateY(0) scale(0.98);
+    transform: translateY(0);
 }
 
 .qty-input {
     flex: 1;
     text-align: center;
     padding: 14px;
-    border: 2px solid rgba(14, 27, 77, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.3);
     border-radius: 12px;
     font-family: 'EB Garamond', serif;
     font-size: 1.3rem;
     font-weight: 700;
     color: var(--primary-color);
-    background: linear-gradient(135deg, #fafbfc 0%, white 100%);
+    background: rgba(255, 255, 255, 0.95);
     transition: all 0.3s ease;
 }
 
@@ -11792,68 +11720,16 @@ body.page-apoio .btn-primary {
     outline: none;
     border-color: var(--accent-color);
     background: white;
-    box-shadow: 0 0 0 4px rgba(255, 177, 0, 0.1);
-}
-
-/* Calculate Button - Now optional */
-.btn-calculate-price {
-    width: 100%;
-    padding: 18px 32px;
-    margin-top: 32px;
-    background: linear-gradient(135deg, var(--primary-color) 0%, #1a2d6f 100%);
-    color: white;
-    border: 2px solid var(--primary-color);
-    border-radius: 14px;
-    font-family: 'EB Garamond', serif;
-    font-size: 1.15rem;
-    font-weight: 700;
-    cursor: pointer;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: 0 4px 16px rgba(14, 27, 77, 0.2);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 12px;
-    position: relative;
-    overflow: hidden;
-}
-
-.btn-calculate-price::before {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 0;
-    height: 0;
-    border-radius: 50%;
-    background: rgba(255, 255, 255, 0.2);
-    transform: translate(-50%, -50%);
-    transition: width 0.6s, height 0.6s;
-}
-
-.btn-calculate-price:hover::before {
-    width: 300px;
-    height: 300px;
-}
-
-.btn-calculate-price:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 24px rgba(14, 27, 77, 0.3);
-    border-color: var(--accent-color);
-}
-
-.btn-calculate-price:active {
-    transform: translateY(0);
+    box-shadow: 0 0 0 3px rgba(255, 177, 0, 0.2);
 }
 
 /* Price Summary (Right Side) */
 .price-summary {
-    background: linear-gradient(135deg, white 0%, #fafbfc 100%);
+    background: rgba(255, 255, 255, 0.05);
     border-radius: 20px;
     padding: 40px;
-    box-shadow: 
-        0 8px 32px rgba(14, 27, 77, 0.08),
-        0 0 0 1px rgba(14, 27, 77, 0.04);
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.1);
     position: sticky;
     top: 100px;
     max-height: calc(100vh - 120px);
@@ -11862,26 +11738,14 @@ body.page-apoio .btn-primary {
 }
 
 .price-summary:hover {
-    box-shadow: 
-        0 12px 40px rgba(14, 27, 77, 0.1),
-        0 0 0 1px rgba(255, 177, 0, 0.15);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+    border-color: rgba(255, 255, 255, 0.2);
 }
 
 .summary-header {
     margin-bottom: 28px;
     padding-bottom: 24px;
-    border-bottom: 2px solid rgba(14, 27, 77, 0.08);
-    position: relative;
-}
-
-.summary-header::after {
-    content: '';
-    position: absolute;
-    bottom: -2px;
-    left: 0;
-    width: 60px;
-    height: 2px;
-    background: var(--accent-color);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 .summary-header h3 {
@@ -11891,14 +11755,13 @@ body.page-apoio .btn-primary {
     font-family: 'EB Garamond', serif;
     font-size: 1.6rem;
     font-weight: 700;
-    color: var(--primary-color);
+    color: white;
     margin: 0;
 }
 
 .summary-header i {
     color: var(--accent-color);
     font-size: 1.5rem;
-    filter: drop-shadow(0 2px 4px rgba(255, 177, 0, 0.3));
 }
 
 /* Price Breakdown */
@@ -11910,25 +11773,25 @@ body.page-apoio .btn-primary {
 
 .cost-section {
     padding: 24px;
-    background: rgba(14, 27, 77, 0.02);
+    background: rgba(255, 255, 255, 0.03);
     border-radius: 14px;
-    border: 1px solid rgba(14, 27, 77, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
     transition: all 0.3s ease;
 }
 
 .cost-section:hover {
-    background: rgba(14, 27, 77, 0.03);
-    border-color: rgba(255, 177, 0, 0.2);
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.2);
 }
 
 .cost-section h4 {
     font-family: 'EB Garamond', serif;
     font-size: 1.15rem;
     font-weight: 600;
-    color: var(--primary-color);
+    color: white;
     margin: 0 0 18px 0;
     padding-bottom: 14px;
-    border-bottom: 1px solid rgba(14, 27, 77, 0.1);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
     display: flex;
     align-items: center;
     gap: 8px;
@@ -11941,21 +11804,17 @@ body.page-apoio .btn-primary {
     padding: 12px 0;
     font-family: 'Questrial', sans-serif;
     font-size: 0.98rem;
-    color: var(--text-color);
+    color: rgba(255, 255, 255, 0.9);
     transition: all 0.3s ease;
 }
 
-.cost-item:hover {
-    padding-left: 8px;
-}
-
 .cost-item span:first-child {
-    color: #5a6c7d;
+    color: rgba(255, 255, 255, 0.7);
 }
 
 .cost-value {
     font-weight: 600;
-    color: var(--text-color);
+    color: white;
     font-family: 'EB Garamond', serif;
     font-size: 1.05rem;
 }
@@ -11966,11 +11825,11 @@ body.page-apoio .btn-primary {
     align-items: center;
     padding: 16px 0 0 0;
     margin-top: 14px;
-    border-top: 2px solid rgba(14, 27, 77, 0.1);
+    border-top: 1px solid rgba(255, 255, 255, 0.2);
     font-family: 'Questrial', sans-serif;
     font-size: 1.05rem;
     font-weight: 600;
-    color: var(--primary-color);
+    color: white;
 }
 
 .cost-subtotal .cost-value {
@@ -11984,22 +11843,11 @@ body.page-apoio .btn-primary {
     justify-content: space-between;
     align-items: center;
     padding: 28px;
-    background: linear-gradient(135deg, var(--primary-color) 0%, #1a2d6f 100%);
+    background: rgba(255, 255, 255, 0.1);
     border-radius: 14px;
     margin-top: 12px;
-    box-shadow: 0 8px 24px rgba(14, 27, 77, 0.25);
-    position: relative;
-    overflow: hidden;
-}
-
-.cost-total::before {
-    content: '';
-    position: absolute;
-    top: -50%;
-    right: -50%;
-    width: 200%;
-    height: 200%;
-    background: radial-gradient(circle, rgba(255, 177, 0, 0.1) 0%, transparent 70%);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 .cost-total span:first-child {
@@ -12007,8 +11855,6 @@ body.page-apoio .btn-primary {
     font-size: 1.25rem;
     font-weight: 700;
     color: white;
-    position: relative;
-    z-index: 1;
 }
 
 .total-value {
@@ -12016,9 +11862,6 @@ body.page-apoio .btn-primary {
     font-size: 2.2rem;
     font-weight: 800;
     color: var(--accent-color);
-    text-shadow: 0 2px 8px rgba(255, 177, 0, 0.4);
-    position: relative;
-    z-index: 1;
     letter-spacing: -0.5px;
 }
 
@@ -12031,44 +11874,25 @@ body.page-apoio .btn-primary {
     width: 100%;
     padding: 18px 32px;
     margin-top: 24px;
-    background: linear-gradient(135deg, var(--accent-color) 0%, #f5a623 100%);
+    background: var(--accent-color);
     color: var(--primary-color);
     text-decoration: none;
     border-radius: 14px;
     font-family: 'EB Garamond', serif;
     font-size: 1.15rem;
     font-weight: 700;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: all 0.3s ease;
     box-shadow: 0 4px 16px rgba(255, 177, 0, 0.3);
-    position: relative;
-    overflow: hidden;
-}
-
-.btn-goto-form::before {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 0;
-    height: 0;
-    border-radius: 50%;
-    background: rgba(255, 255, 255, 0.3);
-    transform: translate(-50%, -50%);
-    transition: width 0.6s, height 0.6s;
-}
-
-.btn-goto-form:hover::before {
-    width: 400px;
-    height: 400px;
 }
 
 .btn-goto-form:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 8px 28px rgba(255, 177, 0, 0.45);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(255, 177, 0, 0.4);
+    background: #f5a623;
 }
 
 .btn-goto-form:active {
-    transform: translateY(-1px);
+    transform: translateY(0);
 }
 
 /* Empty State */
@@ -12079,14 +11903,13 @@ body.page-apoio .btn-primary {
     justify-content: center;
     padding: 80px 20px;
     text-align: center;
-    color: #6c757d;
+    color: rgba(255, 255, 255, 0.6);
 }
 
 .empty-state i {
     font-size: 4.5rem;
-    color: rgba(14, 27, 77, 0.08);
+    color: rgba(255, 255, 255, 0.2);
     margin-bottom: 24px;
-    filter: drop-shadow(0 4px 8px rgba(14, 27, 77, 0.05));
 }
 
 .empty-state p {
@@ -12094,6 +11917,7 @@ body.page-apoio .btn-primary {
     font-size: 1.05rem;
     line-height: 1.6;
     max-width: 320px;
+    color: rgba(255, 255, 255, 0.7);
 }
 
 /* Error Message */

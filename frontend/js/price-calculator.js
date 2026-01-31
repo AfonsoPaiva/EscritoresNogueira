@@ -252,31 +252,6 @@ function calculatePriceRealTime() {
     updatePriceSummaryAnimated(serviceCost, printCostPerBook, printCostTotal, grandTotal, quantity, pages, hasIllustrations);
 }
 
-// Main calculation function (for manual trigger via button)
-function calculatePrice() {
-// Animated counter function
-function animateValue(element, start, end, duration = 800) {
-    if (!element || isAnimating) return;
-    
-    const range = end - start;
-    const increment = range / (duration / 16);
-    let current = start;
-    
-    const animate = () => {
-        current += increment;
-        if ((increment > 0 && current >= end) || (increment < 0 && current <= end)) {
-            element.textContent = formatEUR(end);
-            isAnimating = false;
-            return;
-        }
-        element.textContent = formatEUR(current);
-        requestAnimationFrame(animate);
-    };
-    
-    isAnimating = true;
-    animate();
-}
-
 // Get current numeric value from formatted EUR string
 function getNumericValue(formattedString) {
     if (!formattedString) return 0;
@@ -437,8 +412,6 @@ if (document.readyState === 'loading') {
         initPriceCalculator();
     }
 }
-}
 
-// Expose functions globally
-window.calculatePrice = calculatePrice;
+// Expose function globally for inline onclick handlers
 window.adjustQuantity = adjustQuantity;
