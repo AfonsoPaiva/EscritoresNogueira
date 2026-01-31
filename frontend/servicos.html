@@ -803,192 +803,258 @@ window.klaroConfig = {
                     <div class="container">
                         <div class="section-header">
                             <h2 class="section-title" style="color: white;">Calculadora de Preços Inteligente</h2>
-                            <p class="section-subtitle">Calcule o custo do seu livro baseado nas tarifas da Amazon KDP</p>
+                            <p class="section-subtitle">Responda às perguntas para calcular o custo do seu livro</p>
                         </div>
 
-                        <div class="price-calculator-container">
-                            <div class="calculator-inputs">
-                                <!-- Pages Input -->
-                                <div class="calculator-field">
-                                    <label class="calculator-label">
-                                        Número de Páginas
-                                        <i class="fas fa-file-alt"></i>
-                                    </label>
-                                    <input type="number" id="pageCount" class="calculator-input" 
-                                           placeholder="Ex: 200" min="24" max="828" value="">
-                                    <small class="field-hint">Capa Mole: 24-828 (P&B) / 24-550 (Cores) | Capa Dura: 75-550 páginas</small>
+                        <!-- Slide-based Calculator -->
+                        <div class="price-calculator-slides">
+                            <!-- Progress Bar -->
+                            <div class="calculator-progress">
+                                <div class="progress-bar">
+                                    <div class="progress-fill" id="progressFill"></div>
+                                </div>
+                                <div class="progress-text">
+                                    <span id="currentSlideNum">1</span> de <span id="totalSlides">6</span>
+                                </div>
+                            </div>
+
+                            <!-- Slides Container -->
+                            <div class="calculator-slides-wrapper">
+                                <!-- Slide 1: Print Type -->
+                                <div class="calculator-slide active" data-slide="1">
+                                    <div class="slide-content">
+                                        <div class="slide-icon">
+                                            <i class="fas fa-palette"></i>
+                                        </div>
+                                        <h3 class="slide-question">Pretende que o livro seja a preto e branco ou a cores?</h3>
+                                        <div class="slide-options">
+                                            <button type="button" class="slide-option-btn" data-answer="pb" data-field="print">
+                                                <i class="fas fa-adjust"></i>
+                                                <span>Preto & Branco</span>
+                                                <small>Ideal para romances e textos</small>
+                                            </button>
+                                            <button type="button" class="slide-option-btn" data-answer="cores" data-field="print">
+                                                <i class="fas fa-paint-brush"></i>
+                                                <span>A Cores</span>
+                                                <small>Para livros ilustrados</small>
+                                            </button>
+                                        </div>
+                                    </div>
                                 </div>
 
-                                <!-- Book Size (Trim Size) -->
-                                <div class="calculator-field">
-                                    <label class="calculator-label">
-                                        Tamanho do Livro
-                                        <i class="fas fa-ruler-combined"></i>
-                                    </label>
-                                    <select id="bookSize" class="calculator-input">
-                                        <option value="">Selecione o tamanho</option>
-                                        <option value="5x8" data-hardcover="true">5" x 8" (12.7 x 20.32 cm)</option>
-                                        <option value="5.06x7.81" data-hardcover="false">5.06" x 7.81" (12.9 x 19.8 cm)</option>
-                                        <option value="5.25x8" data-hardcover="false">5.25" x 8" (13.3 x 20.3 cm)</option>
-                                        <option value="5.5x8.5" data-hardcover="true">5.5" x 8.5" (14 x 21.6 cm)</option>
-                                        <option value="6x9" data-hardcover="true">6" x 9" (15.2 x 22.9 cm) - Popular</option>
-                                        <option value="6.14x9.21" data-hardcover="true">6.14" x 9.21" (A5 - 15.6 x 23.4 cm)</option>
-                                        <option value="6.69x9.61" data-hardcover="true">6.69" x 9.61" (17 x 24.4 cm)</option>
-                                        <option value="7x10" data-hardcover="true">7" x 10" (17.8 x 25.4 cm)</option>
-                                        <option value="7.44x9.69" data-hardcover="true">7.44" x 9.69" (18.9 x 24.6 cm)</option>
-                                        <option value="7.5x9.25" data-hardcover="false">7.5" x 9.25" (19.1 x 23.5 cm)</option>
-                                        <option value="8x10" data-hardcover="true">8" x 10" (20.3 x 25.4 cm)</option>
-                                        <option value="8.25x6" data-hardcover="false">8.25" x 6" (21 x 15.2 cm) - Paisagem</option>
-                                        <option value="8.25x8.25" data-hardcover="false">8.25" x 8.25" (21 x 21 cm) - Quadrado</option>
-                                        <option value="8.5x8.5" data-hardcover="false">8.5" x 8.5" (21.6 x 21.6 cm) - Quadrado</option>
-                                        <option value="8.5x11" data-hardcover="true">8.5" x 11" (21.6 x 27.9 cm) - Letter</option>
-                                    </select>
-                                    <small class="field-hint">Escolha o formato do seu livro (Amazon KDP)</small>
-                                </div>
-
-                                <!-- Cover Type -->
-                                <div class="calculator-field">
-                                    <label class="calculator-label">
-                                        Tipo de Capa
-                                        <i class="fas fa-book"></i>
-                                    </label>
-                                    <div class="calculator-options">
-                                        <button type="button" class="calc-option-btn" data-cover="mole">
-                                            <i class="fas fa-book-open"></i>
-                                            <span>Capa Mole</span>
-                                        </button>
-                                        <button type="button" class="calc-option-btn" data-cover="dura">
+                                <!-- Slide 2: Cover Type -->
+                                <div class="calculator-slide" data-slide="2">
+                                    <div class="slide-content">
+                                        <div class="slide-icon">
                                             <i class="fas fa-book"></i>
-                                            <span>Capa Dura</span>
-                                        </button>
+                                        </div>
+                                        <h3 class="slide-question">Que tipo de capa prefere?</h3>
+                                        <div class="slide-options">
+                                            <button type="button" class="slide-option-btn" data-answer="mole" data-field="cover">
+                                                <i class="fas fa-book-open"></i>
+                                                <span>Capa Mole</span>
+                                                <small>Mais económica e leve</small>
+                                            </button>
+                                            <button type="button" class="slide-option-btn" data-answer="dura" data-field="cover">
+                                                <i class="fas fa-book"></i>
+                                                <span>Capa Dura</span>
+                                                <small>Mais resistente e premium</small>
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
 
-                                <!-- Print Type -->
-                                <div class="calculator-field">
-                                    <label class="calculator-label">
-                                        Tipo de Impressão
-                                        <i class="fas fa-palette"></i>
-                                    </label>
-                                    <div class="calculator-options">
-                                        <button type="button" class="calc-option-btn" data-print="pb">
-                                            <i class="fas fa-adjust"></i>
-                                            <span>Preto & Branco</span>
-                                        </button>
-                                        <button type="button" class="calc-option-btn" data-print="cores">
-                                            <i class="fas fa-paint-brush"></i>
-                                            <span>A Cores</span>
-                                        </button>
+                                <!-- Slide 3: Book Size -->
+                                <div class="calculator-slide" data-slide="3">
+                                    <div class="slide-content">
+                                        <div class="slide-icon">
+                                            <i class="fas fa-ruler-combined"></i>
+                                        </div>
+                                        <h3 class="slide-question">Qual o tamanho do livro?</h3>
+                                        <div class="slide-select-wrapper">
+                                            <select id="bookSizeSlide" class="slide-select">
+                                                <option value="">Selecione o tamanho</option>
+                                                <option value="5x8" data-hardcover="true">5" × 8" (12.7 × 20.32 cm)</option>
+                                                <option value="5.06x7.81" data-hardcover="false">5.06" × 7.81" (12.9 × 19.8 cm)</option>
+                                                <option value="5.25x8" data-hardcover="false">5.25" × 8" (13.3 × 20.3 cm)</option>
+                                                <option value="5.5x8.5" data-hardcover="true">5.5" × 8.5" (14 × 21.6 cm)</option>
+                                                <option value="6x9" data-hardcover="true">6" × 9" (15.2 × 22.9 cm) ⭐ Popular</option>
+                                                <option value="6.14x9.21" data-hardcover="true">6.14" × 9.21" (A5 - 15.6 × 23.4 cm)</option>
+                                                <option value="6.69x9.61" data-hardcover="true">6.69" × 9.61" (17 × 24.4 cm)</option>
+                                                <option value="7x10" data-hardcover="true">7" × 10" (17.8 × 25.4 cm)</option>
+                                                <option value="7.44x9.69" data-hardcover="true">7.44" × 9.69" (18.9 × 24.6 cm)</option>
+                                                <option value="7.5x9.25" data-hardcover="false">7.5" × 9.25" (19.1 × 23.5 cm)</option>
+                                                <option value="8x10" data-hardcover="true">8" × 10" (20.3 × 25.4 cm)</option>
+                                                <option value="8.25x6" data-hardcover="false">8.25" × 6" (21 × 15.2 cm) - Paisagem</option>
+                                                <option value="8.25x8.25" data-hardcover="false">8.25" × 8.25" (21 × 21 cm) - Quadrado</option>
+                                                <option value="8.5x8.5" data-hardcover="false">8.5" × 8.5" (21.6 × 21.6 cm) - Quadrado</option>
+                                                <option value="8.5x11" data-hardcover="true">8.5" × 11" (21.6 × 27.9 cm) - Letter</option>
+                                            </select>
+                                            <button type="button" class="slide-next-btn" id="sizeNextBtn" disabled>
+                                                Continuar <i class="fas fa-arrow-right"></i>
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
 
-                                <!-- Illustrations Checkbox -->
-                                <div class="calculator-field">
-                                    <label class="calculator-checkbox">
-                                        <input type="checkbox" id="hasIllustrations">
-                                        <span class="checkbox-label">
+                                <!-- Slide 4: Number of Pages -->
+                                <div class="calculator-slide" data-slide="4">
+                                    <div class="slide-content">
+                                        <div class="slide-icon">
+                                            <i class="fas fa-file-alt"></i>
+                                        </div>
+                                        <h3 class="slide-question">Quantas páginas terá o livro?</h3>
+                                        <div class="slide-input-wrapper">
+                                            <input type="number" id="pageCountSlide" class="slide-input" 
+                                                   placeholder="Ex: 200" min="24" max="828">
+                                            <small class="slide-hint" id="pageHint">Capa Mole: 24-828 (P&B) / 24-550 (Cores) | Capa Dura: 75-550 páginas</small>
+                                            <button type="button" class="slide-next-btn" id="pagesNextBtn" disabled>
+                                                Continuar <i class="fas fa-arrow-right"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Slide 5: Illustrations -->
+                                <div class="calculator-slide" data-slide="5">
+                                    <div class="slide-content">
+                                        <div class="slide-icon">
                                             <i class="fas fa-images"></i>
-                                            O livro tem ilustrações (+75€)
-                                        </span>
-                                    </label>
+                                        </div>
+                                        <h3 class="slide-question">O livro terá ilustrações?</h3>
+                                        <div class="slide-options">
+                                            <button type="button" class="slide-option-btn" data-answer="true" data-field="illustrations">
+                                                <i class="fas fa-check-circle"></i>
+                                                <span>Sim</span>
+                                                <small>+75€ ao serviço</small>
+                                            </button>
+                                            <button type="button" class="slide-option-btn" data-answer="false" data-field="illustrations">
+                                                <i class="fas fa-times-circle"></i>
+                                                <span>Não</span>
+                                                <small>Sem custo adicional</small>
+                                            </button>
+                                        </div>
+                                    </div>
                                 </div>
 
-                                <!-- Quantity -->
-                                <div class="calculator-field">
-                                    <label class="calculator-label">
-                                        Quantidade de Livros
-                                        <i class="fas fa-layer-group"></i>
-                                    </label>
-                                    <div class="quantity-control">
-                                        <button type="button" class="qty-btn" onclick="adjustQuantity(-1)">
-                                            <i class="fas fa-minus"></i>
-                                        </button>
-                                        <input type="number" id="bookQuantity" class="qty-input" 
-                                               value="1" min="1" max="500">
-                                        <button type="button" class="qty-btn" onclick="adjustQuantity(1)">
-                                            <i class="fas fa-plus"></i>
-                                        </button>
+                                <!-- Slide 6: Quantity -->
+                                <div class="calculator-slide" data-slide="6">
+                                    <div class="slide-content">
+                                        <div class="slide-icon">
+                                            <i class="fas fa-layer-group"></i>
+                                        </div>
+                                        <h3 class="slide-question">Quantos livros deseja encomendar?</h3>
+                                        <div class="slide-quantity-wrapper">
+                                            <div class="quantity-display">
+                                                <button type="button" class="qty-slide-btn" id="qtyMinusBtn">
+                                                    <i class="fas fa-minus"></i>
+                                                </button>
+                                                <input type="number" id="quantitySlide" class="qty-slide-input" 
+                                                       value="1" min="1" max="500">
+                                                <button type="button" class="qty-slide-btn" id="qtyPlusBtn">
+                                                    <i class="fas fa-plus"></i>
+                                                </button>
+                                            </div>
+                                            <button type="button" class="slide-next-btn" id="quantityNextBtn">
+                                                Ver Resultado <i class="fas fa-calculator"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Final Slide: Results -->
+                                <div class="calculator-slide" data-slide="7">
+                                    <div class="slide-content result-slide">
+                                        <div class="result-header">
+                                            <i class="fas fa-check-circle"></i>
+                                            <h3>Orçamento Calculado</h3>
+                                        </div>
+
+                                        <!-- Grand Total -->
+                                        <div class="result-total">
+                                            <div class="total-label">Total Estimado</div>
+                                            <div class="total-price" id="finalTotalPrice">0,00€</div>
+                                        </div>
+
+                                        <!-- Scroll indicator -->
+                                        <div class="scroll-indicator">
+                                            <i class="fas fa-chevron-down"></i>
+                                            <span>Deslize para ver detalhes</span>
+                                        </div>
+
+                                        <!-- Cost Breakdown -->
+                                        <div class="result-breakdown">
+                                            <div class="breakdown-section">
+                                                <h4><i class="fas fa-cog"></i> Custo do Serviço</h4>
+                                                <div class="breakdown-items" id="serviceBreakdown">
+                                                    <!-- Populated by JS -->
+                                                </div>
+                                                <div class="breakdown-subtotal">
+                                                    <span>Subtotal Serviço</span>
+                                                    <span id="serviceSubtotal">0,00€</span>
+                                                </div>
+                                            </div>
+
+                                            <div class="breakdown-section">
+                                                <h4><i class="fas fa-print"></i> Custo de Impressão</h4>
+                                                <div class="breakdown-items">
+                                                    <div class="breakdown-item">
+                                                        <span>Custo por livro (Amazon KDP)</span>
+                                                        <span id="printCostPer">0,00€</span>
+                                                    </div>
+                                                    <div class="breakdown-item">
+                                                        <span>Quantidade × <span id="qtyDisplay">1</span></span>
+                                                        <span id="printCostTotal">0,00€</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <!-- Summary -->
+                                            <div class="result-summary">
+                                                <div class="summary-row">
+                                                    <span>Tipo de Impressão:</span>
+                                                    <strong id="summaryPrint">-</strong>
+                                                </div>
+                                                <div class="summary-row">
+                                                    <span>Tipo de Capa:</span>
+                                                    <strong id="summaryCover">-</strong>
+                                                </div>
+                                                <div class="summary-row">
+                                                    <span>Tamanho:</span>
+                                                    <strong id="summarySize">-</strong>
+                                                </div>
+                                                <div class="summary-row">
+                                                    <span>Páginas:</span>
+                                                    <strong id="summaryPages">-</strong>
+                                                </div>
+                                                <div class="summary-row">
+                                                    <span>Ilustrações:</span>
+                                                    <strong id="summaryIllustrations">-</strong>
+                                                </div>
+                                            </div>
+
+                                            <!-- Action Button -->
+                                            <a href="/formulario" class="result-cta-btn">
+                                                <i class="fas fa-arrow-right"></i>
+                                                Prosseguir para Formulário
+                                            </a>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
 
-                            <!-- Price Summary (Right Side) -->
-                            <div class="price-summary">
-                                <div class="summary-header">
-                                    <h3><i class="fas fa-receipt"></i> Resumo de Custos</h3>
-                                </div>
-                                
-                                <div id="priceBreakdown" class="price-breakdown">
-                                    <!-- Service Costs -->
-                                    <div class="cost-section">
-                                        <h4><i class="fas fa-cog"></i> Custo do Serviço</h4>
-                                        <div class="cost-item">
-                                            <span>Serviço Base</span>
-                                            <span class="cost-value">50,00€</span>
-                                        </div>
-                                        <div class="cost-item" id="illustrationCost" style="display: none;">
-                                            <span>Ilustrações</span>
-                                            <span class="cost-value">+75,00€</span>
-                                        </div>
-                                        <div class="cost-item" id="pagesCost300" style="display: none;">
-                                            <span>Mais de 300 páginas</span>
-                                            <span class="cost-value">+20,00€</span>
-                                        </div>
-                                        <div class="cost-item" id="pagesCost400" style="display: none;">
-                                            <span>Mais de 400 páginas</span>
-                                            <span class="cost-value">+50,00€</span>
-                                        </div>
-                                        <div class="cost-item" id="pagesCost500" style="display: none;">
-                                            <span>Mais de 500 páginas</span>
-                                            <span class="cost-value">+50,00€</span>
-                                        </div>
-                                        <div class="cost-item" id="pagesCost600" style="display: none;">
-                                            <span>Mais de 600 páginas</span>
-                                            <span class="cost-value">+50,00€</span>
-                                        </div>
-                                        <div class="cost-subtotal">
-                                            <span>Subtotal Serviço</span>
-                                            <span class="cost-value" id="serviceTotal">50,00€</span>
-                                        </div>
-                                    </div>
-
-                                    <!-- Printing Costs -->
-                                    <div class="cost-section">
-                                        <h4><i class="fas fa-print"></i> Custo de Impressão (Amazon KDP)</h4>
-                                        <div class="cost-item">
-                                            <span>Custo por Livro</span>
-                                            <span class="cost-value" id="printCostPerBook">0,00€</span>
-                                        </div>
-                                        <div class="cost-item">
-                                            <span>Quantidade × <span id="quantityDisplay">1</span></span>
-                                            <span class="cost-value" id="printCostTotal">0,00€</span>
-                                        </div>
-                                    </div>
-
-                                    <!-- Total -->
-                                    <div class="cost-total">
-                                        <span class="total-value" id="grandTotal">50,00€</span>
-                                        <span>Total Geral</span>
-                                    </div>
-
-                                    <!-- Action Button (shown only when all options selected) -->
-                                    <a href="/formulario" class="btn-goto-form" id="btnGotoForm">
-                                        <i class="fas fa-arrow-right"></i>
-                                        Prosseguir para Formulário
-                                    </a>
-                                </div>
-
-                                <div id="priceEmptyState" class="empty-state" style="display: none;">
-                                    <i class="fas fa-calculator"></i>
-                                    <p>Preencha os campos para ver o resumo de custos</p>
-                                </div>
+                            <!-- Navigation -->
+                            <div class="calculator-navigation">
+                                <button type="button" class="nav-btn nav-back" id="navBackBtn" disabled>
+                                    <i class="fas fa-arrow-left"></i> Voltar
+                                </button>
                             </div>
-                        </div>
 
-                        <!-- Error Message -->
-                        <div id="calculatorError" class="calculator-error-msg" style="display: none;">
-                            <i class="fas fa-exclamation-circle"></i>
-                            <span id="errorMessage"></span>
+                            <!-- Error Message -->
+                            <div id="calculatorError" class="calculator-error-msg" style="display: none;">
+                                <i class="fas fa-exclamation-circle"></i>
+                                <span id="errorMessage"></span>
+                            </div>
                         </div>
                     </div>
                 </section>

@@ -1,118 +1,70 @@
 // ========================================
-// PRICE CALCULATOR JAVASCRIPT
+// PRICE CALCULATOR JAVASCRIPT - SLIDE VERSION
 // ========================================
 
 // Calculator state
-let priceCalcState = {
-    pages: null,
-    cover: null,
-    print: null,
-    bookSize: null,
-    hasIllustrations: false,
-    quantity: 1
+let calcState = {
+    currentSlide: 1,
+    totalSlides: 7,
+    answers: {
+        print: null,
+        cover: null,
+        bookSize: null,
+        pages: null,
+        illustrations: false,
+        quantity: 1
+    }
 };
 
-// Animation state to prevent multiple animations
-let isAnimating = false;
-
 // Amazon KDP Printing Cost Calculator (Spain marketplace)
-// Based on: https://kdp.amazon.com/en_US/help/topic/G201834330
 function calculateKDPPrintingCost(pages, coverType, printType, bookSize) {
-    // Fixed costs and per-page costs (in EUR for Spain)
-    let fixedCost = 0;
-    let costPerPage = 0;
+    const fixedCost = coverType === 'mole' ? 0.85 : 4.30;
+    let pageCost = 0;
 
-    // Paperback (Capa Mole)
-    if (coverType === 'mole') {
-        if (printType === 'pb') {
-            // Black & White Paperback
-            fixedCost = 0.70;
-            costPerPage = 0.012;
-        } else {
-            // Color Paperback
-            fixedCost = 0.85;
-            costPerPage = 0.06;
-        }
-    }
-    // Hardcover (Capa Dura)
-    else if (coverType === 'dura') {
-        if (printType === 'pb') {
-            // Black & White Hardcover
-            fixedCost = 3.50;
-            costPerPage = 0.012;
-        } else {
-            // Color Hardcover (not available for most sizes)
-            fixedCost = 4.25;
-            costPerPage = 0.06;
-        }
+    if (printType === 'pb') {
+        pageCost = pages * 0.012;
+    } else {
+        pageCost = pages * 0.06;
     }
 
-    // Calculate total without size multiplier to avoid the 2€ difference
-    const totalCost = fixedCost + (pages * costPerPage);
-    return totalCost;
+    // Additional cost for larger sizes
+    const largerSizes = ['7x10', '7.44x9.69', '8x10', '8.5x11'];
+    if (largerSizes.includes(bookSize)) {
+        pageCost *= 1.4;
+    }
+
+    return fixedCost + pageCost;
 }
 
-// Validate page limits based on cover type and print type
+// Validate page limits
 function validatePageCount(pages, printType, coverType) {
-    let minPages = 24;
-    let maxPages = 828;
-    
-    // Hardcover has minimum of 75 pages
     if (coverType === 'dura') {
-        minPages = 75;
-        maxPages = 550; // Hardcover max is 550
-    }
-    // Paperback limits
-    else if (coverType === 'mole') {
-        minPages = 24;
+        if (pages < 75) return { valid: false, message: 'Capa dura requer no mínimo 75 páginas' };
+        if (pages > 550) return { valid: false, message: 'Capa dura permite no máximo 550 páginas' };
+    } else {
         if (printType === 'pb') {
-            maxPages = 828; // P&B paperback
+            if (pages < 24) return { valid: false, message: 'Capa mole P&B requer no mínimo 24 páginas' };
+            if (pages > 828) return { valid: false, message: 'Capa mole P&B permite no máximo 828 páginas' };
         } else {
-            maxPages = 550; // Color paperback
+            if (pages < 24) return { valid: false, message: 'Capa mole a cores requer no mínimo 24 páginas' };
+            if (pages > 550) return { valid: false, message: 'Capa mole a cores permite no máximo 550 páginas' };
         }
     }
-
-    if (pages < minPages) {
-        if (coverType === 'dura') {
-            return { valid: false, message: `Livros de capa dura requerem mínimo de ${minPages} páginas.` };
-        }
-        return { valid: false, message: `O número mínimo de páginas é ${minPages}.` };
-    }
-
-    if (pages > maxPages) {
-        if (coverType === 'dura') {
-            return { valid: false, message: `Para capa dura, o máximo é ${maxPages} páginas.` };
-        }
-        if (printType === 'pb') {
-            return { valid: false, message: `Para impressão P&B, o máximo é ${maxPages} páginas.` };
-        }
-        return { valid: false, message: `Para impressão a cores, o máximo é ${maxPages} páginas.` };
-    }
-
     return { valid: true };
 }
 
-// Calculate service cost based on pages and illustrations
+// Calculate service cost
 function calculateServiceCost(pages, hasIllustrations) {
-    let cost = 50; // Base cost
+    let cost = 50;
 
     if (hasIllustrations) {
         cost += 75;
     }
 
-    // Extra costs based on page count
-    if (pages > 300) {
-        cost += 20;
-    }
-    if (pages > 400) {
-        cost += 50;
-    }
-    if (pages > 500) {
-        cost += 50;
-    }
-    if (pages > 600) {
-        cost += 50;
-    }
+    if (pages > 300) cost += 20;
+    if (pages > 400) cost += 50;
+    if (pages > 500) cost += 50;
+    if (pages > 600) cost += 50;
 
     return cost;
 }
@@ -122,376 +74,428 @@ function formatEUR(amount) {
     return amount.toFixed(2).replace('.', ',') + '€';
 }
 
-// Setup option button listeners with real-time calculation
+// Initialize calculator
 function initPriceCalculator() {
-    // Show default state (50€ service base)
-    showDefaultState();
-    
-    document.querySelectorAll('.calc-option-btn[data-cover]').forEach(btn => {
-        btn.addEventListener('click', function() {
-            // Don't allow clicking disabled buttons
-            if (this.disabled) return;
-            
-            // Check if selecting hardcover and pages are less than 75
-            if (this.dataset.cover === 'dura' && priceCalcState.pages && priceCalcState.pages < 75) {
-                showPriceError('Livros de capa dura requerem mínimo de 75 páginas.');
-                return;
-            }
-            
-            document.querySelectorAll('.calc-option-btn[data-cover]').forEach(b => b.classList.remove('selected'));
-            this.classList.add('selected');
-            priceCalcState.cover = this.dataset.cover;
-            calculatePriceRealTime();
-        });
-    });
+    if (!document.querySelector('.price-calculator-slides')) return;
 
-    document.querySelectorAll('.calc-option-btn[data-print]').forEach(btn => {
-        btn.addEventListener('click', function() {
-            document.querySelectorAll('.calc-option-btn[data-print]').forEach(b => b.classList.remove('selected'));
-            this.classList.add('selected');
-            priceCalcState.print = this.dataset.print;
-            calculatePriceRealTime();
-        });
+    // Load GSAP if needed
+    ensureGSAP().then(() => {
+        setupSlideNavigation();
+        setupOptionButtons();
+        setupInputFields();
+        updateProgress();
     });
+}
 
-    // Page count input with debounce
-    const pageInput = document.getElementById('pageCount');
-    if (pageInput) {
-        let debounceTimer;
-        pageInput.addEventListener('input', function() {
-            clearTimeout(debounceTimer);
-            debounceTimer = setTimeout(() => {
-                const pages = parseInt(this.value);
-                if (pages && !isNaN(pages)) {
-                    priceCalcState.pages = pages;
-                    calculatePriceRealTime();
+// Ensure GSAP is loaded
+function ensureGSAP() {
+    return new Promise((resolve) => {
+        if (window.gsap && window.ScrollTrigger) {
+            resolve();
+        } else {
+            // Wait a bit for GSAP to load from main.js
+            const checkGSAP = setInterval(() => {
+                if (window.gsap && window.ScrollTrigger) {
+                    clearInterval(checkGSAP);
+                    resolve();
                 }
-            }, 300);
+            }, 100);
+        }
+    });
+}
+
+// Setup slide navigation
+function setupSlideNavigation() {
+    const backBtn = document.getElementById('navBackBtn');
+    
+    if (backBtn) {
+        backBtn.addEventListener('click', () => {
+            if (calcState.currentSlide > 1) {
+                goToSlide(calcState.currentSlide - 1);
+            }
         });
     }
+}
 
-    // Book size dropdown
-    const bookSizeSelect = document.getElementById('bookSize');
-    if (bookSizeSelect) {
-        bookSizeSelect.addEventListener('change', function() {
-            priceCalcState.bookSize = this.value || null;
+// Setup option buttons
+function setupOptionButtons() {
+    const optionButtons = document.querySelectorAll('.slide-option-btn');
+    
+    optionButtons.forEach(btn => {
+        btn.addEventListener('click', () => {
+            const field = btn.dataset.field;
+            const answer = btn.dataset.answer;
             
-            // Check if selected size supports hardcover
-            const selectedOption = this.options[this.selectedIndex];
-            const supportsHardcover = selectedOption.getAttribute('data-hardcover') === 'true';
+            // Update state
+            if (field === 'illustrations') {
+                calcState.answers.illustrations = answer === 'true';
+            } else {
+                calcState.answers[field] = answer;
+            }
             
-            // Enable/disable hardcover button
-            const hardcoverBtn = document.querySelector('.calc-option-btn[data-cover="dura"]');
-            if (hardcoverBtn) {
-                if (!supportsHardcover && this.value) {
-                    hardcoverBtn.disabled = true;
-                    hardcoverBtn.style.opacity = '0.5';
-                    hardcoverBtn.style.cursor = 'not-allowed';
-                    hardcoverBtn.title = 'Este tamanho não está disponível em capa dura';
-                    
-                    // If hardcover was selected, deselect it
-                    if (priceCalcState.cover === 'dura') {
-                        hardcoverBtn.classList.remove('selected');
-                        priceCalcState.cover = null;
+            // Visual feedback
+            const siblings = btn.parentElement.querySelectorAll('.slide-option-btn');
+            siblings.forEach(s => s.classList.remove('selected'));
+            btn.classList.add('selected');
+            
+            // Animate button
+            gsap.to(btn, {
+                scale: 0.95,
+                duration: 0.1,
+                yoyo: true,
+                repeat: 1
+            });
+            
+            // Auto-advance after short delay
+            setTimeout(() => {
+                advanceToNextSlide();
+            }, 400);
+        });
+    });
+}
+
+// Setup input fields
+function setupInputFields() {
+    // Book size select
+    const sizeSelect = document.getElementById('bookSizeSlide');
+    const sizeNextBtn = document.getElementById('sizeNextBtn');
+    
+    if (sizeSelect && sizeNextBtn) {
+        sizeSelect.addEventListener('change', () => {
+            calcState.answers.bookSize = sizeSelect.value;
+            sizeNextBtn.disabled = !sizeSelect.value;
+            
+            // Update available options based on cover type
+            if (calcState.answers.cover === 'dura') {
+                const options = sizeSelect.querySelectorAll('option');
+                options.forEach(opt => {
+                    if (opt.value && opt.dataset.hardcover === 'false') {
+                        opt.disabled = true;
                     }
-                } else {
-                    hardcoverBtn.disabled = false;
-                    hardcoverBtn.style.opacity = '1';
-                    hardcoverBtn.style.cursor = 'pointer';
-                    hardcoverBtn.title = '';
-                }
+                });
             }
-            
-            calculatePriceRealTime();
+        });
+        
+        sizeNextBtn.addEventListener('click', () => {
+            if (calcState.answers.bookSize) {
+                advanceToNextSlide();
+            }
         });
     }
-
-    // Illustrations checkbox
-    const illustrationsCheckbox = document.getElementById('hasIllustrations');
-    if (illustrationsCheckbox) {
-        illustrationsCheckbox.addEventListener('change', function() {
-            priceCalcState.hasIllustrations = this.checked;
-            calculatePriceRealTime();
+    
+    // Pages input
+    const pagesInput = document.getElementById('pageCountSlide');
+    const pagesNextBtn = document.getElementById('pagesNextBtn');
+    
+    if (pagesInput && pagesNextBtn) {
+        pagesInput.addEventListener('input', () => {
+            const pages = parseInt(pagesInput.value);
+            calcState.answers.pages = pages || null;
+            
+            // Validate
+            if (pages && calcState.answers.cover && calcState.answers.print) {
+                const validation = validatePageCount(pages, calcState.answers.print, calcState.answers.cover);
+                
+                if (validation.valid) {
+                    pagesNextBtn.disabled = false;
+                    hideError();
+                } else {
+                    pagesNextBtn.disabled = true;
+                    showError(validation.message);
+                }
+            } else {
+                pagesNextBtn.disabled = !pages;
+            }
+        });
+        
+        pagesNextBtn.addEventListener('click', () => {
+            if (calcState.answers.pages) {
+                advanceToNextSlide();
+            }
         });
     }
-
-    // Quantity input listener
-    const qtyInput = document.getElementById('bookQuantity');
-    if (qtyInput) {
-        let debounceTimer;
-        qtyInput.addEventListener('input', function() {
-            let value = parseInt(this.value) || 1;
-            value = Math.max(1, Math.min(500, value));
-            this.value = value;
-            priceCalcState.quantity = value;
-            
-            clearTimeout(debounceTimer);
-            debounceTimer = setTimeout(() => {
-                calculatePriceRealTime();
-            }, 300);
+    
+    // Quantity controls
+    const qtyInput = document.getElementById('quantitySlide');
+    const qtyMinusBtn = document.getElementById('qtyMinusBtn');
+    const qtyPlusBtn = document.getElementById('qtyPlusBtn');
+    const qtyNextBtn = document.getElementById('quantityNextBtn');
+    
+    if (qtyInput && qtyMinusBtn && qtyPlusBtn && qtyNextBtn) {
+        qtyMinusBtn.addEventListener('click', () => {
+            let qty = parseInt(qtyInput.value) || 1;
+            if (qty > 1) {
+                qty--;
+                qtyInput.value = qty;
+                calcState.answers.quantity = qty;
+            }
+        });
+        
+        qtyPlusBtn.addEventListener('click', () => {
+            let qty = parseInt(qtyInput.value) || 1;
+            if (qty < 500) {
+                qty++;
+                qtyInput.value = qty;
+                calcState.answers.quantity = qty;
+            }
+        });
+        
+        qtyInput.addEventListener('change', () => {
+            let qty = parseInt(qtyInput.value) || 1;
+            if (qty < 1) qty = 1;
+            if (qty > 500) qty = 500;
+            qtyInput.value = qty;
+            calcState.answers.quantity = qty;
+        });
+        
+        qtyNextBtn.addEventListener('click', () => {
+            calculateFinalResults();
+            advanceToNextSlide();
         });
     }
 }
 
-// Quantity adjustment with real-time update
-function adjustQuantity(delta) {
-    const input = document.getElementById('bookQuantity');
-    if (!input) return;
-    
-    let value = parseInt(input.value) || 1;
-    value = Math.max(1, Math.min(500, value + delta));
-    input.value = value;
-    priceCalcState.quantity = value;
-    
-    calculatePriceRealTime();
+// Advance to next slide
+function advanceToNextSlide() {
+    if (calcState.currentSlide < calcState.totalSlides) {
+        goToSlide(calcState.currentSlide + 1);
+    }
 }
 
-// Show error
-function showPriceError(message) {
+// Go to specific slide with GSAP animation
+function goToSlide(slideNum) {
+    const currentSlide = document.querySelector(`.calculator-slide[data-slide="${calcState.currentSlide}"]`);
+    const nextSlide = document.querySelector(`.calculator-slide[data-slide="${slideNum}"]`);
+    
+    if (!currentSlide || !nextSlide) return;
+    
+    const direction = slideNum > calcState.currentSlide ? 1 : -1;
+    
+    // Animate out current slide
+    gsap.to(currentSlide, {
+        x: -100 * direction,
+        opacity: 0,
+        duration: 0.4,
+        ease: 'power2.in',
+        onComplete: () => {
+            currentSlide.classList.remove('active');
+            currentSlide.style.display = 'none';
+        }
+    });
+    
+    // Animate in next slide
+    nextSlide.style.display = 'block';
+    gsap.fromTo(nextSlide, 
+        {
+            x: 100 * direction,
+            opacity: 0
+        },
+        {
+            x: 0,
+            opacity: 1,
+            duration: 0.5,
+            ease: 'power2.out',
+            delay: 0.2,
+            onStart: () => {
+                nextSlide.classList.add('active');
+            }
+        }
+    );
+    
+    // Update state
+    calcState.currentSlide = slideNum;
+    updateProgress();
+    updateBackButton();
+}
+
+// Update progress bar
+function updateProgress() {
+    const progressFill = document.getElementById('progressFill');
+    const currentSlideNum = document.getElementById('currentSlideNum');
+    
+    if (progressFill && currentSlideNum) {
+        const progress = ((calcState.currentSlide - 1) / (calcState.totalSlides - 1)) * 100;
+        
+        gsap.to(progressFill, {
+            width: `${progress}%`,
+            duration: 0.5,
+            ease: 'power2.out'
+        });
+        
+        currentSlideNum.textContent = calcState.currentSlide;
+    }
+}
+
+// Update back button state
+function updateBackButton() {
+    const backBtn = document.getElementById('navBackBtn');
+    if (backBtn) {
+        backBtn.disabled = calcState.currentSlide === 1;
+    }
+}
+
+// Calculate final results
+function calculateFinalResults() {
+    const { pages, cover, print, bookSize, illustrations, quantity } = calcState.answers;
+    
+    // Calculate costs
+    const serviceCost = calculateServiceCost(pages, illustrations);
+    const printCostPerBook = calculateKDPPrintingCost(pages, cover, print, bookSize);
+    const totalPrintCost = printCostPerBook * quantity;
+    const grandTotal = serviceCost + totalPrintCost;
+    
+    // Update final slide
+    document.getElementById('finalTotalPrice').textContent = formatEUR(grandTotal);
+    document.getElementById('serviceSubtotal').textContent = formatEUR(serviceCost);
+    document.getElementById('printCostPer').textContent = formatEUR(printCostPerBook);
+    document.getElementById('printCostTotal').textContent = formatEUR(totalPrintCost);
+    document.getElementById('qtyDisplay').textContent = quantity;
+    
+    // Service breakdown
+    const serviceBreakdown = document.getElementById('serviceBreakdown');
+    let breakdownHTML = `
+        <div class="breakdown-item">
+            <span>Serviço Base</span>
+            <span>50,00€</span>
+        </div>
+    `;
+    
+    if (illustrations) {
+        breakdownHTML += `
+            <div class="breakdown-item">
+                <span>Ilustrações</span>
+                <span>+75,00€</span>
+            </div>
+        `;
+    }
+    
+    if (pages > 300) {
+        breakdownHTML += `
+            <div class="breakdown-item">
+                <span>Mais de 300 páginas</span>
+                <span>+20,00€</span>
+            </div>
+        `;
+    }
+    if (pages > 400) {
+        breakdownHTML += `
+            <div class="breakdown-item">
+                <span>Mais de 400 páginas</span>
+                <span>+50,00€</span>
+            </div>
+        `;
+    }
+    if (pages > 500) {
+        breakdownHTML += `
+            <div class="breakdown-item">
+                <span>Mais de 500 páginas</span>
+                <span>+50,00€</span>
+            </div>
+        `;
+    }
+    if (pages > 600) {
+        breakdownHTML += `
+            <div class="breakdown-item">
+                <span>Mais de 600 páginas</span>
+                <span>+50,00€</span>
+            </div>
+        `;
+    }
+    
+    serviceBreakdown.innerHTML = breakdownHTML;
+    
+    // Summary
+    document.getElementById('summaryPrint').textContent = print === 'pb' ? 'Preto & Branco' : 'A Cores';
+    document.getElementById('summaryCover').textContent = cover === 'mole' ? 'Capa Mole' : 'Capa Dura';
+    document.getElementById('summarySize').textContent = bookSize.replace('x', ' × ') + '"';
+    document.getElementById('summaryPages').textContent = pages + ' páginas';
+    document.getElementById('summaryIllustrations').textContent = illustrations ? 'Sim (+75€)' : 'Não';
+    
+    // Animate result slide
+    animateResultSlide();
+}
+
+// Animate result slide
+function animateResultSlide() {
+    setTimeout(() => {
+        const timeline = gsap.timeline();
+        
+        timeline
+            .from('.result-header', {
+                scale: 0,
+                opacity: 0,
+                duration: 0.5,
+                ease: 'back.out(1.7)'
+            })
+            .from('.result-total', {
+                y: 50,
+                opacity: 0,
+                duration: 0.6,
+                ease: 'power3.out'
+            })
+            .from('.total-price', {
+                scale: 1.5,
+                duration: 0.4,
+                ease: 'elastic.out(1, 0.5)'
+            }, '-=0.3')
+            .from('.scroll-indicator', {
+                y: -20,
+                opacity: 0,
+                duration: 0.5,
+                ease: 'power2.out'
+            })
+            .from('.result-breakdown', {
+                y: 30,
+                opacity: 0,
+                duration: 0.6,
+                ease: 'power3.out'
+            });
+        
+        // Pulsating scroll indicator
+        gsap.to('.scroll-indicator i', {
+            y: 8,
+            duration: 1,
+            repeat: -1,
+            yoyo: true,
+            ease: 'power1.inOut'
+        });
+    }, 100);
+}
+
+// Show error message
+function showError(message) {
     const errorDiv = document.getElementById('calculatorError');
-    const errorMessage = document.getElementById('errorMessage');
+    const errorMsg = document.getElementById('errorMessage');
     
-    if (!errorDiv || !errorMessage) return;
-    
-    errorMessage.textContent = message;
-    errorDiv.style.display = 'flex';
-    
-    // Animate with GSAP if available
-    if (typeof gsap !== 'undefined') {
+    if (errorDiv && errorMsg) {
+        errorMsg.textContent = message;
+        errorDiv.style.display = 'flex';
+        
         gsap.fromTo(errorDiv, 
-            { opacity: 0, y: -10 },
-            { opacity: 1, y: 0, duration: 0.3, ease: 'power2.out' }
+            { y: -20, opacity: 0 },
+            { y: 0, opacity: 1, duration: 0.3, ease: 'power2.out' }
         );
     }
-    
-    // Auto-hide after 5 seconds
-    setTimeout(() => {
-        if (errorDiv) errorDiv.style.display = 'none';
-    }, 5000);
 }
 
-// Show default state (50€ base)
-function showDefaultState() {
-    const breakdown = document.getElementById('priceBreakdown');
-    const emptyState = document.getElementById('priceEmptyState');
-    
-    if (breakdown) breakdown.style.display = 'block';
-    if (emptyState) emptyState.style.display = 'none';
-    
-    // Set default values
-    const serviceTotalEl = document.getElementById('serviceTotal');
-    const grandTotalEl = document.getElementById('grandTotal');
-    
-    if (serviceTotalEl) serviceTotalEl.textContent = '50,00€';
-    if (grandTotalEl) grandTotalEl.textContent = '50,00€';
-}
-
-// Real-time calculation (no validation, just update if possible)
-function calculatePriceRealTime() {
+// Hide error message
+function hideError() {
     const errorDiv = document.getElementById('calculatorError');
-    if (errorDiv) errorDiv.style.display = 'none';
-
-    const pages = priceCalcState.pages;
-    const cover = priceCalcState.cover;
-    const print = priceCalcState.print;
-    const bookSize = priceCalcState.bookSize;
-    const hasIllustrations = priceCalcState.hasIllustrations;
-    const quantity = priceCalcState.quantity;
-
-    // Calculate service cost (always available)
-    const serviceCost = calculateServiceCost(pages || 0, hasIllustrations);
     
-    // Calculate print cost only if all required fields are present
-    let printCostPerBook = 0;
-    let printCostTotal = 0;
-    
-    if (pages && cover && print) {
-        const pageValidation = validatePageCount(pages, print, cover);
-        if (pageValidation.valid) {
-            printCostPerBook = calculateKDPPrintingCost(pages, cover, print, bookSize);
-            printCostTotal = printCostPerBook * quantity;
-        } else {
-            // Show validation error
-            showPriceError(pageValidation.message);
-        }
-    }
-    
-    const grandTotal = serviceCost + printCostTotal;
-
-    // Update UI with animation
-    updatePriceSummaryAnimated(serviceCost, printCostPerBook, printCostTotal, grandTotal, quantity, pages, hasIllustrations);
-    
-    // Show/hide button based on whether all options are selected
-    updateButtonVisibility();
-}
-
-// Check if all required options are selected and show/hide button
-function updateButtonVisibility() {
-    const btnGotoForm = document.getElementById('btnGotoForm');
-    if (!btnGotoForm) return;
-    
-    const pages = priceCalcState.pages;
-    const cover = priceCalcState.cover;
-    const print = priceCalcState.print;
-    const bookSize = priceCalcState.bookSize;
-    
-    // Show button only if pages, cover, print type, and book size are all selected
-    if (pages && cover && print && bookSize && pages >= 24) {
-        btnGotoForm.classList.add('show');
-    } else {
-        btnGotoForm.classList.remove('show');
-    }
-}
-
-// Get current numeric value from formatted EUR string
-function getNumericValue(formattedString) {
-    if (!formattedString) return 0;
-    return parseFloat(formattedString.replace(',', '.').replace('€', '')) || 0;
-}
-
-function updatePriceSummaryAnimated(serviceCost, printCostPerBook, printCostTotal, grandTotal, quantity, pages, hasIllustrations) {
-    // Show breakdown, hide empty state
-    const breakdown = document.getElementById('priceBreakdown');
-    const emptyState = document.getElementById('priceEmptyState');
-    
-    if (breakdown) breakdown.style.display = 'block';
-    if (emptyState) emptyState.style.display = 'none';
-
-    // Animate service costs
-    const serviceTotalEl = document.getElementById('serviceTotal');
-    if (serviceTotalEl && typeof gsap !== 'undefined') {
-        const currentValue = getNumericValue(serviceTotalEl.textContent);
-        if (currentValue !== serviceCost) {
-            gsap.to(serviceTotalEl, {
-                duration: 0.5,
-                innerHTML: formatEUR(serviceCost),
-                ease: 'power2.out',
-                snap: { innerHTML: 1 },
-                onUpdate: function() {
-                    const progress = this.progress();
-                    const value = currentValue + (serviceCost - currentValue) * progress;
-                    serviceTotalEl.textContent = formatEUR(value);
-                }
-            });
-        }
-    } else if (serviceTotalEl) {
-        serviceTotalEl.textContent = formatEUR(serviceCost);
-    }
-
-    // Show/hide extra service costs with animation
-    const illustrationCost = document.getElementById('illustrationCost');
-    const pagesCost300 = document.getElementById('pagesCost300');
-    const pagesCost400 = document.getElementById('pagesCost400');
-    const pagesCost500 = document.getElementById('pagesCost500');
-    const pagesCost600 = document.getElementById('pagesCost600');
-
-    const animateItem = (element, shouldShow) => {
-        if (!element) return;
-        
-        if (shouldShow && element.style.display === 'none') {
-            element.style.display = 'flex';
-            if (typeof gsap !== 'undefined') {
-                gsap.from(element, {
-                    duration: 0.4,
-                    opacity: 0,
-                    x: -20,
-                    ease: 'back.out(1.7)'
-                });
+    if (errorDiv && errorDiv.style.display !== 'none') {
+        gsap.to(errorDiv, {
+            y: -20,
+            opacity: 0,
+            duration: 0.3,
+            ease: 'power2.in',
+            onComplete: () => {
+                errorDiv.style.display = 'none';
             }
-        } else if (!shouldShow && element.style.display !== 'none') {
-            if (typeof gsap !== 'undefined') {
-                gsap.to(element, {
-                    duration: 0.3,
-                    opacity: 0,
-                    x: -20,
-                    ease: 'power2.in',
-                    onComplete: () => {
-                        element.style.display = 'none';
-                        gsap.set(element, { opacity: 1, x: 0 });
-                    }
-                });
-            } else {
-                element.style.display = 'none';
-            }
-        }
-    };
-
-    animateItem(illustrationCost, hasIllustrations);
-    animateItem(pagesCost300, pages > 300);
-    animateItem(pagesCost400, pages > 400);
-    animateItem(pagesCost500, pages > 500);
-    animateItem(pagesCost600, pages > 600);
-
-    // Update printing costs with animation
-    const printCostPerBookEl = document.getElementById('printCostPerBook');
-    const quantityDisplayEl = document.getElementById('quantityDisplay');
-    const printCostTotalEl = document.getElementById('printCostTotal');
-
-    if (printCostPerBookEl) {
-        const currentValue = getNumericValue(printCostPerBookEl.textContent);
-        if (currentValue !== printCostPerBook && typeof gsap !== 'undefined') {
-            gsap.to(printCostPerBookEl, {
-                duration: 0.5,
-                ease: 'power2.out',
-                onUpdate: function() {
-                    const progress = this.progress();
-                    const value = currentValue + (printCostPerBook - currentValue) * progress;
-                    printCostPerBookEl.textContent = formatEUR(value);
-                }
-            });
-        } else {
-            printCostPerBookEl.textContent = formatEUR(printCostPerBook);
-        }
-    }
-    
-    if (quantityDisplayEl) quantityDisplayEl.textContent = quantity;
-    
-    if (printCostTotalEl) {
-        const currentValue = getNumericValue(printCostTotalEl.textContent);
-        if (currentValue !== printCostTotal && typeof gsap !== 'undefined') {
-            gsap.to(printCostTotalEl, {
-                duration: 0.5,
-                ease: 'power2.out',
-                onUpdate: function() {
-                    const progress = this.progress();
-                    const value = currentValue + (printCostTotal - currentValue) * progress;
-                    printCostTotalEl.textContent = formatEUR(value);
-                }
-            });
-        } else {
-            printCostTotalEl.textContent = formatEUR(printCostTotal);
-        }
-    }
-
-    // Animate grand total with special effect
-    const grandTotalEl = document.getElementById('grandTotal');
-    if (grandTotalEl) {
-        const currentValue = getNumericValue(grandTotalEl.textContent);
-        if (currentValue !== grandTotal && typeof gsap !== 'undefined') {
-            gsap.to(grandTotalEl, {
-                duration: 0.8,
-                ease: 'elastic.out(1, 0.5)',
-                scale: 1.1,
-                onUpdate: function() {
-                    const progress = this.progress();
-                    const value = currentValue + (grandTotal - currentValue) * progress;
-                    grandTotalEl.textContent = formatEUR(value);
-                },
-                onComplete: function() {
-                    gsap.to(grandTotalEl, {
-                        duration: 0.3,
-                        scale: 1,
-                        ease: 'power2.out'
-                    });
-                }
-            });
-        } else if (currentValue !== grandTotal) {
-            grandTotalEl.textContent = formatEUR(grandTotal);
-        }
+        });
     }
 }
 
-// Initialize when DOM is ready
+// Initialize on page load
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => {
         if (window.location.pathname.includes('/servicos')) {
@@ -503,6 +507,3 @@ if (document.readyState === 'loading') {
         initPriceCalculator();
     }
 }
-
-// Expose function globally for inline onclick handlers
-window.adjustQuantity = adjustQuantity;
