@@ -119,8 +119,9 @@ function initPriceCalculator() {
         setupSlideNavigation();
         setupOptionButtons();
         setupInputFields();
-        updateProgress();
+        updateProgressImmediate(); // Initialize progress immediately
         updateBackButton();
+        adjustNavigationPosition(); // Set initial position
     });
 }
 
@@ -170,15 +171,29 @@ function setupOptionButtons() {
                 calcState.answers[field] = answer;
             }
             
-            // Visual feedback
+            // Visual feedback with smooth animation
             const siblings = btn.parentElement.querySelectorAll('.slide-option-btn');
-            siblings.forEach(s => s.classList.remove('selected'));
+            
+            // Deselect siblings with fade animation
+            siblings.forEach(s => {
+                if (s !== btn) {
+                    s.classList.remove('selected');
+                    gsap.to(s, {
+                        scale: 1,
+                        duration: 0.2,
+                        ease: 'power2.out'
+                    });
+                }
+            });
+            
+            // Select and animate clicked button
             btn.classList.add('selected');
             
-            // Animate button
+            // Quick pulse animation
             gsap.to(btn, {
-                scale: 0.95,
-                duration: 0.1,
+                scale: 1.05,
+                duration: 0.15,
+                ease: 'back.out(2)',
                 yoyo: true,
                 repeat: 1
             });
@@ -186,9 +201,8 @@ function setupOptionButtons() {
             // Auto-advance after short delay
             setTimeout(() => {
                 advanceToNextSlide();
-                // Show back button after first answer
                 showBackButton();
-            }, 400);
+            }, 350);
         });
     });
 }
@@ -211,14 +225,25 @@ function setupInputFields() {
             
             calcState.answers.bookSize = size;
             
-            // Visual feedback
-            sizeCards.forEach(c => c.classList.remove('selected'));
+            // Visual feedback with smooth animations
+            sizeCards.forEach(c => {
+                if (c !== card) {
+                    c.classList.remove('selected');
+                    gsap.to(c, {
+                        scale: 1,
+                        duration: 0.2,
+                        ease: 'power2.out'
+                    });
+                }
+            });
+            
             card.classList.add('selected');
             
-            // Animate card
+            // Quick pulse animation for selected card
             gsap.to(card, {
-                scale: 0.95,
-                duration: 0.1,
+                scale: 1.05,
+                duration: 0.15,
+                ease: 'back.out(2)',
                 yoyo: true,
                 repeat: 1
             });
@@ -227,7 +252,7 @@ function setupInputFields() {
             setTimeout(() => {
                 advanceToNextSlide();
                 showBackButton();
-            }, 400);
+            }, 350);
         });
     });
     
@@ -331,54 +356,115 @@ function advanceToNextSlide() {
 
 // Go to specific slide with GSAP animation
 function goToSlide(slideNum) {
+    // Get slides using the OLD and NEW slide numbers
     const currentSlide = document.querySelector(`.calculator-slide[data-slide="${calcState.currentSlide}"]`);
     const nextSlide = document.querySelector(`.calculator-slide[data-slide="${slideNum}"]`);
     
-    if (!currentSlide || !nextSlide) return;
+    if (!currentSlide || !nextSlide) {
+        console.error('Slides não encontrados:', calcState.currentSlide, '->', slideNum);
+        return;
+    }
     
     const direction = slideNum > calcState.currentSlide ? 1 : -1;
+    const previousSlideNum = calcState.currentSlide;
     
-    // Animate out current slide
-    gsap.to(currentSlide, {
-        x: -100 * direction,
-        opacity: 0,
-        duration: 0.4,
-        ease: 'power2.in',
-        onComplete: () => {
-            currentSlide.classList.remove('active');
-            currentSlide.style.display = 'none';
-        }
+    // Update state BEFORE animation
+    calcState.currentSlide = slideNum;
+    
+    // Force immediate update of progress
+    updateProgressImmediate();
+    updateBackButton();
+    
+    console.log(`Transição: slide ${previousSlideNum} -> ${slideNum}, progresso: ${slideNum}/${calcState.totalSlides}`);
+    
+    // Kill any running animations on these slides
+    gsap.killTweensOf([currentSlide, nextSlide]);
+    
+    // STEP 1: Measure next slide height by temporarily displaying it
+    gsap.set(nextSlide, {
+        display: 'block',
+        position: 'absolute',
+        visibility: 'hidden',
+        x: '0%',
+        opacity: 1
     });
     
-    // Animate in next slide
-    nextSlide.style.display = 'block';
-    gsap.fromTo(nextSlide, 
-        {
-            x: 100 * direction,
-            opacity: 0
-        },
-        {
-            x: 0,
-            opacity: 1,
-            duration: 0.5,
-            ease: 'power2.out',
-            delay: 0.2,
-            onStart: () => {
-                nextSlide.classList.add('active');
-            }
-        }
-    );
+    // Force browser to calculate layout
+    const nextSlideHeight = nextSlide.offsetHeight;
     
-    // Update state
-    calcState.currentSlide = slideNum;
-    // Aguarda o fim da animação para garantir que DOM está atualizado
+    // STEP 2: Adjust wrapper height to match next slide BEFORE animation
+    const wrapper = document.querySelector('.calculator-slides-wrapper');
+    if (wrapper) {
+        gsap.to(wrapper, {
+            minHeight: nextSlideHeight + 'px',
+            duration: 0.3,
+            ease: 'power2.out'
+        });
+    }
+    
+    // STEP 3: Wait for height adjustment, then start carousel animation
     setTimeout(() => {
-        updateProgress();
-        updateBackButton();
-    }, 10);
+        // Gap between slides (5% = espaço entre slides)
+        const slideGap = 5;
+        const slideOffset = 100 + slideGap;
+        
+        // Prepare next slide BEFORE animation (positioned off-screen in correct direction)
+        gsap.set(nextSlide, {
+            display: 'block',
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            width: '100%',
+            visibility: 'visible',
+            x: slideOffset * direction + '%',
+            opacity: 1,
+            zIndex: 2
+        });
+        
+        // Current slide setup
+        gsap.set(currentSlide, {
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            width: '100%',
+            x: '0%',
+            opacity: 1,
+            zIndex: 1
+        });
+        
+        nextSlide.classList.add('active');
+        
+        // Smooth slide transition - carrossel effect
+        const tl = gsap.timeline({
+            defaults: {
+                ease: 'power2.inOut',
+                duration: 0.5
+            }
+        });
+        
+        // Slide both slides simultaneously for carrossel effect
+        tl.to(currentSlide, {
+            x: -slideOffset * direction + '%',
+        }, 0)
+        .to(nextSlide, {
+            x: '0%'
+        }, 0)
+        .add(() => {
+            // Clean up after animation
+            currentSlide.classList.remove('active');
+            currentSlide.style.display = 'none';
+            gsap.set(currentSlide, { clearProps: 'all' });
+            
+            // Set next slide to relative positioning now that it's in place
+            gsap.set(nextSlide, { 
+                clearProps: 'position,top,left,zIndex,x,visibility',
+                position: 'relative'
+            });
+        });
+    }, 300); // Wait for height animation to complete
 }
 
-// Update progress bar
+// Update progress bar with animationa
 function updateProgress() {
     const progressFill = document.getElementById('progressFill');
     const currentSlideNum = document.getElementById('currentSlideNum');
@@ -388,11 +474,57 @@ function updateProgress() {
     if (progressFill) {
         // Calcula progresso: slide 1 = ~14%, slide 7 = 100%
         const progress = (calcState.currentSlide / calcState.totalSlides) * 100;
-        progressFill.style.width = `${progress}%`;
+        // Usa GSAP para animação suave da barra (mais rápida)
+        gsap.to(progressFill, {
+            width: `${progress}%`,
+            duration: 0.3,
+            ease: 'power2.out'
+        });
     }
     if (currentSlideNum) {
-        currentSlideNum.textContent = calcState.currentSlide;
+        // Anima o número com fade rápido
+        gsap.to(currentSlideNum, {
+            opacity: 0,
+            duration: 0.1,
+            onComplete: () => {
+                currentSlideNum.textContent = calcState.currentSlide;
+                gsap.to(currentSlideNum, {
+                    opacity: 1,
+                    duration: 0.1
+                });
+            }
+        });
     }
+    if (totalSlidesEl) {
+        totalSlidesEl.textContent = calcState.totalSlides;
+    }
+}
+
+// Update progress immediately without animation (for instant feedback)
+function updateProgressImmediate() {
+    const progressFill = document.getElementById('progressFill');
+    const currentSlideNum = document.getElementById('currentSlideNum');
+    const totalSlidesEl = document.getElementById('totalSlides');
+
+    console.log('updateProgressImmediate chamado:', {
+        currentSlide: calcState.currentSlide,
+        totalSlides: calcState.totalSlides,
+        progressFill: !!progressFill,
+        currentSlideNum: !!currentSlideNum,
+        totalSlidesEl: !!totalSlidesEl
+    });
+
+    if (progressFill) {
+        const progress = (calcState.currentSlide / calcState.totalSlides) * 100;
+        progressFill.style.width = `${progress}%`;
+        console.log('Barra de progresso atualizada:', progress + '%');
+    }
+    
+    if (currentSlideNum) {
+        currentSlideNum.textContent = calcState.currentSlide;
+        console.log('Número do slide atualizado:', calcState.currentSlide);
+    }
+    
     if (totalSlidesEl) {
         totalSlidesEl.textContent = calcState.totalSlides;
     }
@@ -404,6 +536,24 @@ function updateBackButton() {
     if (backBtn) {
         backBtn.disabled = calcState.currentSlide === 1;
     }
+}
+
+// Adjust navigation position dynamically based on current slide height
+function adjustNavigationPosition() {
+    const wrapper = document.querySelector('.calculator-slides-wrapper');
+    const navigation = document.querySelector('.calculator-navigation');
+    const activeSlide = document.querySelector('.calculator-slide.active');
+    
+    if (!wrapper || !navigation || !activeSlide) return;
+    
+    // Get the actual height of the active slide
+    const slideHeight = activeSlide.offsetHeight;
+    
+    // Set wrapper height to match the current slide
+    wrapper.style.minHeight = slideHeight + 'px';
+    
+    // Position navigation below the slide with some spacing
+    // Navigation will naturally flow below due to margin-top
 }
 
 // Show back button (kept for compatibility, but no longer hides/shows)
@@ -499,9 +649,14 @@ function calculateFinalResults() {
         pages: rawPages,
         hasIllustrations: illustrations,
         quantity: quantity,
-        calculatedPrice: grandTotal
+        calculatedPrice: grandTotal,
+        serviceCost: serviceCost,
+        printCostPerBook: printCostPerBook,
+        totalPrintCost: totalPrintCost,
+        timestamp: new Date().toISOString()
     };
     localStorage.setItem('calculatorData', JSON.stringify(calculatorData));
+    console.log('Dados da calculadora guardados:', calculatorData);
     
     // Animate result slide
     animateResultSlide();

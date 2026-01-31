@@ -7442,6 +7442,47 @@ body.loading .footer {
   font-size: 1.1rem;
 }
 
+/* Calculator Summary Box */
+.calculator-summary-box {
+  background: linear-gradient(135deg, rgba(255, 177, 0, 0.05), rgba(255, 177, 0, 0.02));
+  border: 2px solid var(--accent-color);
+  border-radius: 16px;
+  padding: 2rem;
+  margin: 2rem 0;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+}
+
+.calculator-summary-list {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 1.5rem 0;
+}
+
+.calculator-summary-list li {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  font-size: 1.05rem;
+}
+
+.calculator-summary-list li:last-child {
+  border-bottom: 2px solid var(--accent-color);
+  padding: 1rem 0;
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: var(--accent-color);
+}
+
+.form-summary-note {
+  background: rgba(255, 177, 0, 0.1);
+  padding: 1rem;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  color: #666;
+  text-align: center;
+}
+
 /* Plan Selection */
 .plan-selection {
   display: grid;
@@ -12195,20 +12236,18 @@ body.page-apoio .btn-primary {
 
 .progress-bar {
     width: 100%;
-    height: 10px;
-    background: rgba(255, 255, 255, 0.3);
+    height: 14px;
+    background: rgba(255, 255, 255, 0.15);
     border-radius: 10px;
     overflow: hidden;
     margin-bottom: 12px;
-    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .progress-fill {
     height: 100%;
     width: 0%;
-    background: var(--accent-color);
-    transition: width 0.5s ease;
-    box-shadow: 0 0 10px rgba(255, 177, 0, 0.6);
+    background: var(--secondary-color);
+    transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     border-radius: 10px;
 }
 
@@ -12222,8 +12261,17 @@ body.page-apoio .btn-primary {
 /* Slides Wrapper */
 .calculator-slides-wrapper {
     position: relative;
-    min-height: 800px;
+    min-height: 700px;
     overflow: visible;
+    width: 100%;
+    margin-bottom: 0;
+    transition: min-height 0.5s ease;
+}
+
+/* Wrapper do slide de resultados precisa de overflow visible */
+.calculator-slides-wrapper:has(.calculator-slide[data-slide="7"].active) {
+    overflow: visible;
+    min-height: auto;
 }
 
 /* Individual Slide */
@@ -12235,7 +12283,25 @@ body.page-apoio .btn-primary {
   opacity: 0;
   min-height: 0;
   height: auto;
-  transition: opacity 0.3s, height 0.3s;
+  will-change: transform, opacity;
+  backface-visibility: hidden;
+  overflow: visible;
+  padding: 0 30px;
+}
+
+/* Slide de resultados com altura dinâmica e automática */
+.calculator-slide[data-slide="7"] {
+  height: auto;
+  min-height: fit-content;
+  max-height: none;
+}
+
+.calculator-slide[data-slide="7"] .slide-content {
+  height: auto;
+  min-height: fit-content;
+  max-height: none;
+  display: flex;
+  flex-direction: column;
   overflow: visible;
 }
 
@@ -12244,18 +12310,19 @@ body.page-apoio .btn-primary {
   opacity: 1;
   height: auto;
   min-height: 0;
-  z-index: 1;
+  position: relative;
 }
 
 .slide-content {
-  background: rgba(255, 255, 255, 0.95);
+  background: rgba(255, 255, 255, 0.98);
   padding: 60px 50px 40px 50px;
   border-radius: 20px;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+  border: 2px solid rgba(255, 255, 255, 0.3);
   text-align: center;
   min-height: 0;
   height: auto;
   overflow: visible;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
 }
 
 .slide-icon {
@@ -12293,64 +12360,43 @@ body.page-apoio .btn-primary {
     gap: 14px;
     padding: 40px 20px;
     background: white;
-    border: 3px solid var(--primary-color);
+    border: 3px solid var(--border-color);
     border-radius: 16px;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     font-family: 'Questrial', sans-serif;
     position: relative;
-    overflow: hidden;
-}
-
-.slide-option-btn::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: var(--accent-color);
-    opacity: 0;
-    transition: opacity 0.3s ease;
-    z-index: 0;
-}
-
-.slide-option-btn:hover::before {
-    opacity: 0.05;
 }
 
 .slide-option-btn i {
     font-size: 2.5rem;
     color: var(--primary-color);
-    transition: all 0.3s ease;
-    position: relative;
-    z-index: 1;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .slide-option-btn span {
     font-size: 1.2rem;
     font-weight: 600;
     color: var(--primary-color);
-    position: relative;
-    z-index: 1;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .slide-option-btn small {
     font-size: 0.9rem;
     color: var(--text-gray);
-    position: relative;
-    z-index: 1;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .slide-option-btn:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+    transform: translateY(-3px) scale(1.02);
+    background: rgba(255, 255, 255, 0.95);
     border-color: var(--accent-color);
 }
 
 .slide-option-btn.selected {
     background: var(--accent-color);
     border-color: var(--accent-color);
+    transform: scale(1.05);
 }
 
 .slide-option-btn.selected i,
@@ -12379,24 +12425,25 @@ body.page-apoio .btn-primary {
 
 .book-size-card {
     background: white;
-    border: 3px solid var(--primary-color);
+    border: 3px solid var(--border-color);
     border-radius: 12px;
     padding: 16px 12px;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     text-align: center;
     position: relative;
 }
 
 .book-size-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+    transform: translateY(-3px) scale(1.02);
+    background: rgba(255, 255, 255, 0.95);
     border-color: var(--accent-color);
 }
 
 .book-size-card.selected {
     background: var(--accent-color);
     border-color: var(--accent-color);
+    transform: scale(1.05);
 }
 
 .book-size-card.selected .size-icon,
@@ -12444,17 +12491,17 @@ body.page-apoio .btn-primary {
     font-size: 1.1rem;
     color: var(--text-color);
     background: white;
-    border: 2px solid var(--primary-color);
+    border: 3px solid var(--accent-color);
     border-radius: 12px;
     margin-bottom: 24px;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .slide-select:focus {
     outline: none;
+    background: rgba(255, 255, 255, 0.95);
     border-color: var(--accent-color);
-    box-shadow: 0 0 0 4px rgba(255, 177, 0, 0.1);
 }
 
 /* Input Field */
@@ -12472,16 +12519,16 @@ body.page-apoio .btn-primary {
     text-align: center;
     color: var(--primary-color);
     background: white;
-    border: 3px solid var(--primary-color);
+    border: 3px solid var(--accent-color);
     border-radius: 12px;
     margin-bottom: 16px;
-    transition: all 0.3s ease;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .slide-input:focus {
     outline: none;
+    background: rgba(255, 255, 255, 0.95);
     border-color: var(--accent-color);
-    box-shadow: 0 0 0 4px rgba(255, 177, 0, 0.1);
 }
 
 .slide-hint {
@@ -12517,14 +12564,13 @@ body.page-apoio .btn-primary {
     border: none;
     border-radius: 50%;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     font-size: 1.4rem;
-    box-shadow: 0 4px 12px rgba(255, 177, 0, 0.3);
 }
 
 .qty-slide-btn:hover {
     transform: scale(1.1);
-    box-shadow: 0 6px 16px rgba(255, 177, 0, 0.4);
+    background: #f5a623;
 }
 
 .qty-slide-btn:active {
@@ -12540,13 +12586,14 @@ body.page-apoio .btn-primary {
     text-align: center;
     color: var(--primary-color);
     background: white;
-    border: 3px solid var(--primary-color);
+    border: 3px solid var(--accent-color);
     border-radius: 12px;
-    transition: all 0.3s ease;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .qty-slide-input:focus {
     outline: none;
+    background: rgba(255, 255, 255, 0.95);
     border-color: var(--accent-color);
 }
 
@@ -12562,8 +12609,9 @@ body.page-apoio .btn-primary {
     letter-spacing: 0.5px;
     border: none;
     border-radius: 12px;
+     background: var(--secondary-color);
     cursor: pointer;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -12571,8 +12619,8 @@ body.page-apoio .btn-primary {
 }
 
 .slide-next-btn:hover:not(:disabled) {
-    transform: translateY(-4px);
-    box-shadow: 0 6px 16px rgba(255, 177, 0, 0.35);
+    transform: translateY(-3px) scale(1.02);
+   
 }
 
 .slide-next-btn:disabled {
@@ -12583,12 +12631,33 @@ body.page-apoio .btn-primary {
 /* Result Slide */
 .result-slide {
   padding: 30px 20px 20px 20px;
-  overflow: visible;
+  overflow-y: visible;
+  overflow-x: hidden;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  min-height: 0;
   height: auto;
+  min-height: fit-content;
+  position: relative;
+  align-items: center;
+}
+
+/* Scrollbar customizada para result-slide */
+.result-slide::-webkit-scrollbar {
+  width: 8px;
+}
+
+.result-slide::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: 4px;
+}
+
+.result-slide::-webkit-scrollbar-thumb {
+  background: var(--accent-color);
+  border-radius: 4px;
+}
+
+.result-slide::-webkit-scrollbar-thumb:hover {
+  background: #ffa000;
 }
 
 .result-header {
@@ -12649,10 +12718,11 @@ body.page-apoio .btn-primary {
 .result-breakdown {
     width: 100%;
     max-width: 700px;
-    overflow: visible;
     padding: 15px 0;
     opacity: 0;
     transform: translateY(20px);
+    min-height: fit-content;
+    height: auto;
 }
 
 .breakdown-section {
@@ -12679,6 +12749,8 @@ body.page-apoio .btn-primary {
     padding: 15px;
     border-radius: 12px;
     margin-bottom: 10px;
+    width: 100%;
+    overflow: visible;
 }
 
 .breakdown-item {
@@ -12688,6 +12760,8 @@ body.page-apoio .btn-primary {
     padding: 8px 0;
     border-bottom: 1px solid #e0e0e0;
     font-family: 'Questrial', sans-serif;
+    flex-wrap: wrap;
+    gap: 8px;
 }
 
 .breakdown-item:last-child {
@@ -12697,12 +12771,15 @@ body.page-apoio .btn-primary {
 .breakdown-item span:first-child {
     color: var(--text-gray);
     font-size: 0.9rem;
+    flex: 1;
+    min-width: 120px;
 }
 
 .breakdown-item span:last-child {
     color: var(--primary-color);
     font-weight: 600;
     font-size: 0.95rem;
+    white-space: nowrap;
 }
 
 .breakdown-subtotal {
@@ -12761,6 +12838,7 @@ body.page-apoio .btn-primary {
   justify-content: center;
   gap: 10px;
   width: 100%;
+  max-width: 700px;
   padding: 16px 28px;
   background: var(--accent-color);
   color: var(--primary-color);
@@ -12770,23 +12848,27 @@ body.page-apoio .btn-primary {
   letter-spacing: 0.5px;
   text-decoration: none;
   border-radius: 12px;
+  background-color: var(--secondary-color);
   transition: transform 0.3s ease, box-shadow 0.3s ease;
-  box-shadow: 0 4px 16px rgba(255, 177, 0, 0.3);
-  margin-top: 24px;
+  margin-top: 30px;
+  margin-bottom: 20px;
   opacity: 1 !important;
   transform: scale(1) !important;
-  z-index: 2;
+  z-index: 100;
+  position: relative;
 }
+
 
 .result-cta-btn:hover {
     transform: translateY(-4px) !important;
-    box-shadow: 0 6px 20px rgba(255, 177, 0, 0.4);
 }
 
 /* Navigation */
 .calculator-navigation {
-    margin-top: 16px;
+    margin-top: 24px;
     text-align: center;
+    position: relative;
+    z-index: 5;
 }
 
 .nav-btn {
@@ -12840,8 +12922,22 @@ body.page-apoio .btn-primary {
     }
 
     .result-breakdown {
-        max-height: 500px;
+        max-height: none;
+        height: auto;
     }
+
+    .calculator-slide[data-slide="7"] {
+        height: auto;
+        min-height: fit-content;
+        max-height: none;
+    }
+    
+    .calculator-slide[data-slide="7"] .slide-content {
+        height: auto;
+        min-height: fit-content;
+        padding: 40px 25px;
+    }
+    
 }
 
 @media (max-width: 480px) {
@@ -12890,4 +12986,87 @@ body.page-apoio .btn-primary {
         width: 80px;
         font-size: 1.6rem;
     }
+    
+    /* Slide de resultados em mobile com altura automática */
+    .calculator-slide[data-slide="7"] {
+        height: auto;
+        min-height: fit-content;
+        max-height: none;
+    }
+    
+    .calculator-slide[data-slide="7"] .slide-content {
+        height: auto;
+        min-height: fit-content;
+        padding: 30px 15px;
+    }
+    
+    .result-slide {
+        padding: 20px 10px;
+    }
+    
+    .result-total {
+        padding: 30px 20px;
+        margin-bottom: 20px;
+    }
+    
+    .result-breakdown {
+        padding: 10px 0;
+    }
+    
+    .breakdown-section {
+        margin-bottom: 15px;
+    }
 }
+
+/* Media query para telas muito pequenas */
+@media (max-width: 360px) {
+    .calculator-slide[data-slide="7"] .slide-content {
+        padding: 20px 10px;
+        border-radius: 12px;
+    }
+    
+    .result-slide {
+        padding: 15px 5px;
+    }
+    
+    .result-total {
+        padding: 25px 15px;
+    }
+    
+    .total-price {
+        font-size: 2rem;
+    }
+    
+    .result-header h3 {
+        font-size: 1.3rem;
+    }
+    
+    .breakdown-section h4 {
+        font-size: 1rem;
+    }
+}
+
+/* Media query para tablets grandes e desktops */
+@media (min-width: 769px) and (max-width: 1024px) {
+    .calculator-slide[data-slide="7"] .slide-content {
+        padding: 50px 35px;
+    }
+    
+    .result-total {
+        padding: 45px 35px;
+    }
+}
+
+/* Media query para desktops grandes */
+@media (min-width: 1025px) {
+    .calculator-slide[data-slide="7"] .slide-content {
+        padding: 60px 50px;
+        max-width: 900px;
+        margin: 0 auto;
+    }
+    
+    .result-breakdown {
+        max-width: 800px;
+    }
+}
+

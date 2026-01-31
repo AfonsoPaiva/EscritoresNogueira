@@ -66,7 +66,12 @@ const api = {
         console.error("Request timeout:", endpoint);
         throw new Error("Request timeout");
       }
-      console.error("API Error:", error);
+      // Log less verbose for network/CORS errors
+      if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
+        console.debug(`Network error on ${endpoint}:`, error.message);
+      } else {
+        console.error("API Error:", error);
+      }
       throw error;
     }
   },
@@ -175,6 +180,18 @@ const api = {
     return this.request(`/books/comments/${commentId}/helpful`, {
       method: "PUT",
     });
+  },
+
+  // ==================
+  // SERVICES ENDPOINTS
+  // ==================
+
+  /**
+   * Get service pricing information
+   * @returns {Promise<Object>} - Service pricing data
+   */
+  async getServicePricing() {
+    return this.request("/services/pricing");
   },
 };
 

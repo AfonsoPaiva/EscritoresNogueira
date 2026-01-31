@@ -41,6 +41,50 @@ function validatePhoneInput(input) {
     return isValid;
 }
 
+// Load calculator data from localStorage
+function loadCalculatorData() {
+    try {
+        const savedData = localStorage.getItem('calculatorData');
+        if (!savedData) {
+            console.log('Nenhum dado da calculadora encontrado');
+            return;
+        }
+        
+        const data = JSON.parse(savedData);
+        console.log('Dados da calculadora carregados:', data);
+        
+        // Update form summary fields
+        const printType = data.printType === 'color' ? 'A cores' : 'Preto e Branco';
+        const coverType = data.coverType === 'soft' ? 'Capa Mole' : 'Capa Dura';
+        const illustrations = data.hasIllustrations ? 'Sim' : 'Não';
+        
+        document.getElementById('formSummaryPrint').textContent = printType;
+        document.getElementById('formSummaryCover').textContent = coverType;
+        document.getElementById('formSummarySize').textContent = data.bookSize;
+        document.getElementById('formSummaryPages').textContent = data.pages;
+        document.getElementById('formSummaryIllustrations').textContent = illustrations;
+        document.getElementById('formSummaryQuantity').textContent = data.quantity;
+        document.getElementById('formSummaryTotal').textContent = `€${data.calculatedPrice}`;
+        
+        // Store data for form submission
+        window.calculatorData = data;
+        
+        // Smooth fade-in animation for summary
+        const summaryBox = document.querySelector('.calculator-summary-box');
+        if (summaryBox) {
+            gsap.from(summaryBox, {
+                opacity: 0,
+                y: 20,
+                duration: 0.5,
+                ease: 'power2.out'
+            });
+        }
+        
+    } catch (error) {
+        console.error('Erro ao carregar dados da calculadora:', error);
+    }
+}
+
 // Initialize phone input formatting
 function initPhoneInput() {
     const phoneInput = document.getElementById('authorPhone');
@@ -67,6 +111,9 @@ function initFormularioPage() {
             planInput.checked = true;
         }
     }
+    
+    // Load calculator data from services page
+    loadCalculatorData();
     
     // Initialize form submission
     initFormSubmission();
@@ -503,12 +550,16 @@ async function loadPricing() {
         const pricingData = await api.getServicePricing();
         updatePricing(pricingData);
     } catch (error) {
-        console.warn('Erro ao carregar preços dos serviços:', error);
+        // Silently fail - pricing is already in HTML
+        // This endpoint requires authentication which may not be available
+        console.debug('Preços serão mantidos conforme definido no HTML');
     }
 }
 
 // Update pricing in the DOM
 function updatePricing(pricingData) {
+    if (!pricingData || !Array.isArray(pricingData)) return;
+    
     pricingData.forEach(pricing => {
         const planOption = document.querySelector(`input[name="plan"][value="${pricing.plano}"]`);
         if (planOption) {
