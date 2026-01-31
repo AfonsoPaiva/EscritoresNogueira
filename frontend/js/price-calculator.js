@@ -417,7 +417,7 @@ function goToSlide(slideNum) {
             width: '100%',
             visibility: 'visible',
             x: slideOffset * direction + '%',
-            opacity: 1,
+            opacity: 0,
             zIndex: 2
         });
         
@@ -438,13 +438,15 @@ function goToSlide(slideNum) {
         const tl = gsap.timeline({
             defaults: {
                 ease: 'power2.inOut',
-                duration: 0.5
+                duration: 1,
+                opacity: 1
             }
         });
         
         // Slide both slides simultaneously for carrossel effect
         tl.to(currentSlide, {
             x: -slideOffset * direction + '%',
+            opacity: 0
         }, 0)
         .to(nextSlide, {
             x: '0%'
