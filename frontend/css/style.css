@@ -12442,7 +12442,8 @@ body.page-apoio .btn-primary {
 
 .slide-next-btn:hover:not(:disabled) {
     transform: translateY(-3px);
-    box-shadow: 0 6px 20px rgba(255, 177, 0, 0.4);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    background: #f5a623;
 }
 
 .slide-next-btn:disabled {
@@ -12453,6 +12454,10 @@ body.page-apoio .btn-primary {
 /* Result Slide */
 .result-slide {
     padding: 50px 40px;
+    overflow: visible;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 }
 
 .result-header {
@@ -12478,51 +12483,45 @@ body.page-apoio .btn-primary {
 
 .result-total {
     text-align: center;
-    padding: 40px 20px;
+    padding: 60px 40px;
     background: var(--primary-color);
     border-radius: 16px;
-    margin-bottom: 24px;
+    margin-bottom: 0;
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+    width: 100%;
+    max-width: 600px;
 }
 
 .total-label {
     font-family: 'Questrial', sans-serif;
-    font-size: 1rem;
+    font-size: 1.1rem;
     color: rgba(255, 255, 255, 0.9);
     text-transform: uppercase;
     letter-spacing: 2px;
-    margin-bottom: 12px;
+    margin-bottom: 16px;
 }
 
 .total-price {
     font-family: 'EB Garamond', serif;
-    font-size: 4rem;
+    font-size: 5rem;
     font-weight: 800;
     color: white;
     text-shadow: none;
 }
 
-/* Scroll Indicator */
+/* Scroll Indicator - Hidden */
 .scroll-indicator {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 8px;
-    padding: 20px;
-    color: var(--text-gray);
-    font-size: 0.9rem;
-}
-
-.scroll-indicator i {
-    font-size: 1.5rem;
-    color: var(--accent-color);
+    display: none;
 }
 
 /* Result Breakdown */
 .result-breakdown {
-    max-height: 600px;
-    overflow-y: auto;
+    width: 100%;
+    max-width: 700px;
+    overflow: visible;
     padding: 20px 0;
+    opacity: 0;
+    transform: translateY(20px);
 }
 
 .breakdown-section {
@@ -12667,9 +12666,13 @@ body.page-apoio .btn-primary {
     border-radius: 8px;
     cursor: pointer;
     transition: all 0.3s ease;
-    display: inline-flex;
+    display: none;
     align-items: center;
     gap: 8px;
+}
+
+.nav-btn.visible {
+    display: inline-flex;
 }
 
 .nav-btn:hover:not(:disabled) {

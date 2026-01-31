@@ -149,6 +149,8 @@ function setupOptionButtons() {
             // Auto-advance after short delay
             setTimeout(() => {
                 advanceToNextSlide();
+                // Show back button after first answer
+                showBackButton();
             }, 400);
         });
     });
@@ -334,6 +336,20 @@ function updateBackButton() {
     }
 }
 
+// Show back button (called after first answer)
+function showBackButton() {
+    const backBtn = document.getElementById('navBackBtn');
+    if (backBtn && !backBtn.classList.contains('visible')) {
+        backBtn.classList.add('visible');
+        gsap.from(backBtn, {
+            opacity: 0,
+            y: 10,
+            duration: 0.3,
+            ease: 'power2.out'
+        });
+    }
+}
+
 // Calculate final results
 function calculateFinalResults() {
     const { pages, cover, print, bookSize, illustrations, quantity } = calcState.answers;
@@ -415,11 +431,12 @@ function calculateFinalResults() {
     animateResultSlide();
 }
 
-// Animate result slide
+// Animate result slide with invoice-style presentation
 function animateResultSlide() {
     setTimeout(() => {
         const timeline = gsap.timeline();
         
+        // Phase 1: Show header and big price
         timeline
             .from('.result-header', {
                 scale: 0,
@@ -428,49 +445,56 @@ function animateResultSlide() {
                 ease: 'back.out(1.7)'
             })
             .from('.result-total', {
-                y: 50,
+                scale: 0.8,
                 opacity: 0,
                 duration: 0.6,
                 ease: 'power3.out'
             })
             .from('.total-price', {
-                scale: 1.5,
-                duration: 0.4,
+                scale: 1.3,
+                duration: 0.5,
                 ease: 'elastic.out(1, 0.5)'
             }, '-=0.3')
-            .from('.scroll-indicator', {
-                y: -20,
-                opacity: 0,
-                duration: 0.5,
-                ease: 'power2.out',
+            // Phase 2: Hold for 2 seconds
+            .to('.result-total', {
+                duration: 2,
                 onComplete: () => {
-                    // Auto scroll to show breakdown details after animations
-                    setTimeout(() => {
-                        const resultBreakdown = document.querySelector('.result-breakdown');
-                        if (resultBreakdown) {
-                            resultBreakdown.scrollIntoView({ 
-                                behavior: 'smooth', 
-                                block: 'start' 
-                            });
-                        }
-                    }, 1500);
+                    // Phase 3: Shrink price and show breakdown
+                    gsap.to('.result-total', {
+                        scale: 0.85,
+                        y: -20,
+                        duration: 0.5,
+                        ease: 'power2.out'
+                    });
+                    
+                    gsap.to('.result-breakdown', {
+                        opacity: 1,
+                        y: 0,
+                        duration: 0.6,
+                        ease: 'power3.out',
+                        delay: 0.3
+                    });
+                    
+                    // Animate breakdown sections
+                    gsap.from('.breakdown-section', {
+                        opacity: 0,
+                        y: 20,
+                        duration: 0.5,
+                        stagger: 0.15,
+                        delay: 0.5,
+                        ease: 'power2.out'
+                    });
+                    
+                    // Animate CTA button
+                    gsap.from('.result-cta-btn', {
+                        opacity: 0,
+                        scale: 0.9,
+                        duration: 0.5,
+                        delay: 1.2,
+                        ease: 'back.out(1.7)'
+                    });
                 }
-            })
-            .from('.result-breakdown', {
-                y: 30,
-                opacity: 0,
-                duration: 0.6,
-                ease: 'power3.out'
             });
-        
-        // Pulsating scroll indicator
-        gsap.to('.scroll-indicator i', {
-            y: 8,
-            duration: 1,
-            repeat: -1,
-            yoyo: true,
-            ease: 'power1.inOut'
-        });
     }, 100);
 }
 
