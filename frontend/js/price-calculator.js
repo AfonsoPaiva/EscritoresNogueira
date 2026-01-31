@@ -442,7 +442,19 @@ function animateResultSlide() {
                 y: -20,
                 opacity: 0,
                 duration: 0.5,
-                ease: 'power2.out'
+                ease: 'power2.out',
+                onComplete: () => {
+                    // Auto scroll to show breakdown details after animations
+                    setTimeout(() => {
+                        const resultBreakdown = document.querySelector('.result-breakdown');
+                        if (resultBreakdown) {
+                            resultBreakdown.scrollIntoView({ 
+                                behavior: 'smooth', 
+                                block: 'start' 
+                            });
+                        }
+                    }, 1500);
+                }
             })
             .from('.result-breakdown', {
                 y: 30,

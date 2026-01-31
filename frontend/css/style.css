@@ -12247,14 +12247,14 @@ body.page-apoio .btn-primary {
     left: 0;
     width: 100%;
     height: 100%;
-    background: linear-gradient(135deg, var(--accent-color), #f5a623);
+    background: var(--accent-color);
     opacity: 0;
     transition: opacity 0.3s ease;
     z-index: 0;
 }
 
 .slide-option-btn:hover::before {
-    opacity: 0.1;
+    opacity: 0.05;
 }
 
 .slide-option-btn i {
@@ -12479,16 +12479,16 @@ body.page-apoio .btn-primary {
 .result-total {
     text-align: center;
     padding: 40px 20px;
-    background: linear-gradient(135deg, var(--primary-color), #1a3952);
+    background: var(--primary-color);
     border-radius: 16px;
     margin-bottom: 24px;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
 }
 
 .total-label {
     font-family: 'Questrial', sans-serif;
     font-size: 1rem;
-    color: rgba(255, 255, 255, 0.8);
+    color: rgba(255, 255, 255, 0.9);
     text-transform: uppercase;
     letter-spacing: 2px;
     margin-bottom: 12px;
@@ -12498,8 +12498,8 @@ body.page-apoio .btn-primary {
     font-family: 'EB Garamond', serif;
     font-size: 4rem;
     font-weight: 800;
-    color: var(--accent-color);
-    text-shadow: 0 2px 8px rgba(255, 177, 0, 0.3);
+    color: white;
+    text-shadow: none;
 }
 
 /* Scroll Indicator */
