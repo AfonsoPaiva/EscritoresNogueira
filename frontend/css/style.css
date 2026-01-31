@@ -12171,7 +12171,17 @@ body.page-apoio .btn-primary {
     line-height: 1.4;
 }
 
+/* Garante que o wrapper dos slides ocupe o espaço necessário e permita altura dinâmica */
 .price-calculator-slides {
+  position: relative;
+  width: 100%;
+  min-height: 0;
+  height: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-start;
+  overflow: visible;
     max-width: 900px;
     margin: 40px auto 0;
     padding: 0 20px;
@@ -12217,28 +12227,35 @@ body.page-apoio .btn-primary {
 }
 
 /* Individual Slide */
+/* Cada slide ocupa o espaço disponível, mas permite altura dinâmica */
 .calculator-slide {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    display: none;
-    opacity: 0;
+  position: relative;
+  width: 100%;
+  display: none;
+  opacity: 0;
+  min-height: 0;
+  height: auto;
+  transition: opacity 0.3s, height 0.3s;
+  overflow: visible;
 }
 
 .calculator-slide.active {
-    display: block;
-    opacity: 1;
+  display: block;
+  opacity: 1;
+  height: auto;
+  min-height: 0;
+  z-index: 1;
 }
 
 .slide-content {
-    background: rgba(255, 255, 255, 0.95);
-    padding: 60px 50px;
-    border-radius: 20px;
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
-    text-align: center;
-    min-height: 400px;
-    height: auto;
+  background: rgba(255, 255, 255, 0.95);
+  padding: 60px 50px 40px 50px;
+  border-radius: 20px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+  text-align: center;
+  min-height: 0;
+  height: auto;
+  overflow: visible;
 }
 
 .slide-icon {
@@ -12567,13 +12584,13 @@ body.page-apoio .btn-primary {
 
 /* Result Slide */
 .result-slide {
-    padding: 30px 20px;
-    overflow: visible;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    min-height: auto;
-    height: auto;
+  padding: 30px 20px 20px 20px;
+  overflow: visible;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: 0;
+  height: auto;
 }
 
 .result-header {
@@ -12741,26 +12758,27 @@ body.page-apoio .btn-primary {
 
 /* CTA Button */
 .result-cta-btn {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-    width: 100%;
-    padding: 16px 28px;
-    background: var(--accent-color);
-    color: var(--primary-color);
-    font-family: 'EB Garamond', serif;
-    font-size: 1.1rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    text-decoration: none;
-    border-radius: 12px;
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 16px rgba(255, 177, 0, 0.3);
-    margin-top: 24px;
-    opacity: 0;
-    transform: scale(0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  padding: 16px 28px;
+  background: var(--accent-color);
+  color: var(--primary-color);
+  font-family: 'EB Garamond', serif;
+  font-size: 1.1rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  text-decoration: none;
+  border-radius: 12px;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 16px rgba(255, 177, 0, 0.3);
+  margin-top: 24px;
+  opacity: 1 !important;
+  transform: scale(1) !important;
+  z-index: 2;
 }
 
 .result-cta-btn:hover {

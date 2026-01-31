@@ -381,21 +381,22 @@ function updateProgress() {
     const progressFill = document.getElementById('progressFill');
     const currentSlideNum = document.getElementById('currentSlideNum');
     const totalSlides = document.getElementById('totalSlides');
-    
+
+    // Corrige o progresso para nunca ficar "1 de 7" se não estiver no slide 1
     if (progressFill) {
-        const progress = ((calcState.currentSlide - 1) / (calcState.totalSlides - 1)) * 100;
-        
+        let progress = 0;
+        if (calcState.totalSlides > 1) {
+            progress = ((calcState.currentSlide - 1) / (calcState.totalSlides - 1)) * 100;
+        }
         gsap.to(progressFill, {
             width: `${progress}%`,
             duration: 0.5,
             ease: 'power2.out'
         });
     }
-    
     if (currentSlideNum) {
         currentSlideNum.textContent = calcState.currentSlide;
     }
-    
     if (totalSlides) {
         totalSlides.textContent = calcState.totalSlides;
     }
