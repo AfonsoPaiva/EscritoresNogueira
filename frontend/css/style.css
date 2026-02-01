@@ -11263,7 +11263,7 @@ body.page-apoio .btn-primary {
   text-align: center;
   margin-bottom: 40px;
   font-size: 2.5rem;
-  color: var(--text-dark);
+  color: var(--primary-color);
 }
 
 /* Video Container */
@@ -11340,7 +11340,7 @@ body.page-apoio .btn-primary {
   text-align: center;
   font-size: 2rem;
   margin-bottom: 30px;
-  color: var(--text-dark);
+  color: var(--primary-color);
 }
 
 .book-gallery {
