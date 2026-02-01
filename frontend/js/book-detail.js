@@ -556,6 +556,35 @@ function loadBookGallery() {
 
   galleryContainer.innerHTML = galleryHTML;
 
+  // Detect image orientation and apply appropriate classes
+  const galleryItems = galleryContainer.querySelectorAll('.gallery-item');
+  galleryItems.forEach((item) => {
+    const img = item.querySelector('img');
+    if (img) {
+      // Use Image object to get natural dimensions
+      const tempImg = new Image();
+      tempImg.onload = function() {
+        const aspectRatio = this.naturalWidth / this.naturalHeight;
+        
+        // Remove any existing orientation classes
+        item.classList.remove('vertical', 'horizontal', 'square');
+        
+        // Add appropriate class based on aspect ratio
+        if (Math.abs(aspectRatio - 1) < 0.1) {
+          // Close to 1:1 - square
+          item.classList.add('square');
+        } else if (aspectRatio < 1) {
+          // Width < Height - vertical/portrait
+          item.classList.add('vertical');
+        } else {
+          // Width > Height - horizontal/landscape
+          item.classList.add('horizontal');
+        }
+      };
+      tempImg.src = img.src;
+    }
+  });
+
   // Create lightbox
   createGalleryLightbox(galleryPhotos);
 

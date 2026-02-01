@@ -11353,12 +11353,27 @@ body.page-apoio .btn-primary {
 
 .gallery-item {
   position: relative;
-  aspect-ratio: 3/4;
   border-radius: 12px;
   overflow: hidden;
   cursor: pointer;
   box-shadow: 0 4px 12px rgba(14, 27, 77, 0.1);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  height: fit-content;
+}
+
+/* Vertical images (portrait) */
+.gallery-item.vertical {
+  aspect-ratio: 3/4;
+}
+
+/* Horizontal images (landscape) */
+.gallery-item.horizontal {
+  aspect-ratio: 4/3;
+}
+
+/* Square images */
+.gallery-item.square {
+  aspect-ratio: 1/1;
 }
 
 .gallery-item:hover {
@@ -11369,10 +11384,11 @@ body.page-apoio .btn-primary {
 .gallery-item img {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
   transition: transform 0.3s ease;
   image-rendering: -webkit-optimize-contrast;
   image-rendering: crisp-edges;
+  display: block;
 }
 
 .gallery-item:hover img {
@@ -11520,8 +11536,12 @@ body.page-apoio .btn-primary {
     gap: 10px;
   }
 
-  .gallery-item {
-    aspect-ratio: 4/3; /* More suitable for mobile viewing */
+  .gallery-item.vertical {
+    aspect-ratio: 3/4;
+  }
+
+  .gallery-item.horizontal {
+    aspect-ratio: 16/9;
   }
 
   .video-container {
