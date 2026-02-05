@@ -636,7 +636,7 @@ public class EmailService {
     }
 
     private String getUnsubscribeLink(String token) {
-        return "http://localhost:8080/api/auth/unsubscribe-newsletter?token=" + token;
+        return "https://backendservice-escritoresnogueira-939887262864.europe-southwest1.run.app/api/auth/unsubscribe-newsletter?token=" + token;
     }
 }
 

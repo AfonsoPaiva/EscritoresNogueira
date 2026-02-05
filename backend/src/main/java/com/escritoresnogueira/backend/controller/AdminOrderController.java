@@ -30,7 +30,7 @@ public class AdminOrderController {
     private final OrderStatusHistoryRepository historyRepository;
     private final UserSessionService sessionService;
     private final EmailService emailService;
-    @org.springframework.beans.factory.annotation.Value("${app.frontend.url:http://127.0.0.1:5501/frontend/conta.html#orders}")
+    @org.springframework.beans.factory.annotation.Value("${app.frontend.url:https://www.escritoresnogueira.com/conta#orders}")
     private String frontendUrl;
 
     private static final String SESSION_HEADER = "X-Session-Token";
