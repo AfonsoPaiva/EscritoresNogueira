@@ -594,15 +594,63 @@ window.klaroConfig = {
                         <h2>Método de Pagamento</h2>
 
                         <div class="payment-methods">
-                            <p>Ao clicar em "Finalizar Pedido" será redirecionado para a página de pagamento segura da Stripe, onde poderá escolher o método de pagamento disponível.</p>
+                            <div style="margin-bottom: 20px;">
+                                <h3 style="font-size: 1.1rem; margin-bottom: 10px; color: #0E1B4D;">
+                                    <i class="fas fa-credit-card"></i> Métodos de Pagamento Disponíveis
+                                </h3>
+                                <p style="color: #555; margin-bottom: 15px;">
+                                    Ao clicar em "Finalizar Pedido" será redirecionado para a página de pagamento segura da Stripe, onde poderá escolher entre os seguintes métodos:
+                                </p>
+                            </div>
+
+                            <div style="display: grid; gap: 12px; margin-bottom: 20px;">
+                                <!-- Card Payments -->
+                                <div style="padding: 15px; border: 1px solid #e6e9ef; border-radius: 8px; background: #f9fafb;">
+                                    <div style="display: flex; align-items: start; gap: 12px;">
+                                        <i class="fas fa-credit-card" style="font-size: 1.5rem; color: #0E1B4D; margin-top: 2px;"></i>
+                                        <div>
+                                            <h4 style="margin: 0 0 5px 0; font-size: 1rem; color: #0E1B4D;">Cartão de Crédito/Débito</h4>
+                                            <p style="margin: 0; font-size: 0.9rem; color: #666;">
+                                                Aceita Visa, Mastercard, American Express e outros cartões principais. Pagamento instantâneo.
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- MB WAY -->
+                                <div style="padding: 15px; border: 1px solid #e6e9ef; border-radius: 8px; background: #f9fafb;">
+                                    <div style="display: flex; align-items: start; gap: 12px;">
+                                        <i class="fas fa-mobile-alt" style="font-size: 1.5rem; color: #0E1B4D; margin-top: 2px;"></i>
+                                        <div>
+                                            <h4 style="margin: 0 0 5px 0; font-size: 1rem; color: #0E1B4D;">MB WAY</h4>
+                                            <p style="margin: 0; font-size: 0.9rem; color: #666;">
+                                                Pague com o seu telemóvel. Na página de pagamento, selecione MB WAY e insira o seu <strong>número de telemóvel</strong> (9 dígitos). Receberá uma notificação na app MB WAY para confirmar.
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Multibanco -->
+                                <div style="padding: 15px; border: 1px solid #e6e9ef; border-radius: 8px; background: #f9fafb;">
+                                    <div style="display: flex; align-items: start; gap: 12px;">
+                                        <i class="fas fa-university" style="font-size: 1.5rem; color: #0E1B4D; margin-top: 2px;"></i>
+                                        <div>
+                                            <h4 style="margin: 0 0 5px 0; font-size: 1rem; color: #0E1B4D;">Multibanco</h4>
+                                            <p style="margin: 0; font-size: 0.9rem; color: #666;">
+                                                Receberá uma referência Multibanco para pagamento. Pode pagar numa caixa ATM ou homebanking. O pedido será processado após confirmação do pagamento.
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
 
                         <div id="cardPaymentForm" class="payment-form active">
                             <div class="alert alert-success" style="display:flex;align-items:center;gap:10px;">
                                 <i class="fas fa-shield-alt" style="font-size:1.2rem;color:#0E1B4D;"></i>
                                 <div>
-                                    <strong>Pagamento Seguro por Stripe</strong>
-                                    <div style="font-size:0.9rem;color:#555;">Ao clicar em finalizar, será redirecionado para a Stripe para concluir o pagamento.</div>
+                                    <strong>Pagamento 100% Seguro</strong>
+                                    <div style="font-size:0.9rem;color:#555;">Todos os pagamentos são processados através da Stripe, uma plataforma segura e certificada PCI DSS.</div>
                                 </div>
                             </div>
                         </div>

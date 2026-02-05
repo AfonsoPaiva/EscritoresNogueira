@@ -1033,7 +1033,7 @@
         items = payload.orders;
 
       const table = document.createElement("table");
-      table.innerHTML = `<thead><tr><th>Id</th><th>User Email</th><th>Total</th><th>Status</th><th>Shipping Address</th><th></th></tr></thead>`;
+      table.innerHTML = `<thead><tr><th>Id</th><th>Order #</th><th>User Email</th><th>Total</th><th>Payment</th><th>Status</th><th>Date</th><th></th></tr></thead>`;
       const tbody = document.createElement("tbody");
       items.forEach((o) => {
         const tr = document.createElement("tr");
@@ -1041,27 +1041,42 @@
         statusSelect.innerHTML = `<option value="PENDING" ${o.status === "PENDING" ? "selected" : ""}>PENDING</option><option value="PAID" ${o.status === "PAID" ? "selected" : ""}>PAID</option><option value="PROCESSING" ${o.status === "PROCESSING" ? "selected" : ""}>PROCESSING</option><option value="SHIPPED" ${o.status === "SHIPPED" ? "selected" : ""}>SHIPPED</option><option value="DELIVERED" ${o.status === "DELIVERED" ? "selected" : ""}>DELIVERED</option><option value="CANCELLED" ${o.status === "CANCELLED" ? "selected" : ""}>CANCELLED</option>`;
         const updateBtn = document.createElement("button");
         updateBtn.className = "btn";
-        updateBtn.textContent = "Update Status";
+        updateBtn.textContent = "Update";
+        updateBtn.style.fontSize = "0.85rem";
+        updateBtn.style.padding = "4px 8px";
         updateBtn.addEventListener("click", async () => {
           await updateOrderStatus(o.id, statusSelect.value);
         });
         const view = document.createElement("button");
         view.className = "btn";
         view.textContent = "View";
+        view.style.fontSize = "0.85rem";
+        view.style.padding = "4px 8px";
         view.addEventListener("click", () => viewOrder(o));
         const del = document.createElement("button");
         del.className = "btn";
         del.textContent = "Delete";
+        del.style.fontSize = "0.85rem";
+        del.style.padding = "4px 8px";
         del.addEventListener("click", async () => {
           if (!confirm("Delete order?")) return;
           await deleteOrder(o.id);
         });
-        tr.innerHTML = `<td>${o.id || ""}</td><td>${escapeHtml(o.customerEmail || o.user?.email || "")}</td><td>${o.total || ""}</td>`;
+        
+        // Format date
+        const date = o.createdAt ? new Date(o.createdAt).toLocaleDateString('pt-PT', {day: '2-digit', month: '2-digit', year: 'numeric'}) : '-';
+        
+        // Payment info
+        const paymentMethod = o.paymentMethod ? o.paymentMethod.toUpperCase().replace('_', ' ') : '-';
+        const paymentStatus = o.paymentStatus ? o.paymentStatus : '-';
+        const paymentInfo = `${paymentMethod}<br/><small style="color:#666">${paymentStatus}</small>`;
+        
+        tr.innerHTML = `<td>${o.id || ""}</td><td><strong>${escapeHtml(o.orderNumber || "N/A")}</strong></td><td>${escapeHtml(o.customerEmail || o.user?.email || "")}</td><td><strong>${o.total || "0"}€</strong></td><td>${paymentInfo}</td>`;
         const statusCell = document.createElement("td");
         statusCell.appendChild(statusSelect);
         statusCell.appendChild(updateBtn);
         tr.appendChild(statusCell);
-        tr.innerHTML += `<td>${escapeHtml(o.shippingAddress || "")}</td>`;
+        tr.innerHTML += `<td>${date}</td>`;
         const actions = document.createElement("td");
         actions.className = "actions";
         actions.appendChild(view);
@@ -1098,32 +1113,91 @@
       content.innerHTML = "";
       const html = [];
       html.push(
-        "<div><strong>Order #" +
+        "<div style='display:grid; gap:12px;'>",
+      );
+      
+      // Header
+      html.push(
+        "<div style='border-bottom:2px solid #0E1B4D; padding-bottom:10px;'><h3 style='margin:0;'>Order #" +
           escapeHtml(ord.orderNumber || ord.id) +
-          " (ID: " +
+          "</h3><small style='color:#666;'>ID: " +
           (ord.id || "") +
-          ")</strong></div>",
+          "</small></div>",
       );
+      
+      // Customer Info
+      html.push("<div style='background:#f9fafb; padding:12px; border-radius:6px;'>");
+      html.push("<h4 style='margin:0 0 8px 0; font-size:0.95rem;'><i class='fas fa-user'></i> Customer Information</h4>");
       html.push(
-        '<div style="margin-top:6px"><label>Customer Email: <input id="orderModalEmail" value="' +
+        '<div style="margin-top:6px"><label>Email: <input id="orderModalEmail" value="' +
           escapeHtml(ord.customerEmail || "") +
-          '" style="width:100%"/></label></div>',
+          '" style="width:100%; padding:6px; border:1px solid #ddd; border-radius:4px;"/></label></div>',
       );
+      html.push("</div>");
+      
+      // Payment Info
+      html.push("<div style='background:#f9fafb; padding:12px; border-radius:6px;'>");
+      html.push("<h4 style='margin:0 0 8px 0; font-size:0.95rem;'><i class='fas fa-credit-card'></i> Payment Information</h4>");
+      html.push("<div style='display:grid; grid-template-columns:1fr 1fr; gap:8px;'>");
+      html.push("<div><strong>Method:</strong> " + escapeHtml((ord.paymentMethod || "N/A").toUpperCase().replace(/_/g, ' ')) + "</div>");
+      html.push("<div><strong>Status:</strong> <span style='color:" + (ord.paymentStatus === 'PAID' ? '#0b8457' : '#666') + ";'>" + escapeHtml(ord.paymentStatus || "N/A") + "</span></div>");
+      html.push("<div><strong>Total:</strong> <span style='font-size:1.1rem; font-weight:600; color:#0E1B4D;'>" + (ord.total || "0.00") + "€</span></div>");
+      html.push("<div><strong>Payment ID:</strong> <small style='color:#666;'>" + escapeHtml(ord.paymentId || "N/A") + "</small></div>");
+      html.push("</div>");
+      if (ord.receiptUrl) {
+        html.push("<div style='margin-top:8px;'><a href='" + escapeHtml(ord.receiptUrl) + "' target='_blank' class='btn' style='font-size:0.85rem;'><i class='fas fa-receipt'></i> View Receipt</a></div>");
+      }
+      if (ord.invoicePdfUrl) {
+        html.push("<div style='margin-top:4px;'><a href='" + escapeHtml(ord.invoicePdfUrl) + "' target='_blank' class='btn' style='font-size:0.85rem;'><i class='fas fa-file-pdf'></i> Download Invoice</a></div>");
+      }
+      html.push("</div>");
+      
+      // Shipping Address
+      html.push("<div style='background:#f9fafb; padding:12px; border-radius:6px;'>");
+      html.push("<h4 style='margin:0 0 8px 0; font-size:0.95rem;'><i class='fas fa-shipping-fast'></i> Shipping Address</h4>");
       html.push(
-        '<div style="margin-top:6px"><label>Shipping Address:<br/><textarea id="orderModalAddress" rows="4" style="width:100%">' +
+        '<div style="margin-top:6px"><textarea id="orderModalAddress" rows="4" style="width:100%; padding:6px; border:1px solid #ddd; border-radius:4px; font-family:monospace; font-size:0.9rem;">' +
           escapeHtml(ord.shippingAddress || "") +
-          "</textarea></label></div>",
+          "</textarea></div>",
       );
+      html.push("</div>");
+      
+      // Order Status
       const status = ord.status || ord.paymentStatus || "";
+      html.push("<div style='background:#f9fafb; padding:12px; border-radius:6px;'>");
+      html.push("<h4 style='margin:0 0 8px 0; font-size:0.95rem;'><i class='fas fa-box'></i> Order Status</h4>");
       html.push(
-        '<div style="margin-top:6px"><label>Status: <select id="orderModalStatus"><option value="PENDING">PENDING</option><option value="PAID">PAID</option><option value="PROCESSING">PROCESSING</option><option value="SHIPPED">SHIPPED</option><option value="DELIVERED">DELIVERED</option><option value="CANCELLED">CANCELLED</option></select></label></div>',
+        '<div style="margin-top:6px"><select id="orderModalStatus" style="width:100%; padding:8px; border:1px solid #ddd; border-radius:4px; font-weight:600;"><option value="PENDING">PENDING</option><option value="PAID">PAID</option><option value="PROCESSING">PROCESSING</option><option value="SHIPPED">SHIPPED</option><option value="DELIVERED">DELIVERED</option><option value="CANCELLED">CANCELLED</option></select></div>',
       );
-      html.push('<div style="margin-top:8px"><strong>Items</strong></div>');
-      html.push(
-        "<div><pre>" +
-          escapeHtml(JSON.stringify(ord.items || [], null, 2)) +
-          "</pre></div>",
-      );
+      html.push("</div>");
+      
+      // Items
+      html.push("<div style='background:#f9fafb; padding:12px; border-radius:6px;'>");
+      html.push("<h4 style='margin:0 0 8px 0; font-size:0.95rem;'><i class='fas fa-list'></i> Order Items</h4>");
+      if (ord.items && ord.items.length > 0) {
+        html.push("<div style='max-height:300px; overflow-y:auto;'>");
+        ord.items.forEach((item, idx) => {
+          html.push("<div style='padding:8px; border-bottom:1px solid #e6e9ef;'>");
+          html.push("<div><strong>" + escapeHtml(item.book?.title || "Item " + (idx+1)) + "</strong></div>");
+          html.push("<div style='font-size:0.85rem; color:#666;'>Quantity: " + (item.quantity || 1) + " × " + (item.price || "0.00") + "€ = " + ((item.quantity || 1) * parseFloat(item.price || 0)).toFixed(2) + "€</div>");
+          html.push("</div>");
+        });
+        html.push("</div>");
+      } else {
+        html.push("<div style='color:#666; font-style:italic;'>No items</div>");
+      }
+      html.push("</div>");
+      
+      // Dates
+      if (ord.createdAt || ord.updatedAt) {
+        html.push("<div style='font-size:0.85rem; color:#666; padding:8px 0; border-top:1px solid #e6e9ef;'>");
+        if (ord.createdAt) html.push("<div><strong>Created:</strong> " + new Date(ord.createdAt).toLocaleString('pt-PT') + "</div>");
+        if (ord.updatedAt) html.push("<div><strong>Updated:</strong> " + new Date(ord.updatedAt).toLocaleString('pt-PT') + "</div>");
+        html.push("</div>");
+      }
+      
+      html.push("</div>");
+      
       content.innerHTML = html.join("");
       const statusEl = document.getElementById("orderModalStatus");
       if (statusEl) statusEl.value = (status || "").toUpperCase();

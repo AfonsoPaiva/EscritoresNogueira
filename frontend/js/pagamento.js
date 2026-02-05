@@ -718,9 +718,14 @@ function processPayment() {
                 console.log('create-checkout-session payload (json):', JSON.stringify(payload));
             } catch (e) { console.warn('Could not stringify payload', e); }
 
+            const headers = { 'Content-Type': 'application/json' };
+            if (auth.sessionToken) {
+                headers['X-Session-Token'] = auth.sessionToken;
+            }
+
             const resp = await fetch(window.API_BASE + '/payments/create-checkout-session', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: headers,
                 body: JSON.stringify(payload)
             });
             const data = await resp.json();
@@ -756,11 +761,45 @@ async function handleCheckoutSuccess(sessionId) {
     
     try {
         const headers = { 'Content-Type': 'application/json' };
-        if (window.auth && window.auth.sessionToken) headers['X-Session-Token'] = window.auth.sessionToken;
-        const resp = await fetch('http://localhost:8080/api/payments/confirm-session', {
+        const auth = window.auth || new AuthSystem();
+        if (auth && auth.sessionToken) {
+            headers['X-Session-Token'] = auth.sessionToken;
+        }
+        
+        // Ensure we have shipping data
+        if (!shippingData || !shippingData.email) {
+            // Try to get from profile cache
+            if (userProfileCache) {
+                shippingData = {
+                    firstName: userProfileCache.firstName || '',
+                    email: userProfileCache.email || '',
+                    phone: userProfileCache.phone || '',
+                    address: userProfileCache.address || '',
+                    city: userProfileCache.city || '',
+                    postalCode: userProfileCache.postalCode || '',
+                    country: userProfileCache.country || 'Portugal',
+                    residenceType: userProfileCache.residenceType || '',
+                    floor: userProfileCache.floor || '',
+                    doorNumber: userProfileCache.doorNumber || '',
+                    notes: userProfileCache.notes || ''
+                };
+            } else if (auth.getCurrentUser && auth.getCurrentUser()) {
+                const user = auth.getCurrentUser();
+                shippingData = {
+                    email: user.email || '',
+                    firstName: user.name || ''
+                };
+            }
+        }
+        
+        const resp = await fetch(window.API_BASE + '/payments/confirm-session', {
             method: 'POST',
             headers: headers,
-            body: JSON.stringify({ sessionId, shipping: shippingData, customerEmail: shippingData.email })
+            body: JSON.stringify({ 
+                sessionId, 
+                shipping: shippingData, 
+                customerEmail: shippingData?.email || (auth.getCurrentUser && auth.getCurrentUser()?.email) || null
+            })
         });
         const data = await resp.json();
         if (resp.ok) {
@@ -777,10 +816,16 @@ async function handleCheckoutSuccess(sessionId) {
         } else {
             console.warn('Failed to confirm session', data);
             hideLoader();
+            if (window.showNotification) {
+                window.showNotification('Erro ao confirmar pagamento: ' + (data.error || 'Erro desconhecido'), 'error');
+            }
         }
     } catch (e) {
         console.error('Error confirming checkout session', e);
         hideLoader();
+        if (window.showNotification) {
+            window.showNotification('Erro ao confirmar pagamento. Por favor, contacte o suporte.', 'error');
+        }
     }
 }
 

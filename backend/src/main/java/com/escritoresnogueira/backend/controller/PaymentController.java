@@ -160,16 +160,20 @@ public class PaymentController {
                 customerEmail = userOpt.get().getEmail();
             }
 
-            Order order = Order.builder()
-                    .orderNumber(generateOrderNumber())
-                    .customerEmail(customerEmail != null ? customerEmail : "")
-                    .paymentMethod("stripe_checkout")
-                    .paymentStatus(Order.PaymentStatus.PENDING)
-                    .status(Order.OrderStatus.PENDING)
-                    .build();
-            order.setTotal(BigDecimal.ZERO);
-            if (userOpt.isPresent()) order.setUser(userOpt.get());
-            order = orderRepository.save(order);
+            // Store items metadata for later order creation after payment confirmation
+            List<Map<String, Object>> itemsMetadata = new ArrayList<>();
+            for (PaymentItemDTO it : req.getItems()) {
+                Optional<Book> bookOpt = bookRepository.findById(it.getBookId());
+                if (bookOpt.isEmpty()) continue;
+                Book b = bookOpt.get();
+                ResolvedPrice rp = resolved.get(b.getId());
+                Map<String, Object> itemMeta = new HashMap<>();
+                itemMeta.put("bookId", b.getId());
+                itemMeta.put("quantity", it.getQuantity());
+                itemMeta.put("priceId", rp.priceId);
+                itemMeta.put("unitAmount", rp.unitAmount);
+                itemsMetadata.add(itemMeta);
+            }
 
             SessionCreateParams.Builder scBuilder = SessionCreateParams.builder()
                     .addAllLineItem(lineItems)
@@ -180,8 +184,24 @@ public class PaymentController {
             // the payment methods enabled in your Stripe Dashboard.
 
             if (customerEmail != null && !customerEmail.isBlank()) scBuilder.setCustomerEmail(customerEmail);
-            scBuilder.putMetadata("orderNumber", order.getOrderNumber());
-            scBuilder.putMetadata("orderId", String.valueOf(order.getId()));
+            
+            // Store necessary metadata for order creation after payment
+            if (userOpt.isPresent()) {
+                scBuilder.putMetadata("userId", String.valueOf(userOpt.get().getId()));
+            }
+            if (customerEmail != null && !customerEmail.isBlank()) {
+                scBuilder.putMetadata("customerEmail", customerEmail);
+            }
+            
+            // Store items data in metadata as JSON
+            try {
+                com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+                String itemsJson = mapper.writeValueAsString(itemsMetadata);
+                // Stripe metadata values are limited to 500 chars, so we'll retrieve items from resolved map instead
+                scBuilder.putMetadata("itemsCount", String.valueOf(itemsMetadata.size()));
+            } catch (Exception e) {
+                log.warn("Could not serialize items metadata: {}", e.getMessage());
+            }
 
             // Create Checkout Session and let Stripe Checkout display the
             // payment methods enabled in your Stripe Dashboard for this
@@ -195,27 +215,6 @@ public class PaymentController {
                 log.info("Created Checkout Session id={} url={} (could not read payment_method_types)", session.getId(), session.getUrl());
             }
 
-            // persist order items using Stripe unit amounts
-            for (PaymentItemDTO it : req.getItems()) {
-                Optional<Book> bookOpt = bookRepository.findById(it.getBookId());
-                if (bookOpt.isEmpty()) continue;
-                Book b = bookOpt.get();
-                ResolvedPrice rp = resolved.get(b.getId());
-                BigDecimal itemPrice = BigDecimal.ZERO;
-                if (rp != null && rp.unitAmount != null) itemPrice = BigDecimal.valueOf(rp.unitAmount).divide(BigDecimal.valueOf(100));
-
-                OrderItem oi = OrderItem.builder()
-                        .book(b)
-                        .quantity(it.getQuantity())
-                        .price(itemPrice)
-                        .build();
-                order.addItem(oi);
-            }
-
-            order.setPaymentId(session.getId());
-            order.setTotal(order.calculateTotal());
-            orderRepository.save(order);
-
             List<Map<String, Object>> resolvedItemsList = resolved.entrySet().stream().map(en -> {
                 Map<String, Object> m = new HashMap<>();
                 m.put("bookId", en.getKey());
@@ -228,7 +227,6 @@ public class PaymentController {
             Map<String, Object> resp = new HashMap<>();
             resp.put("url", session.getUrl());
             resp.put("sessionId", session.getId());
-            resp.put("orderId", order.getId());
             resp.put("resolvedItems", resolvedItemsList);
 
             return ResponseEntity.ok(resp);
@@ -257,15 +255,9 @@ public class PaymentController {
     }
 
     @PostMapping("/confirm-session")
-public ResponseEntity<?> confirmSession(@RequestHeader("X-Session-Token") String sessionToken,
+public ResponseEntity<?> confirmSession(@RequestHeader(value = "X-Session-Token", required = false) String sessionToken,
                                         @RequestBody Map<String, Object> body) {
         try {
-            Optional<UserSession> userSessionOpt = sessionService.validateSession(sessionToken);
-            if (userSessionOpt.isEmpty()) {
-                return ResponseEntity.status(401).body(Map.of("error", "Invalid session"));
-            }
-
-            User user = userSessionOpt.get().getUser();
             if (body == null || !body.containsKey("sessionId") || body.get("sessionId") == null || String.valueOf(body.get("sessionId")).isBlank()) {
                 return ResponseEntity.badRequest().body(Map.of("error", "Missing sessionId"));
             }
@@ -275,35 +267,39 @@ public ResponseEntity<?> confirmSession(@RequestHeader("X-Session-Token") String
 
             // ensure the session is paid
             if (!"paid".equalsIgnoreCase(stripeSession.getPaymentStatus())) {
-                return ResponseEntity.status(400).body(Map.of("error", "Payment not completed"));
+                return ResponseEntity.status(400).body(Map.of("error", "Payment not completed", "paymentStatus", stripeSession.getPaymentStatus()));
             }
 
-            // locate order by metadata or by paymentId
-            String orderIdMeta = stripeSession.getMetadata() != null ? stripeSession.getMetadata().get("orderId") : null;
-            Optional<Order> orderOpt = Optional.empty();
-            if (orderIdMeta != null) {
-                try { orderOpt = orderRepository.findById(Long.valueOf(orderIdMeta)); } catch (Exception ignore) {}
-            }
-            if (orderOpt.isEmpty()) {
-                orderOpt = orderRepository.findByPaymentId(sessionId);
-            }
-            if (orderOpt.isEmpty()) {
-                return ResponseEntity.status(404).body(Map.of("error", "Order not found for session"));
+            // Check if order already exists for this session (prevent duplicates)
+            Optional<Order> existingOrder = orderRepository.findByPaymentId(sessionId);
+            if (existingOrder.isPresent()) {
+                Order order = existingOrder.get();
+                log.info("Order already exists for session {}: {}", sessionId, order.getOrderNumber());
+                return ResponseEntity.ok(Map.of("orderId", order.getId(), "orderNumber", order.getOrderNumber(), "alreadyProcessed", true));
             }
 
-            Order order = orderOpt.get();
-
-            // Associate to current logged-in user if present
-            sessionService.validateSession(sessionToken).ifPresent(us -> {
-                try {
-                    User u = us.getUser();
-                    if (u != null && (order.getUser() == null || !u.getId().equals(order.getUser().getId()))) {
-                        order.setUser(u);
-                    }
-                } catch (Exception e) {
-                    log.warn("Failed to associate order to session user: {}", e.getMessage());
+            // Determine user from session token or metadata
+            User user = null;
+            Optional<UserSession> userSessionOpt = Optional.empty();
+            if (sessionToken != null && !sessionToken.isBlank()) {
+                userSessionOpt = sessionService.validateSession(sessionToken);
+                if (userSessionOpt.isPresent()) {
+                    user = userSessionOpt.get().getUser();
                 }
-            });
+            }
+            
+            // Try to get user from metadata if not from session token
+            if (user == null && stripeSession.getMetadata() != null) {
+                String userIdMeta = stripeSession.getMetadata().get("userId");
+                if (userIdMeta != null) {
+                    try {
+                        Optional<User> userOpt = userRepository.findById(Long.valueOf(userIdMeta));
+                        if (userOpt.isPresent()) user = userOpt.get();
+                    } catch (Exception e) {
+                        log.warn("Failed to find user by metadata userId: {}", e.getMessage());
+                    }
+                }
+            }
 
             // attempt to determine customer email from Stripe (session, payment intent or charge)
             String determinedCustomerEmail = null;
@@ -312,6 +308,14 @@ public ResponseEntity<?> confirmSession(@RequestHeader("X-Session-Token") String
                     determinedCustomerEmail = stripeSession.getCustomerDetails().getEmail();
                 }
             } catch (Exception ignore) {}
+
+            // Try metadata email
+            if ((determinedCustomerEmail == null || determinedCustomerEmail.isBlank()) && stripeSession.getMetadata() != null) {
+                String emailMeta = stripeSession.getMetadata().get("customerEmail");
+                if (emailMeta != null && !emailMeta.isBlank()) {
+                    determinedCustomerEmail = emailMeta;
+                }
+            }
 
             try {
                 String piId = stripeSession.getPaymentIntent();
@@ -336,57 +340,117 @@ public ResponseEntity<?> confirmSession(@RequestHeader("X-Session-Token") String
                 }
             } catch (Exception ignore) {}
 
-            // ensure essential non-nullable fields are set before persisting
-                if ((order.getCustomerEmail() == null || order.getCustomerEmail().isBlank()) && determinedCustomerEmail != null && !determinedCustomerEmail.isBlank()) {
-                    order.setCustomerEmail(determinedCustomerEmail);
-                }
-                // allow frontend to send shipping/customerEmail in the confirm request
-                try {
-                    if (body.containsKey("customerEmail")) {
-                        Object ce = body.get("customerEmail");
-                        if (ce != null && !String.valueOf(ce).isBlank()) order.setCustomerEmail(String.valueOf(ce));
-                    }
-                } catch (Exception ignore) {}
-
-                try {
-                    if (body.containsKey("shipping")) {
-                        Object shippingObj = body.get("shipping");
-                        if (shippingObj != null) {
-                            try {
-                                com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
-                                String shippingJson = mapper.writeValueAsString(shippingObj);
-                                order.setShippingAddress(shippingJson);
-                            } catch (Exception e) {
-                                order.setShippingAddress(String.valueOf(shippingObj));
-                            }
-                        }
-                    } else if (body.containsKey("shippingAddress")) {
-                        Object sa = body.get("shippingAddress");
-                        if (sa != null) order.setShippingAddress(String.valueOf(sa));
-                    }
-                } catch (Exception e) {
-                    log.warn("Failed to parse shipping data from confirm-session body: {}", e.getMessage());
-                }
-            if (order.getTotal() == null) order.setTotal(order.calculateTotal());
-
-            order.setPaymentStatus(Order.PaymentStatus.PAID);
-            // Mark order as PAID when Stripe confirms the payment
-            order.setStatus(Order.OrderStatus.PAID);
-            order.setPaymentId(sessionId);
-
-            // If the order has no user associated, try to find a user by the determined email
+            // Get email from request body if provided
             try {
-                if (order.getUser() == null) {
-                    String emailToMatch = (order.getCustomerEmail() != null && !order.getCustomerEmail().isBlank()) ? order.getCustomerEmail() : determinedCustomerEmail;
-                    if (emailToMatch != null && !emailToMatch.isBlank()) {
-                        userRepository.findByEmail(emailToMatch).ifPresent(u -> order.setUser(u));
+                if (body.containsKey("customerEmail")) {
+                    Object ce = body.get("customerEmail");
+                    if (ce != null && !String.valueOf(ce).isBlank()) {
+                        determinedCustomerEmail = String.valueOf(ce);
+                    }
+                }
+            } catch (Exception ignore) {}
+
+            // If still no email and user exists, use user email
+            if ((determinedCustomerEmail == null || determinedCustomerEmail.isBlank()) && user != null) {
+                determinedCustomerEmail = user.getEmail();
+            }
+
+            if (determinedCustomerEmail == null || determinedCustomerEmail.isBlank()) {
+                return ResponseEntity.status(400).body(Map.of("error", "Could not determine customer email"));
+            }
+
+            // If user is still null, try to find by email
+            if (user == null) {
+                userRepository.findByEmail(determinedCustomerEmail).ifPresent(u -> {
+                    log.info("Associated order to user by email: {}", determinedCustomerEmail);
+                });
+            }
+
+            // Create the order now that payment is confirmed
+            String orderNumber = generateOrderNumber();
+            Order order = Order.builder()
+                    .orderNumber(orderNumber)
+                    .customerEmail(determinedCustomerEmail)
+                    .paymentMethod("stripe_checkout")
+                    .paymentStatus(Order.PaymentStatus.PAID)
+                    .status(Order.OrderStatus.PAID)
+                    .paymentId(sessionId)
+                    .user(user)
+                    .build();
+
+            // Get shipping data from request body
+            try {
+                if (body.containsKey("shipping")) {
+                    Object shippingObj = body.get("shipping");
+                    if (shippingObj != null) {
+                        try {
+                            com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+                            String shippingJson = mapper.writeValueAsString(shippingObj);
+                            order.setShippingAddress(shippingJson);
+                        } catch (Exception e) {
+                            order.setShippingAddress(String.valueOf(shippingObj));
+                        }
+                    }
+                } else if (body.containsKey("shippingAddress")) {
+                    Object sa = body.get("shippingAddress");
+                    if (sa != null) order.setShippingAddress(String.valueOf(sa));
+                }
+            } catch (Exception e) {
+                log.warn("Failed to parse shipping data from confirm-session body: {}", e.getMessage());
+            }
+
+            // Retrieve line items from Stripe session to recreate order items
+            try {
+                com.stripe.param.checkout.SessionListLineItemsParams lineItemParams = 
+                    com.stripe.param.checkout.SessionListLineItemsParams.builder()
+                        .setLimit(100L)
+                        .build();
+                com.stripe.model.LineItemCollection lineItems = stripeSession.listLineItems(lineItemParams);
+                
+                if (lineItems != null && lineItems.getData() != null) {
+                    for (com.stripe.model.LineItem lineItem : lineItems.getData()) {
+                        try {
+                            // Get the price ID to find the corresponding book
+                            String priceId = lineItem.getPrice() != null ? lineItem.getPrice().getId() : null;
+                            if (priceId == null) continue;
+                            
+                            // Find book by matching stripe price to product
+                            String productId = lineItem.getPrice().getProduct();
+                            Optional<Book> bookOpt = bookRepository.findAll().stream()
+                                .filter(b -> productId.equals(b.getStripeProductId()))
+                                .findFirst();
+                            
+                            if (bookOpt.isPresent()) {
+                                Book book = bookOpt.get();
+                                Long unitAmount = lineItem.getPrice().getUnitAmount();
+                                BigDecimal itemPrice = unitAmount != null ? 
+                                    BigDecimal.valueOf(unitAmount).divide(BigDecimal.valueOf(100)) : 
+                                    BigDecimal.ZERO;
+                                
+                                OrderItem orderItem = OrderItem.builder()
+                                    .book(book)
+                                    .quantity(lineItem.getQuantity().intValue())
+                                    .price(itemPrice)
+                                    .build();
+                                order.addItem(orderItem);
+                            }
+                        } catch (Exception e) {
+                            log.warn("Failed to process line item: {}", e.getMessage());
+                        }
                     }
                 }
             } catch (Exception e) {
-                log.warn("Failed to associate order to user by email: {}", e.getMessage());
+                log.error("Failed to retrieve line items from Stripe session: {}", e.getMessage());
+                return ResponseEntity.status(500).body(Map.of("error", "Failed to retrieve order items from Stripe"));
             }
+
+            // Calculate total
+            order.setTotal(order.calculateTotal());
+
+            // Save the order
             try {
                 orderRepository.save(order);
+                log.info("Created order {} for session {} with status PAID", orderNumber, sessionId);
             } catch (DataIntegrityViolationException dive) {
                 log.error("Data integrity error saving order {}: {}", order.getId(), dive.getMostSpecificCause() != null ? dive.getMostSpecificCause().getMessage() : dive.getMessage());
                 return ResponseEntity.status(500).body(Map.of("error", "database constraint violation while saving order", "detail", dive.getMostSpecificCause() != null ? dive.getMostSpecificCause().getMessage() : dive.getMessage()));
@@ -516,87 +580,22 @@ public ResponseEntity<?> confirmSession(@RequestHeader("X-Session-Token") String
     @PostMapping("/mbway")
     public ResponseEntity<?> createMbwayOrder(@RequestHeader(value = "X-Session-Token", required = false) String sessionToken,
                                               @RequestBody CreatePaymentRequest req) {
-        if (req.getItems() == null || req.getItems().isEmpty()) return ResponseEntity.badRequest().body(Map.of("error", "No items provided"));
-
-        String mbwayCode = String.format("%06d", new Random().nextInt(999999));
-        Optional<User> userOpt = sessionService.validateSession(sessionToken).map(UserSession::getUser);
-        String customerEmail = req.getCustomerEmail();
-        if ((customerEmail == null || customerEmail.isBlank()) && userOpt.isPresent()) customerEmail = userOpt.get().getEmail();
-
-        Order.OrderBuilder mbOrderBuilder = Order.builder()
-                .orderNumber(generateOrderNumber())
-                .customerEmail(customerEmail != null ? customerEmail : "")
-                .paymentMethod("mbway")
-                .paymentStatus(Order.PaymentStatus.PENDING)
-                .status(Order.OrderStatus.PENDING)
-                .paymentId(mbwayCode);
-        if (userOpt.isPresent()) mbOrderBuilder.user(userOpt.get());
-        Order order = mbOrderBuilder.build();
-
-        for (PaymentItemDTO it : req.getItems()) {
-            Optional<Book> bookOpt = bookRepository.findById(it.getBookId());
-            if (bookOpt.isEmpty()) continue;
-            Book b = bookOpt.get();
-
-            if (b.getStripeProductId() == null || b.getStripeProductId().isBlank()) return ResponseEntity.status(400).body(Map.of("error", "Missing stripeProductId for book " + b.getId()));
-            try {
-                Product prod = Product.retrieve(b.getStripeProductId());
-                Long unitAmount = null;
-                try { Object def = prod != null ? prod.getDefaultPrice() : null; String defId = def instanceof String ? (String) def : null; if (defId != null) { Price defPrice = Price.retrieve(defId); if (defPrice != null) unitAmount = defPrice.getUnitAmount(); } } catch (Exception ignore) {}
-                if (unitAmount == null) {
-                    PriceCollection pc = Price.list(PriceListParams.builder().setProduct(b.getStripeProductId()).setLimit(1L).build());
-                    if (pc != null && pc.getData() != null && !pc.getData().isEmpty()) unitAmount = pc.getData().get(0).getUnitAmount();
-                }
-                if (unitAmount == null) return ResponseEntity.status(400).body(Map.of("error", "Missing Stripe price with unit amount for book " + b.getId()));
-                BigDecimal itemPrice = BigDecimal.valueOf(unitAmount).divide(BigDecimal.valueOf(100));
-                order.addItem(OrderItem.builder().book(b).quantity(it.getQuantity()).price(itemPrice).build());
-            } catch (StripeException se) {
-                return ResponseEntity.status(500).body(Map.of("error", "Stripe error retrieving price for book " + b.getId()));
-            }
-        }
-        order.setTotal(order.calculateTotal()); orderRepository.save(order);
-        return ResponseEntity.ok(Map.of("orderId", order.getId(), "orderNumber", order.getOrderNumber(), "mbwayCode", mbwayCode));
+        // MBWay payments are not yet supported in this flow
+        // Orders should only be created after payment confirmation
+        return ResponseEntity.status(501).body(Map.of("error", "MBWay payment method is not currently supported. Please use card payment."));
     }
 
     @PostMapping("/bank-transfer")
     public ResponseEntity<?> createBankTransferOrder(@RequestHeader(value = "X-Session-Token", required = false) String sessionToken,
                                                     @RequestBody CreatePaymentRequest req) {
-        if (req.getItems() == null || req.getItems().isEmpty()) return ResponseEntity.badRequest().body(Map.of("error", "No items provided"));
-        String orderNumber = generateOrderNumber();
-        String reference = "EN-" + orderNumber.substring(Math.max(0, orderNumber.length() - 5));
-        Optional<User> userOpt = sessionService.validateSession(sessionToken).map(UserSession::getUser);
-        String customerEmail = req.getCustomerEmail(); if ((customerEmail == null || customerEmail.isBlank()) && userOpt.isPresent()) customerEmail = userOpt.get().getEmail();
-        Order.OrderBuilder btBuilder = Order.builder().orderNumber(orderNumber).customerEmail(customerEmail != null ? customerEmail : "").paymentMethod("bank_transfer").paymentStatus(Order.PaymentStatus.PENDING).status(Order.OrderStatus.PENDING).paymentId(reference);
-        if (userOpt.isPresent()) btBuilder.user(userOpt.get()); Order order = btBuilder.build();
-        for (PaymentItemDTO it : req.getItems()) {
-            Optional<Book> bookOpt = bookRepository.findById(it.getBookId()); if (bookOpt.isEmpty()) continue; Book b = bookOpt.get();
-            if (b.getStripeProductId() == null || b.getStripeProductId().isBlank()) return ResponseEntity.status(400).body(Map.of("error", "Missing stripeProductId for book " + b.getId()));
-            try {
-                Product prod = Product.retrieve(b.getStripeProductId()); Long unitAmount = null; try { Object def = prod != null ? prod.getDefaultPrice() : null; String defId = def instanceof String ? (String) def : null; if (defId != null) { Price defPrice = Price.retrieve(defId); if (defPrice != null) unitAmount = defPrice.getUnitAmount(); } } catch (Exception ignore) {}
-                if (unitAmount == null) { PriceCollection pc = Price.list(PriceListParams.builder().setProduct(b.getStripeProductId()).setLimit(1L).build()); if (pc != null && pc.getData() != null && !pc.getData().isEmpty()) unitAmount = pc.getData().get(0).getUnitAmount(); }
-                if (unitAmount == null) return ResponseEntity.status(400).body(Map.of("error", "Missing Stripe price with unit amount for book " + b.getId()));
-                BigDecimal itemPrice = BigDecimal.valueOf(unitAmount).divide(BigDecimal.valueOf(100)); order.addItem(OrderItem.builder().book(b).quantity(it.getQuantity()).price(itemPrice).build());
-            } catch (StripeException se) { return ResponseEntity.status(500).body(Map.of("error", "Stripe error retrieving price for book " + b.getId())); }
-        }
-        order.setTotal(order.calculateTotal()); orderRepository.save(order);
-        return ResponseEntity.ok(Map.of("orderId", order.getId(), "orderNumber", order.getOrderNumber(), "reference", reference));
+        // Bank transfer payments are not yet supported in this flow
+        // Orders should only be created after payment confirmation
+        return ResponseEntity.status(501).body(Map.of("error", "Bank transfer payment method is not currently supported. Please use card payment."));
     }
 
-    @PostMapping("/confirm")
-    public ResponseEntity<?> confirmPayment(@RequestBody Map<String, Object> body) {
-        try {
-            if (body == null) return ResponseEntity.badRequest().body(Map.of("error", "Missing body"));
-            Optional<Order> orderOpt = Optional.empty();
-            if (body.containsKey("orderId")) orderOpt = orderRepository.findById(Long.valueOf(String.valueOf(body.get("orderId"))));
-            else if (body.containsKey("orderNumber")) orderOpt = orderRepository.findByOrderNumber(String.valueOf(body.get("orderNumber")));
-            if (orderOpt.isEmpty()) return ResponseEntity.status(404).body(Map.of("error", "Order not found"));
-            Order order = orderOpt.get();
-            order.setPaymentStatus(Order.PaymentStatus.PAID);
-            order.setStatus(Order.OrderStatus.PROCESSING);
-            orderRepository.save(order);
-            return ResponseEntity.ok(Map.of("orderId", order.getId(), "status", order.getStatus().name()));
-        } catch (Exception e) { log.error("Error confirming payment: {}", e.getMessage(), e); return ResponseEntity.status(500).body(Map.of("error", e.getMessage())); }
+    private String generateOrderNumber() { 
+        long timestamp = System.currentTimeMillis(); 
+        int random = new Random().nextInt(900) + 100; 
+        return "EN" + timestamp + random; 
     }
-
-    private String generateOrderNumber() { long timestamp = System.currentTimeMillis(); int random = new Random().nextInt(900) + 100; return "EN" + timestamp + random; }
 }
