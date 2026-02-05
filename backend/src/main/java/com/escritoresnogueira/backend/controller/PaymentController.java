@@ -359,10 +359,13 @@ public ResponseEntity<?> confirmSession(@RequestHeader(value = "X-Session-Token"
                 return ResponseEntity.status(400).body(Map.of("error", "Could not determine customer email"));
             }
 
+            // Make final copy for lambda usage
+            final String finalCustomerEmail = determinedCustomerEmail;
+
             // If user is still null, try to find by email
             if (user == null) {
-                userRepository.findByEmail(determinedCustomerEmail).ifPresent(u -> {
-                    log.info("Associated order to user by email: {}", determinedCustomerEmail);
+                userRepository.findByEmail(finalCustomerEmail).ifPresent(u -> {
+                    log.info("Associated order to user by email: {}", finalCustomerEmail);
                 });
             }
 
