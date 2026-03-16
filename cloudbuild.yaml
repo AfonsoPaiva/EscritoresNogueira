@@ -19,35 +19,6 @@ steps:
   - name: 'gcr.io/cloud-builders/docker'
     args: ['push', '${_REGISTRY}/${_IMAGE}:latest']
 
-  # 4. Deploy the new image to Cloud Run
-  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
-    entrypoint: gcloud
-    args:
-      - 'run'
-      - 'deploy'
-      - 'backendservice-escritoresnogueira'
-      - '--image'
-      - '${_REGISTRY}/${_IMAGE}:${SHORT_SHA}'
-      - '--region'
-      - '${_REGION}'
-      - '--platform'
-      - 'managed'
-      - '--allow-unauthenticated'
-      - '--memory'
-      - '1Gi'
-      - '--cpu'
-      - '1'
-      - '--timeout'
-      - '300'
-      - '--max-instances'
-      - '10'
-      - '--min-instances'
-      - '0'
-      - '--port'
-      - '8080'
-      - '--set-env-vars'
-      - 'SPRING_PROFILES_ACTIVE=prod,FIREBASE_PROJECT_ID=escritores-nogueira,SERVER_PORT=8080,SERVER_CONTEXT_PATH=/api'
-      - '--quiet'
       
 # User-defined substitutions
 substitutions:
