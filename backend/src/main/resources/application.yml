@@ -75,11 +75,11 @@ server:
   port: ${PORT:${SERVER_PORT:8080}}
   address: 0.0.0.0
   servlet:
-    # Centraliza todas as APIs sob /api por padrão. Pode ser sobrescrito com a var de ambiente SERVER_CONTEXT_PATH
-    context-path: ${SERVER_CONTEXT_PATH:/api}
+    # Centraliza todas as APIs sob / por padrão. Pode ser sobrescrito com a var de ambiente SERVER_CONTEXT_PATH
+    context-path: ${SERVER_CONTEXT_PATH:/}
   error:
     include-message: always
-    include-binding-errors: always
+    include-binding-errors: alwayss
     include-stacktrace: on_param
 
 # Firebase Configuration
