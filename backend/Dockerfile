@@ -16,10 +16,12 @@ ENV PORT=8080
 EXPOSE 8080
 # Optimize JVM for Cloud Run with faster startup and memory limits
 ENTRYPOINT ["java", \
-    "-Xmx768m", \
-    "-Xms256m", \
+    "-Xmx256m", \
+    "-Xms128m", \
+    "-XX:MaxMetaspaceSize=128m", \
     "-XX:+UseG1GC", \
-    "-XX:MaxGCPauseMillis=100", \
+    "-XX:MaxGCPauseMillis=200", \
+    "-XX:+UseStringDeduplication", \
     "-Djava.security.egd=file:/dev/./urandom", \
     "-jar", \
     "/opt/app/app.jar"]
