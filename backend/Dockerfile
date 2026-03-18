@@ -15,12 +15,13 @@ COPY --from=build /workspace/target/*.jar app.jar
 ENV PORT=8080
 EXPOSE 8080
 # Optimize JVM for Cloud Run with faster startup and memory limits
-ENTRYPOINT ["java", \
-    "-Xmx512m", \
-    "-Xms256m", \
-    "-XX:MaxMetaspaceSize=192m", \
-    "-XX:+UseG1GC", \
-    "-XX:MaxGCPauseMillis=200", \
-    "-Djava.security.egd=file:/dev/./urandom", \
-    "-jar", \
-    "/opt/app/app.jar"]
+ENTRYPOINT ["java",\
+  "-XX:+UseContainerSupport",\
+  "-XX:InitialRAMPercentage=20",\
+  "-XX:MaxRAMPercentage=60",\
+  "-XX:MaxMetaspaceSize=128m",\
+  "-XX:+ExitOnOutOfMemoryError",\
+  "-Djava.security.egd=file:/dev/./urandom",\
+  "-jar",\
+  "/opt/app/app.jar"\
+]

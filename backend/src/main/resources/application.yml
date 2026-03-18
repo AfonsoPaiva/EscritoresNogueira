@@ -3,7 +3,7 @@ spring:
     name: escritores-nogueira-backend
   
   profiles:
-    active: ${SPRING_PROFILES_ACTIVE:test}
+    active: ${SPRING_PROFILES_ACTIVE:prod}
 
 
   # CockroachDB Configuration
@@ -13,14 +13,17 @@ spring:
     password: ${COCKROACH_DB_PASSWORD}
     driver-class-name: org.postgresql.Driver
     hikari:
-      connection-timeout: 30000
-      maximum-pool-size: 10
-      minimum-idle: 2
+      connection-timeout: ${DB_CONNECTION_TIMEOUT_MS:30000}
+      maximum-pool-size: ${DB_MAX_POOL_SIZE:4}
+      minimum-idle: ${DB_MIN_IDLE:1}
+      idle-timeout: ${DB_IDLE_TIMEOUT_MS:120000}
+      max-lifetime: ${DB_MAX_LIFETIME_MS:900000}
       # CockroachDB specific settings
       data-source-properties:
         reWriteBatchedInserts: true
         ApplicationName: escritores-nogueira
   jpa:
+    open-in-view: false
     hibernate:
       ddl-auto: update
       show-sql: false
@@ -52,17 +55,17 @@ logging:
   level:
     root: ${LOG_LEVEL_ROOT:INFO}
     # Application logging
-    com.escritoresnogueira: ${LOG_LEVEL_APP:DEBUG}
-    main.java.com.escritoresnogueira: ${LOG_LEVEL_APP:DEBUG}
+    com.escritoresnogueira: ${LOG_LEVEL_APP:INFO}
+    main.java.com.escritoresnogueira: ${LOG_LEVEL_APP:INFO}
     # Security debugging
-    org.springframework.security: ${LOG_LEVEL_SECURITY:DEBUG}
-    org.springframework.security.web.FilterChainProxy: ${LOG_LEVEL_SECURITY_TRACE:TRACE}
+    org.springframework.security: ${LOG_LEVEL_SECURITY:WARN}
+    org.springframework.security.web.FilterChainProxy: ${LOG_LEVEL_SECURITY_TRACE:WARN}
     # Web/MVC debugging
-    org.springframework.web: ${LOG_LEVEL_WEB:DEBUG}
-    org.springframework.web.servlet.mvc.method.annotation: DEBUG
+    org.springframework.web: ${LOG_LEVEL_WEB:INFO}
+    org.springframework.web.servlet.mvc.method.annotation: ${LOG_LEVEL_WEB_METHOD:INFO}
     # Hibernate SQL (reduce in production)
-    org.hibernate.SQL: ${LOG_LEVEL_SQL:DEBUG}
-    org.hibernate.type.descriptor.sql.BasicBinder: ${LOG_LEVEL_SQL_BINDER:TRACE}
+    org.hibernate.SQL: ${LOG_LEVEL_SQL:WARN}
+    org.hibernate.type.descriptor.sql.BasicBinder: ${LOG_LEVEL_SQL_BINDER:WARN}
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
   file:
@@ -74,12 +77,17 @@ logging:
 server:
   port: ${PORT:${SERVER_PORT:8080}}
   address: 0.0.0.0
+  tomcat:
+    threads:
+      max: ${SERVER_TOMCAT_THREADS_MAX:20}
+      min-spare: ${SERVER_TOMCAT_THREADS_MIN_SPARE:2}
+    accept-count: ${SERVER_TOMCAT_ACCEPT_COUNT:50}
   servlet:
     # Centraliza todas as APIs sob / por padrão. Pode ser sobrescrito com a var de ambiente SERVER_CONTEXT_PATH
     context-path: ${SERVER_CONTEXT_PATH:/}
   error:
-    include-message: always
-    include-binding-errors: alwayss
+    include-message: ${SERVER_ERROR_INCLUDE_MESSAGE:always}
+    include-binding-errors: ${SERVER_ERROR_INCLUDE_BINDING_ERRORS:always}
     include-stacktrace: on_param
 
 # Firebase Configuration
@@ -140,8 +148,8 @@ management:
       base-path: ${ACTUATOR_BASE_PATH:/actuator}
   endpoint:
     health:
-      show-details: ${ACTUATOR_HEALTH_SHOW_DETAILS:always}
-      show-components: ${ACTUATOR_HEALTH_SHOW_COMPONENTS:always}
+      show-details: ${ACTUATOR_HEALTH_SHOW_DETAILS:when_authorized}
+      show-components: ${ACTUATOR_HEALTH_SHOW_COMPONENTS:when_authorized}
   health:
     defaults:
       enabled: true
@@ -168,11 +176,16 @@ spring:
   config:
     activate:
       on-profile: prod
-  logging:
-    level:
-      root: WARN
-      com.escritoresnogueira: INFO
-      org.springframework.security: WARN
-      org.springframework.web: WARN
-      org.hibernate.SQL: WARN
+
+logging:
+  level:
+    root: WARN
+    com.escritoresnogueira: INFO
+    main.java.com.escritoresnogueira: INFO
+    org.springframework.security: WARN
+    org.springframework.security.web.FilterChainProxy: WARN
+    org.springframework.web: WARN
+    org.springframework.web.servlet.mvc.method.annotation: WARN
+    org.hibernate.SQL: WARN
+    org.hibernate.type.descriptor.sql.BasicBinder: WARN
 
