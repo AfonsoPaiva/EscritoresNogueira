@@ -5,7 +5,7 @@ import com.escritoresnogueira.backend.model.BlogCategory;
 import com.escritoresnogueira.backend.repository.BlogPostRepository;
 import com.escritoresnogueira.backend.repository.BlogCategoryRepository;
 import com.escritoresnogueira.backend.dto.AdminBlogPostDTO;
-import java.util.Optional;
+import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -21,13 +21,30 @@ public class AdminBlogController {
     @Autowired
     private BlogCategoryRepository blogCategoryRepository;
 
+    private AdminBlogPostDTO toDto(BlogPost post) {
+        return AdminBlogPostDTO.builder()
+                .id(post.getId())
+                .title(post.getTitle())
+                .slug(post.getSlug())
+                .content(post.getContent())
+                .excerpt(post.getExcerpt())
+                .featuredImage(post.getFeaturedImage())
+                .author(post.getAuthor())
+                .featured(post.isFeatured())
+                .published(post.isPublished())
+                .category(post.getCategoryName())
+                .build();
+    }
+
     @GetMapping("/posts")
-    public ResponseEntity<java.util.List<BlogPost>> getPosts() {
-        return ResponseEntity.ok(blogPostRepository.findAll());
+    public ResponseEntity<List<AdminBlogPostDTO>> getPosts() {
+        return ResponseEntity.ok(
+                blogPostRepository.findAll().stream().map(this::toDto).toList()
+        );
     }
     
     @PostMapping("/posts")
-    public ResponseEntity<BlogPost> createPost(@RequestBody AdminBlogPostDTO dto) {
+    public ResponseEntity<AdminBlogPostDTO> createPost(@RequestBody AdminBlogPostDTO dto) {
         // Set category name as plain string (independent from category table)
         BlogPost post = BlogPost.builder()
                 .title(dto.getTitle())
@@ -42,11 +59,11 @@ public class AdminBlogController {
                 .build();
 
         BlogPost savedPost = blogPostRepository.save(post);
-        return ResponseEntity.ok(savedPost);
+        return ResponseEntity.ok(toDto(savedPost));
     }
 
     @PutMapping("/posts/{id}")
-    public ResponseEntity<BlogPost> updatePost(@PathVariable Long id, @RequestBody AdminBlogPostDTO dto) {
+    public ResponseEntity<AdminBlogPostDTO> updatePost(@PathVariable Long id, @RequestBody AdminBlogPostDTO dto) {
         return blogPostRepository.findById(id)
             .map(existingPost -> {
                 existingPost.setTitle(dto.getTitle());
@@ -63,7 +80,7 @@ public class AdminBlogController {
                 }
 
                 BlogPost updatedPost = blogPostRepository.save(existingPost);
-                return ResponseEntity.ok(updatedPost);
+                return ResponseEntity.ok(toDto(updatedPost));
             })
             .orElse(ResponseEntity.notFound().build());
     }

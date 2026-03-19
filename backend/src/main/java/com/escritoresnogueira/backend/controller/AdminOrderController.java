@@ -4,7 +4,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import com.escritoresnogueira.backend.model.Order;
 import com.escritoresnogueira.backend.model.UserSession;
-import com.escritoresnogueira.backend.model.User;
 import com.escritoresnogueira.backend.model.OrderStatusHistory;
 import com.escritoresnogueira.backend.repository.OrderRepository;
 import com.escritoresnogueira.backend.repository.OrderStatusHistoryRepository;
@@ -43,16 +42,27 @@ public class AdminOrderController {
         if (usOpt.isPresent() && usOpt.get().getUser() != null && usOpt.get().getUser().getRoles().contains("ROLE_ADMIN")) {
             return usOpt;
         }
+        return Optional.empty();
+    }
+
+    private boolean hasAdminAccess(String sessionToken) {
+        Optional<UserSession> usOpt = resolveAdminSession(sessionToken);
+        if (usOpt.isPresent()) return true;
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth != null && auth.isAuthenticated()) {
-            boolean isAdmin = auth.getAuthorities().stream()
+            return auth.getAuthorities().stream()
                     .map(GrantedAuthority::getAuthority)
                     .anyMatch("ROLE_ADMIN"::equals);
-            if (isAdmin) {
-                return usOpt;
-            }
         }
-        return Optional.empty();
+        return false;
+    }
+
+    private String actorEmail(String sessionToken) {
+        Optional<UserSession> usOpt = resolveAdminSession(sessionToken);
+        if (usOpt.isPresent() && usOpt.get().getUser() != null && usOpt.get().getUser().getEmail() != null) {
+            return usOpt.get().getUser().getEmail();
+        }
+        return "admin-user";
     }
 
     @PatchMapping("/orders/{orderId}/status")
@@ -61,8 +71,7 @@ public class AdminOrderController {
             @PathVariable Long orderId,
             @RequestBody Map<String,String> body) {
 
-        Optional<UserSession> usOpt = resolveAdminSession(sessionToken);
-        if (usOpt.isEmpty()) {
+        if (!hasAdminAccess(sessionToken)) {
             return ResponseEntity.status(403).body(Map.of("error","forbidden"));
         }
 
@@ -92,7 +101,7 @@ public class AdminOrderController {
                     .order(order)
                     .oldStatus(prev != null ? prev.name() : null)
                     .newStatus(newStatus.name())
-                    .changedBy(usOpt.get().getUser().getEmail())
+                        .changedBy(actorEmail(sessionToken))
                     .changedAt(LocalDateTime.now())
                     .build();
             historyRepository.save(h);
@@ -120,7 +129,7 @@ public class AdminOrderController {
             log.warn("Failed to send status notification: {}", e.getMessage());
         }
 
-        log.info("Admin {} changed order {} status {} -> {}", usOpt.get().getUser().getEmail(), orderId, prev, newStatus);
+        log.info("Admin {} changed order {} status {} -> {}", actorEmail(sessionToken), orderId, prev, newStatus);
 
         return ResponseEntity.ok(Map.of("orderId", orderId, "status", newStatus.name()));
     }
@@ -132,8 +141,7 @@ public class AdminOrderController {
             @RequestParam(defaultValue = "20") int size,
             @RequestParam(required = false) String status
     ) {
-        Optional<UserSession> usOpt = resolveAdminSession(sessionToken);
-        if (usOpt.isEmpty()) {
+        if (!hasAdminAccess(sessionToken)) {
             return ResponseEntity.status(403).body(Map.of("error", "forbidden"));
         }
 
@@ -174,8 +182,7 @@ public class AdminOrderController {
             @PathVariable Long userId,
             @RequestParam(required = false, defaultValue = "false") boolean force) {
 
-        Optional<UserSession> usOpt = resolveAdminSession(sessionToken);
-        if (usOpt.isEmpty()) {
+        if (!hasAdminAccess(sessionToken)) {
             return ResponseEntity.status(403).body(Map.of("error","forbidden"));
         }
 
@@ -207,8 +214,7 @@ public class AdminOrderController {
             @RequestHeader(value = SESSION_HEADER, required = false) String sessionToken,
             @PathVariable Long orderId) {
 
-        Optional<UserSession> usOpt = resolveAdminSession(sessionToken);
-        if (usOpt.isEmpty()) {
+        if (!hasAdminAccess(sessionToken)) {
             return ResponseEntity.status(403).body(Map.of("error","forbidden"));
         }
 
@@ -226,8 +232,7 @@ public class AdminOrderController {
             @PathVariable Long orderId,
             @RequestParam(required = false, defaultValue = "false") boolean force) {
 
-        Optional<UserSession> usOpt = resolveAdminSession(sessionToken);
-        if (usOpt.isEmpty()) {
+        if (!hasAdminAccess(sessionToken)) {
             return ResponseEntity.status(403).body(Map.of("error","forbidden"));
         }
 
@@ -241,7 +246,7 @@ public class AdminOrderController {
 
         try {
             orderRepository.delete(order);
-            log.info("Admin {} deleted order {} (force={})", usOpt.get().getUser().getEmail(), orderId, force);
+            log.info("Admin {} deleted order {} (force={})", actorEmail(sessionToken), orderId, force);
             return ResponseEntity.ok(Map.of("deleted", true, "orderId", orderId));
         } catch (Exception e) {
             log.error("Failed to delete order {}: {}", orderId, e.getMessage(), e);
@@ -258,8 +263,7 @@ public class AdminOrderController {
             @PathVariable Long orderId,
             @RequestBody Map<String, Object> body) {
 
-        Optional<UserSession> usOpt = resolveAdminSession(sessionToken);
-        if (usOpt.isEmpty()) {
+        if (!hasAdminAccess(sessionToken)) {
             return ResponseEntity.status(403).body(Map.of("error","forbidden"));
         }
 
@@ -281,7 +285,7 @@ public class AdminOrderController {
             }
             if (changed) {
                 orderRepository.save(order);
-                log.info("Admin {} patched order {}", usOpt.get().getUser().getEmail(), orderId);
+                log.info("Admin {} patched order {}", actorEmail(sessionToken), orderId);
             }
             return ResponseEntity.ok(Map.of("orderId", orderId));
         } catch (Exception e) {
