@@ -1,5 +1,6 @@
 package com.escritoresnogueira.backend.controller;
 
+import com.google.firebase.auth.FirebaseAuth;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -64,6 +65,9 @@ public class AuthController {
     @Value("${recaptcha.site-key}")
     private String recaptchaSiteKey;
 
+    @Value("${APP_ADMIN_FIREBASE_UID:}")
+    private String adminFirebaseUid;
+
     /**
      * Get reCAPTCHA configuration for web
      */
@@ -121,6 +125,54 @@ public class AuthController {
             return ResponseEntity.badRequest().body(Map.of(
                 "error", true,
                 "message", e.getMessage()
+            ));
+        }
+    }
+
+    /**
+     * Authenticate admin with Firebase ID token and require UID match with configured admin UID
+     */
+    @PostMapping("/firebase-admin")
+    public ResponseEntity<?> authenticateAdminWithFirebase(
+            @RequestBody FirebaseAuthRequest request,
+            HttpServletRequest httpRequest) {
+        try {
+            if (request == null || request.getIdToken() == null || request.getIdToken().isBlank()) {
+                return ResponseEntity.badRequest().body(Map.of(
+                        "error", true,
+                        "message", "idToken obrigatório"
+                ));
+            }
+            if (adminFirebaseUid == null || adminFirebaseUid.isBlank()) {
+                log.warn("❌ APP_ADMIN_FIREBASE_UID não configurado");
+                return ResponseEntity.status(500).body(Map.of(
+                        "error", true,
+                        "message", "Admin UID não configurado no servidor"
+                ));
+            }
+
+            String tokenUid = FirebaseAuth.getInstance().verifyIdToken(request.getIdToken()).getUid();
+            if (!adminFirebaseUid.equals(tokenUid)) {
+                log.warn("❌ Tentativa de login admin com UID não autorizado: {}", tokenUid);
+                return ResponseEntity.status(403).body(Map.of(
+                        "error", true,
+                        "message", "Acesso não autorizado para este utilizador"
+                ));
+            }
+
+            String ipAddress = getClientIp(httpRequest);
+            String userAgent = httpRequest.getHeader("User-Agent");
+            SessionResponse response = authService.authenticateWithFirebaseAndCreateSession(
+                    request.getIdToken(),
+                    ipAddress,
+                    userAgent
+            );
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            log.error("❌ Erro na autenticação admin Firebase: {}", e.getMessage());
+            return ResponseEntity.badRequest().body(Map.of(
+                    "error", true,
+                    "message", e.getMessage()
             ));
         }
     }

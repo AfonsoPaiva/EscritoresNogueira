@@ -3,11 +3,8 @@
   const views = Array.from(document.querySelectorAll(".view"));
   const navItems = Array.from(document.querySelectorAll(".nav li"));
   const loginSection = document.getElementById("loginSection");
-  const btnLogin = document.getElementById("btnLogin");
   const btnLogout = document.getElementById("btnLogout");
   const btnGoogleSignIn = document.getElementById("btnGoogleSignIn");
-  const loginUser = document.getElementById("loginUser");
-  const loginPass = document.getElementById("loginPass");
   const backendBaseInput = document.getElementById("backendBase");
   const LOCAL_BACKEND_BASE = "admin_ui_backend_base";
   let effectiveBackendBase = localStorage.getItem(LOCAL_BACKEND_BASE) || "";
@@ -151,8 +148,8 @@
             const user = result.user;
             if (!user) return alert("Google sign-in failed");
             const idToken = await user.getIdToken();
-            // send to backend to create session
-            const res = await tryCandidates("/auth/firebase", {
+            // send to backend to create admin session
+            const res = await tryCandidates("/auth/firebase-admin", {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               credentials: "include",
@@ -184,16 +181,6 @@
     } catch (e) {}
   }
 
-  async function postForm(path, data) {
-    const body = new URLSearchParams(data).toString();
-    return tryCandidates(path, {
-      method: "POST",
-      credentials: "include",
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body,
-    });
-  }
-
   function showView(name) {
     views.forEach((v) => (v.style.display = v.id === name ? "block" : "none"));
     navItems.forEach((li) =>
@@ -212,32 +199,6 @@
   navItems.forEach((li) =>
     li.addEventListener("click", () => showView(li.dataset.view)),
   );
-
-  // LOGIN
-  btnLogin.addEventListener("click", async () => {
-    const user = loginUser.value.trim();
-    const pass = loginPass.value.trim();
-    if (!user || !pass) return alert("Preencha usuário e senha");
-    try {
-      const res = await postForm("/admin/api/login", {
-        username: user,
-        password: pass,
-      });
-      if (!res.ok) {
-        const t = await res.text();
-        return alert("Login failed: " + res.status + "\n" + t);
-      }
-      // success
-      loginSection.style.display = "none";
-      btnLogout.style.display = "inline-block";
-      document.querySelector(".nav li.active").click();
-    } catch (e) {
-      alert("Login error: " + e.message);
-    }
-  });
-
-  // LOGIN (Google only)
-  // btnLogin event removed - only Google sign-in now
 
   btnLogout.addEventListener("click", async () => {
     try {
