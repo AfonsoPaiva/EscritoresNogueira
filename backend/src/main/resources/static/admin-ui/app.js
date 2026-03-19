@@ -13,7 +13,9 @@
     try {
       const u = new URL(raw, window.location.origin);
       if (u.origin !== window.location.origin) return "";
-      return (u.origin + u.pathname).replace(/\/$/, "");
+      const basePath = (u.pathname || "").replace(/\/$/, "");
+      if (basePath && basePath !== "") return "";
+      return u.origin.replace(/\/$/, "");
     } catch (e) {
       return "";
     }
@@ -77,7 +79,7 @@
       try {
         const res = await fetch(url, opts);
         res.__url = url;
-        if (res.status === 404 && i < c.length - 1) continue;
+        if ((res.status === 404 || res.status === 401 || res.status === 403) && i < c.length - 1) continue;
         return res;
       } catch (e) {
         lastErr = e;
@@ -1766,7 +1768,7 @@
   // Guard view changes: show login if not authenticated, except for orders which handles its own auth
   const originalShowView = showView;
   showView = function (name) {
-    if (!isAuthenticated && name !== "orders") {
+    if (!isAuthenticated) {
       loginSection.style.display = "block";
       return;
     }

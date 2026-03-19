@@ -1,7 +1,11 @@
 package com.escritoresnogueira.backend.controller;
 
 import com.google.firebase.auth.FirebaseAuth;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.security.Keys;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import com.escritoresnogueira.backend.dto.AuthResponse;
@@ -27,6 +31,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.nio.charset.StandardCharsets;
+import java.security.Key;
+import java.time.Instant;
+import java.util.Date;
 import java.util.Map;
 
 @Slf4j
@@ -67,6 +75,12 @@ public class AuthController {
 
     @Value("${APP_ADMIN_FIREBASE_UID:}")
     private String adminFirebaseUid;
+
+    @Value("${APP_ADMIN_JWT_SECRET:}")
+    private String adminJwtSecret;
+
+    @Value("${APP_ADMIN_JWT_EXP:14400}")
+    private long adminJwtExp;
 
     /**
      * Get reCAPTCHA configuration for web
@@ -135,7 +149,8 @@ public class AuthController {
     @PostMapping("/firebase-admin")
     public ResponseEntity<?> authenticateAdminWithFirebase(
             @RequestBody FirebaseAuthRequest request,
-            HttpServletRequest httpRequest) {
+            HttpServletRequest httpRequest,
+            HttpServletResponse httpResponse) {
         try {
             if (request == null || request.getIdToken() == null || request.getIdToken().isBlank()) {
                 return ResponseEntity.badRequest().body(Map.of(
@@ -167,6 +182,35 @@ public class AuthController {
                     ipAddress,
                     userAgent
             );
+
+                if (adminJwtSecret == null || adminJwtSecret.isBlank()) {
+                log.warn("❌ APP_ADMIN_JWT_SECRET não configurado");
+                return ResponseEntity.status(500).body(Map.of(
+                    "error", true,
+                    "message", "Admin JWT secret não configurado no servidor"
+                ));
+                }
+
+                Key key = Keys.hmacShaKeyFor(adminJwtSecret.getBytes(StandardCharsets.UTF_8));
+                Instant now = Instant.now();
+                Date iat = Date.from(now);
+                Date exp = Date.from(now.plusSeconds(adminJwtExp));
+                String jws = Jwts.builder()
+                    .setSubject("admin")
+                    .setIssuedAt(iat)
+                    .setExpiration(exp)
+                    .claim("role", "ROLE_ADMIN")
+                    .signWith(key, SignatureAlgorithm.HS256)
+                    .compact();
+
+                boolean isSecure = httpRequest.isSecure() || "https".equalsIgnoreCase(httpRequest.getHeader("X-Forwarded-Proto"));
+                StringBuilder cookieHeader = new StringBuilder();
+                cookieHeader.append("ADMIN_AUTH").append("=").append(jws)
+                    .append("; HttpOnly; Path=/; Max-Age=").append((int) adminJwtExp)
+                    .append("; SameSite=Strict");
+                if (isSecure) cookieHeader.append("; Secure");
+                httpResponse.addHeader("Set-Cookie", cookieHeader.toString());
+
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             log.error("❌ Erro na autenticação admin Firebase: {}", e.getMessage());

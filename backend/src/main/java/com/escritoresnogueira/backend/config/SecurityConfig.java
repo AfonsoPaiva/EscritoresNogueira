@@ -27,6 +27,7 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 public class SecurityConfig {
 
+    private final AdminJwtAuthFilter adminJwtAuthFilter;
     private final AdminIapFilter adminIapFilter;
     private final RateLimitFilter rateLimitFilter;
 
@@ -106,6 +107,7 @@ public class SecurityConfig {
                 // AUTENTICADO: Tudo o resto
                 .anyRequest().authenticated()
             )
+            .addFilterBefore(adminJwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
             // Allow IAP header-based auth (when behind Google IAP)
             .addFilterBefore(adminIapFilter, UsernamePasswordAuthenticationFilter.class)
             // Add rate limiting filter
