@@ -7,10 +7,23 @@
   const btnGoogleSignIn = document.getElementById("btnGoogleSignIn");
   const backendBaseInput = document.getElementById("backendBase");
   const LOCAL_BACKEND_BASE = "admin_ui_backend_base";
-  let effectiveBackendBase = localStorage.getItem(LOCAL_BACKEND_BASE) || "";
+  function normalizeBackendBase(value) {
+    const raw = (value || "").trim();
+    if (!raw) return "";
+    try {
+      const u = new URL(raw, window.location.origin);
+      if (u.origin !== window.location.origin) return "";
+      return (u.origin + u.pathname).replace(/\/$/, "");
+    } catch (e) {
+      return "";
+    }
+  }
+  let effectiveBackendBase = normalizeBackendBase(
+    localStorage.getItem(LOCAL_BACKEND_BASE) || "",
+  );
   let sessionToken = localStorage.getItem("admin_session_token") || "";
-  if (backendBaseInput && effectiveBackendBase)
-    backendBaseInput.value = effectiveBackendBase;
+  if (backendBaseInput) backendBaseInput.value = effectiveBackendBase;
+  if (!effectiveBackendBase) localStorage.removeItem(LOCAL_BACKEND_BASE);
 
   function enforceGoogleOnlyLoginUi() {
     ["btnLogin", "loginUser", "loginPass"].forEach((id) => {
@@ -59,11 +72,12 @@
   async function tryCandidates(path, opts = {}) {
     const c = buildUrlCandidates(path);
     let lastErr = null;
-    for (const url of c) {
+    for (let i = 0; i < c.length; i++) {
+      const url = c[i];
       try {
         const res = await fetch(url, opts);
         res.__url = url;
-        // If response content-type is JSON-like, return it; otherwise return response so caller can decide
+        if (res.status === 404 && i < c.length - 1) continue;
         return res;
       } catch (e) {
         lastErr = e;
@@ -236,7 +250,8 @@
   // Backend base input
   if (backendBaseInput)
     backendBaseInput.addEventListener("change", () => {
-      effectiveBackendBase = (backendBaseInput.value || "").trim();
+      effectiveBackendBase = normalizeBackendBase(backendBaseInput.value || "");
+      backendBaseInput.value = effectiveBackendBase;
       if (effectiveBackendBase)
         localStorage.setItem(LOCAL_BACKEND_BASE, effectiveBackendBase);
       else localStorage.removeItem(LOCAL_BACKEND_BASE);
@@ -1726,8 +1741,9 @@
 
   async function checkAuth() {
     try {
-      const res = await tryCandidates("/admin/api/status", {
+      const res = await tryCandidates("/admin/orders", {
         credentials: "include",
+        headers: sessionToken ? { "X-Session-Token": sessionToken } : {},
       });
       if (res && res.ok) {
         isAuthenticated = true;
