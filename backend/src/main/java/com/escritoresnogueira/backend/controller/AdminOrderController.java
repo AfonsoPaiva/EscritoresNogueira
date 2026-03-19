@@ -21,6 +21,11 @@ import java.util.Optional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 
 @Slf4j
 @RestController
@@ -63,6 +68,49 @@ public class AdminOrderController {
             return usOpt.get().getUser().getEmail();
         }
         return "admin-user";
+    }
+
+    private Map<String, Object> toOrderSummary(Order order) {
+        Map<String, Object> m = new HashMap<>();
+        m.put("id", order.getId());
+        m.put("orderNumber", order.getOrderNumber());
+        m.put("customerEmail", order.getCustomerEmail());
+        m.put("total", order.getTotal());
+        m.put("status", order.getStatus());
+        m.put("paymentStatus", order.getPaymentStatus());
+        m.put("paymentMethod", order.getPaymentMethod());
+        m.put("createdAt", order.getCreatedAt());
+        m.put("updatedAt", order.getUpdatedAt());
+        return m;
+    }
+
+    private Map<String, Object> toOrderDetail(Order order) {
+        Map<String, Object> m = toOrderSummary(order);
+        m.put("paymentId", order.getPaymentId());
+        m.put("receiptUrl", order.getReceiptUrl());
+        m.put("invoicePdfUrl", order.getInvoicePdfUrl());
+        m.put("shippingAddress", order.getShippingAddress());
+
+        List<Map<String, Object>> itemDtos = new ArrayList<>();
+        if (order.getItems() != null) {
+            order.getItems().forEach(item -> {
+                Map<String, Object> i = new HashMap<>();
+                i.put("id", item.getId());
+                i.put("quantity", item.getQuantity());
+                i.put("price", item.getPrice());
+                if (item.getBook() != null) {
+                    Map<String, Object> b = new HashMap<>();
+                    b.put("id", item.getBook().getId());
+                    b.put("title", item.getBook().getTitle());
+                    b.put("slug", item.getBook().getSlug());
+                    b.put("coverImage", item.getBook().getCoverImage());
+                    i.put("book", b);
+                }
+                itemDtos.add(i);
+            });
+        }
+        m.put("items", itemDtos);
+        return m;
     }
 
     @PatchMapping("/orders/{orderId}/status")
@@ -135,6 +183,7 @@ public class AdminOrderController {
     }
 
     @GetMapping("/orders")
+    @Transactional(readOnly = true)
     public ResponseEntity<?> listOrders(
             @RequestHeader(value = SESSION_HEADER, required = false) String sessionToken,
             @RequestParam(defaultValue = "0") int page,
@@ -159,12 +208,16 @@ public class AdminOrderController {
                 ordersPage = orderRepository.findAll(pr);
             }
 
+            List<Map<String, Object>> orders = ordersPage.getContent().stream()
+                    .map(this::toOrderSummary)
+                    .toList();
+
             return ResponseEntity.ok(Map.of(
                     "page", ordersPage.getNumber(),
                     "size", ordersPage.getSize(),
                     "totalElements", ordersPage.getTotalElements(),
                     "totalPages", ordersPage.getTotalPages(),
-                    "orders", ordersPage.getContent()
+                    "orders", orders
             ));
         } catch (Exception e) {
             log.error("Failed to list orders: {}", e.getMessage(), e);
@@ -210,6 +263,7 @@ public class AdminOrderController {
      * Admin: get a single order by id
      */
     @GetMapping("/orders/{orderId}")
+    @Transactional(readOnly = true)
     public ResponseEntity<?> getOrderById(
             @RequestHeader(value = SESSION_HEADER, required = false) String sessionToken,
             @PathVariable Long orderId) {
@@ -220,7 +274,7 @@ public class AdminOrderController {
 
         Optional<Order> ordOpt = orderRepository.findById(orderId);
         if (ordOpt.isEmpty()) return ResponseEntity.status(404).body(Map.of("error","order not found"));
-        return ResponseEntity.ok(ordOpt.get());
+        return ResponseEntity.ok(toOrderDetail(ordOpt.get()));
     }
 
     /**
