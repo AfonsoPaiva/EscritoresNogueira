@@ -79,7 +79,14 @@
       try {
         const res = await fetch(url, opts);
         res.__url = url;
-        if ((res.status === 404 || res.status === 401 || res.status === 403) && i < c.length - 1) continue;
+        if (
+          (res.status === 404 ||
+            res.status === 401 ||
+            res.status === 403 ||
+            res.status >= 500) &&
+          i < c.length - 1
+        )
+          continue;
         return res;
       } catch (e) {
         lastErr = e;
@@ -922,82 +929,17 @@
   async function loadOrders() {
     ordersListEl.innerHTML = "Loading...";
     try {
-      // Check if authenticated by trying to load orders
-      const url = buildUrlCandidates("/admin/orders")[0]; // use first candidate
-      const res = await fetch(url, {
+      const res = await tryCandidates("/admin/orders", {
         credentials: "include",
         headers: sessionToken ? { "X-Session-Token": sessionToken } : {},
       });
       if (!res.ok) {
-        if (res.status === 403) {
-          // Not authenticated, show login form
-          ordersListEl.innerHTML = `
-            <div class="card" style="max-width: 400px; margin: 0 auto;">
-              <h3>Login Required</h3>
-              <p>Sign in with your Google account to access orders.</p>
-              <div class="form-row">
-                <button id="ordersBtnGoogleSignIn" class="btn primary">Sign in with Google</button>
-              </div>
-              <p class="note">Authentication creates a secure session for order management.</p>
-            </div>
-          `;
-          // Wire the login buttons
-          const ordersBtnGoogleSignIn = document.getElementById(
-            "ordersBtnGoogleSignIn",
-          );
-
-          ordersBtnGoogleSignIn.addEventListener("click", async () => {
-            try {
-              // Ensure Firebase is initialized
-              if (!firebase || !firebase.apps || firebase.apps.length === 0) {
-                const res = await tryCandidates("/auth/firebase-config", {
-                  credentials: "include",
-                });
-                const cfg = res.ok ? await res.json() : null;
-                if (cfg && cfg.apiKey) {
-                  firebase.initializeApp({
-                    apiKey: cfg.apiKey,
-                    authDomain: cfg.authDomain,
-                    projectId: cfg.projectId,
-                    storageBucket: cfg.storageBucket,
-                    messagingSenderId: cfg.messagingSenderId,
-                    appId: cfg.appId,
-                  });
-                } else {
-                  throw new Error("Firebase config not available");
-                }
-              }
-              const provider = new firebase.auth.GoogleAuthProvider();
-              const result = await firebase.auth().signInWithPopup(provider);
-              const user = result.user;
-              if (!user) return alert("Google sign-in failed");
-              const idToken = await user.getIdToken();
-              // send to backend to create session
-              const res = await tryCandidates("/auth/firebase", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                credentials: "include",
-                body: JSON.stringify({ idToken }),
-              });
-              if (!res.ok) {
-                const t = await res.text();
-                return alert("Login failed: " + res.status + "\n" + t);
-              }
-              const sessionData = await res.json();
-              sessionToken = sessionData.sessionToken;
-              localStorage.setItem("admin_session_token", sessionToken);
-              // success
-              isAuthenticated = true;
-              document.querySelector(".nav").style.display = "";
-              btnLogout.style.display = "inline-block";
-              loadOrders(); // reload orders
-            } catch (e) {
-              alert(
-                "Google sign-in error: " + (e && e.message ? e.message : e),
-              );
-            }
-          });
-
+        if (res.status === 401 || res.status === 403) {
+          isAuthenticated = false;
+          document.querySelector(".nav").style.display = "none";
+          loginSection.style.display = "block";
+          btnLogout.style.display = "none";
+          ordersListEl.textContent = "Authentication required";
           return;
         }
         throw Object.assign(new Error("HTTP " + res.status), { res });
