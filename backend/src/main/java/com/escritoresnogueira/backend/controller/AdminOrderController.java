@@ -12,6 +12,9 @@ import com.escritoresnogueira.backend.service.UserSessionService;
 import com.escritoresnogueira.backend.service.EmailService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.time.LocalDateTime;
 import java.util.Map;
@@ -35,14 +38,31 @@ public class AdminOrderController {
 
     private static final String SESSION_HEADER = "X-Session-Token";
 
+    private Optional<UserSession> resolveAdminSession(String sessionToken) {
+        Optional<UserSession> usOpt = sessionService.validateSession(sessionToken);
+        if (usOpt.isPresent() && usOpt.get().getUser() != null && usOpt.get().getUser().getRoles().contains("ROLE_ADMIN")) {
+            return usOpt;
+        }
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth != null && auth.isAuthenticated()) {
+            boolean isAdmin = auth.getAuthorities().stream()
+                    .map(GrantedAuthority::getAuthority)
+                    .anyMatch("ROLE_ADMIN"::equals);
+            if (isAdmin) {
+                return usOpt;
+            }
+        }
+        return Optional.empty();
+    }
+
     @PatchMapping("/orders/{orderId}/status")
     public ResponseEntity<?> updateOrderStatus(
             @RequestHeader(value = SESSION_HEADER, required = false) String sessionToken,
             @PathVariable Long orderId,
             @RequestBody Map<String,String> body) {
 
-        Optional<UserSession> usOpt = sessionService.validateSession(sessionToken);
-        if (usOpt.isEmpty() || usOpt.get().getUser() == null || !usOpt.get().getUser().getRoles().contains("ROLE_ADMIN")) {
+        Optional<UserSession> usOpt = resolveAdminSession(sessionToken);
+        if (usOpt.isEmpty()) {
             return ResponseEntity.status(403).body(Map.of("error","forbidden"));
         }
 
@@ -112,8 +132,8 @@ public class AdminOrderController {
             @RequestParam(defaultValue = "20") int size,
             @RequestParam(required = false) String status
     ) {
-        Optional<UserSession> usOpt = sessionService.validateSession(sessionToken);
-        if (usOpt.isEmpty() || usOpt.get().getUser() == null || !usOpt.get().getUser().getRoles().contains("ROLE_ADMIN")) {
+        Optional<UserSession> usOpt = resolveAdminSession(sessionToken);
+        if (usOpt.isEmpty()) {
             return ResponseEntity.status(403).body(Map.of("error", "forbidden"));
         }
 
@@ -154,8 +174,8 @@ public class AdminOrderController {
             @PathVariable Long userId,
             @RequestParam(required = false, defaultValue = "false") boolean force) {
 
-        Optional<UserSession> usOpt = sessionService.validateSession(sessionToken);
-        if (usOpt.isEmpty() || usOpt.get().getUser() == null || !usOpt.get().getUser().getRoles().contains("ROLE_ADMIN")) {
+        Optional<UserSession> usOpt = resolveAdminSession(sessionToken);
+        if (usOpt.isEmpty()) {
             return ResponseEntity.status(403).body(Map.of("error","forbidden"));
         }
 
@@ -187,8 +207,8 @@ public class AdminOrderController {
             @RequestHeader(value = SESSION_HEADER, required = false) String sessionToken,
             @PathVariable Long orderId) {
 
-        Optional<UserSession> usOpt = sessionService.validateSession(sessionToken);
-        if (usOpt.isEmpty() || usOpt.get().getUser() == null || !usOpt.get().getUser().getRoles().contains("ROLE_ADMIN")) {
+        Optional<UserSession> usOpt = resolveAdminSession(sessionToken);
+        if (usOpt.isEmpty()) {
             return ResponseEntity.status(403).body(Map.of("error","forbidden"));
         }
 
@@ -206,8 +226,8 @@ public class AdminOrderController {
             @PathVariable Long orderId,
             @RequestParam(required = false, defaultValue = "false") boolean force) {
 
-        Optional<UserSession> usOpt = sessionService.validateSession(sessionToken);
-        if (usOpt.isEmpty() || usOpt.get().getUser() == null || !usOpt.get().getUser().getRoles().contains("ROLE_ADMIN")) {
+        Optional<UserSession> usOpt = resolveAdminSession(sessionToken);
+        if (usOpt.isEmpty()) {
             return ResponseEntity.status(403).body(Map.of("error","forbidden"));
         }
 
@@ -238,8 +258,8 @@ public class AdminOrderController {
             @PathVariable Long orderId,
             @RequestBody Map<String, Object> body) {
 
-        Optional<UserSession> usOpt = sessionService.validateSession(sessionToken);
-        if (usOpt.isEmpty() || usOpt.get().getUser() == null || !usOpt.get().getUser().getRoles().contains("ROLE_ADMIN")) {
+        Optional<UserSession> usOpt = resolveAdminSession(sessionToken);
+        if (usOpt.isEmpty()) {
             return ResponseEntity.status(403).body(Map.of("error","forbidden"));
         }
 
