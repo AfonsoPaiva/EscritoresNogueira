@@ -12,6 +12,16 @@
   if (backendBaseInput && effectiveBackendBase)
     backendBaseInput.value = effectiveBackendBase;
 
+  function enforceGoogleOnlyLoginUi() {
+    ["btnLogin", "loginUser", "loginPass"].forEach((id) => {
+      const el = document.getElementById(id);
+      if (el) {
+        const wrapper = el.closest(".form-row") || el.parentElement || el;
+        if (wrapper) wrapper.remove();
+      }
+    });
+  }
+
   function buildUrlCandidates(path) {
     const candidates = [];
     if (effectiveBackendBase && effectiveBackendBase.length > 0) {
@@ -1748,6 +1758,7 @@
   };
 
   // Run initial auth check and initialize Firebase
+  enforceGoogleOnlyLoginUi();
   checkAuth();
   initFirebase();
 })();

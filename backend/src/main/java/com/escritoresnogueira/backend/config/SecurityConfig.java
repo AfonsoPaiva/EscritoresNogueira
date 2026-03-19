@@ -8,7 +8,6 @@ import org.springframework.security.config.annotation.authentication.configurati
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
@@ -19,8 +18,6 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import java.util.Arrays;
 import java.util.List;
 
-import static org.springframework.security.config.Customizer.withDefaults;
-
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -30,7 +27,6 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-    private final AdminAuthenticationProvider adminAuthenticationProvider;
     private final AdminIapFilter adminIapFilter;
     private final RateLimitFilter rateLimitFilter;
 
@@ -47,7 +43,7 @@ public class SecurityConfig {
                 "/user/**",      // Endpoints de utilizador
                 "/payments/**",  // Payments endpoints (checkout session preflight)
                 "/public/form-submissions", "/public/form-submissions/**", // Public form submissions (no CSRF)
-                "/admin/api/login", "/admin/api/logout", // Admin form-login endpoints (skip CSRF)
+                "/admin/api/logout",
                 "/admin/**" // Admin API endpoints used by SPA (session token auth handled separately)
             )
 )
@@ -63,6 +59,7 @@ public class SecurityConfig {
                 .requestMatchers(
                     "/auth/register",
                     "/auth/firebase",
+                    "/auth/firebase-admin",
                     "/auth/firebase-config",
                     "/auth/recaptcha-config",
                     "/auth/subscribe-newsletter",
@@ -109,29 +106,10 @@ public class SecurityConfig {
                 // AUTENTICADO: Tudo o resto
                 .anyRequest().authenticated()
             )
-            // Register custom admin AuthenticationProvider
-            .authenticationProvider(adminAuthenticationProvider)
             // Allow IAP header-based auth (when behind Google IAP)
             .addFilterBefore(adminIapFilter, UsernamePasswordAuthenticationFilter.class)
             // Add rate limiting filter
             .addFilterBefore(rateLimitFilter, UsernamePasswordAuthenticationFilter.class)
-            // Use Spring Security form login for admin (stateful session)
-            .formLogin(form -> form
-                .loginProcessingUrl("/admin/api/login")
-                .usernameParameter("username")
-                .passwordParameter("password")
-                .successHandler((req, res, auth) -> {
-                    res.setStatus(200);
-                    res.setContentType("application/json");
-                    res.getWriter().write("{\"status\":\"ok\"}");
-                })
-                .failureHandler((req, res, ex) -> {
-                    res.setStatus(401);
-                    res.setContentType("application/json");
-                    res.getWriter().write("{\"error\":\"invalid_credentials\"}");
-                })
-                .permitAll()
-            )
             .logout(logout -> logout
                 .logoutUrl("/admin/api/logout")
                 .logoutSuccessHandler((req, res, auth) -> {
