@@ -117,33 +117,35 @@ ul {
    GSAP ANIMATION INITIAL STATES
    =================================== */
 
-/* Hide hero elements initially only when NOT managed by AOS - GSAP will animate them otherwise */
-.hero-content:not([data-aos]) .hero-title,
-.hero-content:not([data-aos]) .hero-subtitle,
-.hero-content:not([data-aos]) .btn {
-  opacity: 0;
-  transform: translateY(30px);
+/* Elements are VISIBLE by default so there is never a blank flash.
+   GSAP uses gsap.fromTo() which temporarily sets the from-state itself,
+   so we do NOT need to pre-hide anything in CSS.
+   The 'will-change' hints allow the GPU compositor to prepare layers
+   for transform/opacity animations → smoother rendering. */
+
+.hero-content .hero-title,
+.hero-content .hero-subtitle,
+.hero-content .btn {
+  will-change: transform, opacity;
 }
 
-/* Keep hero elements visible after GSAP animation completes */
+/* Keep hero elements fully visible after GSAP finishes */
 .hero-content.gsap-animated .hero-title,
 .hero-content.gsap-animated .hero-subtitle,
 .hero-content.gsap-animated .btn {
-  opacity: 1;
-  transform: none;
+  opacity: 1 !important;
+  transform: none !important;
+  will-change: auto;
 }
 
-/* Hide sections initially - ScrollTrigger will animate them in */
 .section {
   padding: 80px 0;
-  opacity: 0;
-  transform: translateY(50px);
+  /* No opacity:0 here — GSAP sets it in the fromTo 'from' state */
+  will-change: transform, opacity;
 }
 
-/* Sections that have been animated by GSAP */
 .section.gsap-animated {
-  opacity: 1;
-  transform: translateY(0);
+  will-change: auto;
 }
 
 /* ===================================

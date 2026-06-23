@@ -1,4 +1,4 @@
-﻿// ==================================
+// ==================================
 // MAIN.JS - GSAP Integration
 // ==================================
 
@@ -797,18 +797,15 @@ function displayFeaturedBooks(books, container) {
         }, 100);
     }
 
-    // Refresh AOS for dynamically added elements
-    if (typeof AOS !== 'undefined') {
-        if (typeof initGSAPAnimations === 'function') { try { initGSAPAnimations(); } catch (e) { console.warn('initGSAPAnimations failed', e); } }
-        if (typeof ScrollTrigger !== 'undefined') { try { ScrollTrigger.refresh(); } catch (e) { console.warn('ScrollTrigger.refresh failed', e); } }
-    }
-    // Re-run animations to ensure dynamically added content is animated/revealed
+    // Animate newly added book cards (already-animated elements are skipped via guard)
     try {
-        if (typeof runAnimations === 'function') {
-            runAnimations();
+        if (typeof animateElements === 'function') {
+            animateElements('.book-card:not(.gsap-animated)', 'fade-up');
+            animateElements('.swiper-slide:not(.gsap-animated)', 'fade-up');
         }
+        if (typeof ScrollTrigger !== 'undefined') { try { ScrollTrigger.refresh(); } catch (_) {} }
     } catch (e) {
-        console.warn('Erro ao reexecutar animações após carregar livros em destaque', e);
+        console.warn('Erro ao animar livros em destaque', e);
     }
 }
 
@@ -884,16 +881,16 @@ function displayLatestBlogPosts(posts, container) {
     
     container.innerHTML = postsHTML;
     
-    // Refresh animations for dynamically added content
+    // Animate newly injected blog cards only (guard prevents re-animating existing elements)
     try {
-        if (typeof runAnimations === 'function') {
-            runAnimations();
+        if (typeof animateElements === 'function') {
+            animateElements('.blog-card:not(.gsap-animated)', 'fade-up');
         }
         if (typeof ScrollTrigger !== 'undefined') {
             ScrollTrigger.refresh();
         }
     } catch (e) {
-        console.warn('Erro ao reexecutar animações após carregar posts', e);
+        console.warn('Erro ao animar posts do blog', e);
     }
 }
 
