@@ -1533,15 +1533,17 @@ body.loading .footer {
   position: fixed;
   top: 0;
   left: 0;
-  width: 100%;
-  height: 100%;
-  background: var(--primary-color);
+  width: 100vw;
+  height: 100vh;
+  background: rgba(14, 27, 77, 0.94);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   z-index: 2000;
   display: none;
   align-items: center;
   justify-content: center;
-  overflow-x: hidden;
-  /* Remove CSS transition - GSAP controls animation */
+  overflow: hidden;
+  will-change: transform, opacity;
 }
 
 .search-overlay.active {
@@ -1550,43 +1552,59 @@ body.loading .footer {
 
 .search-container {
   width: 90%;
-  max-width: 700px;
+  max-width: 720px;
   position: relative;
   background: var(--white);
-  padding: 40px;
-  border-radius: 20px;
-  box-shadow: var(--shadow-lg);
+  padding: 28px;
+  border-radius: 24px;
+  box-shadow: 0 30px 60px -15px rgba(0, 0, 0, 0.35);
   overflow-x: hidden;
+  max-height: 85vh;
+  overflow-y: auto;
 }
 
 .close-search {
-  /* Position fixed to ensure visibility and consistent placement */
-  position: fixed;
-  top: 18px;
-  right: 18px;
-  z-index: 2101;
-  color: var(--white);
-  font-size: 1.6rem;
-  background: rgba(0, 0, 0, 0.18);
+  position: absolute;
+  top: 37px;
+  right: 37px;
+  z-index: 10;
+  color: var(--primary-color);
+  font-size: 1.1rem;
+  background: rgba(14, 27, 77, 0.08);
   border: none;
   cursor: pointer;
-  padding: 8px 10px;
-  border-radius: 8px;
-  transition: var(--transition);
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.25s ease;
 }
 
 .close-search:hover {
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(14, 27, 77, 0.16);
+  color: #e63946;
+  transform: rotate(90deg) scale(1.05);
 }
 
 .search-input {
   width: 100%;
-  padding: 20px;
-  font-size: 1.5rem;
-  background: var(--white);
-  border: none;
-  border-radius: 10px;
+  padding: 16px 58px 16px 52px;
+  font-size: 1.2rem;
+  background: #f4f6f9 url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="%230E1B4D" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>') no-repeat 18px center;
+  border: 2px solid rgba(14, 27, 77, 0.12);
+  border-radius: 16px;
   font-family: var(--font-secondary);
+  color: var(--text-dark);
+  outline: none;
+  transition: all 0.25s ease;
+}
+
+.search-input:focus {
+  border-color: var(--secondary-color);
+  background-color: var(--white);
+  box-shadow: 0 0 0 4px rgba(255, 177, 0, 0.18);
 }
 
 .search-results {
@@ -3325,10 +3343,11 @@ body.loading .footer {
     padding: 12px;
   }
 
-  /* Search overlay adjustments for very small screens (iPhone SE) */
+  /* Search overlay adjustments for small screens */
   .search-overlay {
-    align-items: flex-start;
-    padding-top: 56px;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
     padding-left: env(safe-area-inset-left);
     padding-right: env(safe-area-inset-right);
   }
@@ -3337,9 +3356,9 @@ body.loading .footer {
     width: calc(100% - 32px);
     max-width: 680px;
     margin: 0 auto;
-    padding: 12px 14px;
-    border-radius: 12px;
-    max-height: calc(100vh - 96px);
+    padding: 24px 20px;
+    border-radius: 16px;
+    max-height: calc(100vh - 40px);
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
     box-shadow: var(--shadow-lg);
@@ -3348,13 +3367,15 @@ body.loading .footer {
 
   .close-search {
     position: absolute;
-    top: 10px;
-    right: 10px;
-    z-index: 2101;
-    color: var(--text-dark);
-    background: transparent;
-    padding: 10px 12px;
-    font-size: 1.2rem;
+    top: 31px;
+    right: 29px;
+    z-index: 10;
+    color: var(--primary-color);
+    background: rgba(14, 27, 77, 0.08);
+    border: none;
+    padding: 0;
+    width: 34px;
+    height: 34px;
   }
 }
 
@@ -13443,38 +13464,9 @@ body {
   width: 100%;
 }
 
-/* Search overlay smooth entrance */
+/* GSAP controls search overlay slide-down animation */
 .search-overlay.active {
-  animation: searchOverlayIn 0.35s cubic-bezier(0.22, 1, 0.36, 1) forwards;
-}
-
-@keyframes searchOverlayIn {
-  0% {
-    opacity: 0;
-    backdrop-filter: blur(0);
-  }
-
-  100% {
-    opacity: 1;
-    backdrop-filter: blur(8px);
-  }
-}
-
-.search-overlay.active .search-container {
-  animation: searchBoxIn 0.4s cubic-bezier(0.22, 1, 0.36, 1) 0.05s forwards;
-  opacity: 0;
-}
-
-@keyframes searchBoxIn {
-  0% {
-    opacity: 0;
-    transform: translateY(-20px) scale(0.98);
-  }
-
-  100% {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
+  display: flex;
 }
 
 /* Hero content entrance on page load */

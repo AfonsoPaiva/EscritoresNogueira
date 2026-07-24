@@ -479,29 +479,100 @@ function initSearch() {
     };
 
     const searchContainer = searchOverlay ? searchOverlay.querySelector('.search-container') : null;
-    if (searchBtn) {
-        searchBtn.addEventListener('click', async () => {
-            if (searchOverlay) {
-                searchOverlay.style.display = 'block';
-                searchOverlay.style.transform = 'none';
-                searchOverlay.classList.add('active');
+
+    const openSearchOverlay = () => {
+        if (!searchOverlay) return;
+
+        searchOverlay.classList.add('active');
+
+        if (typeof gsap !== 'undefined') {
+            gsap.killTweensOf([searchOverlay, searchContainer]);
+
+            // Set flex display and initial top-of-screen position
+            gsap.set(searchOverlay, { display: 'flex', yPercent: -100, autoAlpha: 0 });
+
+            // Slide overlay down from top
+            gsap.to(searchOverlay, {
+                yPercent: 0,
+                autoAlpha: 1,
+                duration: 0.5,
+                ease: 'power3.out'
+            });
+
+            // Animate search bar container into position
+            if (searchContainer) {
+                gsap.fromTo(searchContainer,
+                    { y: -60, opacity: 0, scale: 0.96 },
+                    { y: 0, opacity: 1, scale: 1, duration: 0.55, delay: 0.08, ease: 'power3.out' }
+                );
+            }
+        } else {
+            searchOverlay.style.display = 'flex';
+        }
+
+        setTimeout(() => searchInput && searchInput.focus(), 250);
+        loadSearchData();
+    };
+
+    const closeSearchOverlay = () => {
+        if (!searchOverlay) return;
+
+        if (typeof gsap !== 'undefined') {
+            gsap.killTweensOf([searchOverlay, searchContainer]);
+
+            if (searchContainer) {
+                gsap.to(searchContainer, {
+                    y: -40,
+                    opacity: 0,
+                    scale: 0.96,
+                    duration: 0.3,
+                    ease: 'power2.in'
+                });
             }
 
-            setTimeout(() => searchInput && searchInput.focus(), 120);
-            await loadSearchData();
-        });
+            gsap.to(searchOverlay, {
+                yPercent: -100,
+                autoAlpha: 0,
+                duration: 0.4,
+                ease: 'power3.in',
+                onComplete: () => {
+                    searchOverlay.classList.remove('active');
+                    searchOverlay.style.display = 'none';
+                    if (searchInput) searchInput.value = '';
+                    if (searchResults) searchResults.innerHTML = '';
+                }
+            });
+        } else {
+            searchOverlay.classList.remove('active');
+            searchOverlay.style.display = 'none';
+            if (searchInput) searchInput.value = '';
+            if (searchResults) searchResults.innerHTML = '';
+        }
+    };
+
+    if (searchBtn) {
+        searchBtn.addEventListener('click', openSearchOverlay);
     }
 
     if (closeSearch) {
-        closeSearch.addEventListener('click', () => {
-            if (searchOverlay) {
-                searchOverlay.classList.remove('active');
-                searchOverlay.style.display = 'none';
+        closeSearch.addEventListener('click', closeSearchOverlay);
+    }
+
+    // Close when clicking overlay backdrop
+    if (searchOverlay) {
+        searchOverlay.addEventListener('click', (e) => {
+            if (e.target === searchOverlay) {
+                closeSearchOverlay();
             }
-            if (searchInput) searchInput.value = '';
-            if (searchResults) searchResults.innerHTML = '';
         });
     }
+
+    // Close on Escape key
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && searchOverlay && searchOverlay.classList.contains('active')) {
+            closeSearchOverlay();
+        }
+    });
 
     if (searchInput) {
         searchInput.addEventListener('input', (e) => {
