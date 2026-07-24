@@ -13094,3 +13094,390 @@ body.page-apoio .btn-primary {
     }
 }
 
+/* ===================================
+   SMOOTH ANIMATIONS SYSTEM
+   Scroll-reveal, page transitions,
+   micro-interactions
+   =================================== */
+
+/* ── Scroll Reveal: Initial Hidden State ── */
+
+.sr-ready {
+    opacity: 0;
+    will-change: transform, opacity;
+}
+
+/* Direction-based initial transforms */
+.sr-ready[data-sr-direction="up"] {
+    transform: translateY(40px);
+}
+
+.sr-ready[data-sr-direction="down"] {
+    transform: translateY(-40px);
+}
+
+.sr-ready[data-sr-direction="left"] {
+    transform: translateX(40px);
+}
+
+.sr-ready[data-sr-direction="right"] {
+    transform: translateX(-40px);
+}
+
+/* ── Scroll Reveal: Revealed State ── */
+
+.sr-revealed {
+    opacity: 1 !important;
+    transform: translateY(0) translateX(0) !important;
+    transition:
+        opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1),
+        transform 0.7s cubic-bezier(0.22, 1, 0.36, 1) !important;
+    will-change: auto;
+}
+
+/* Override tilt transforms when sr-revealed is active (mousemove will re-apply) */
+.sr-revealed.benefit-card:hover,
+.sr-revealed.blog-card:hover,
+.sr-revealed.support-card:hover {
+    /* Allow JS tilt to take over on hover */
+    transition: transform 0.15s ease-out !important;
+}
+
+/* Prevent layout jump during reveal */
+.sr-ready.section {
+    padding-top: 80px;
+    padding-bottom: 80px;
+}
+
+/* ── Page Transition Animations ── */
+
+/* Leaving current page */
+.page-leaving {
+    animation: pageLeave 0.4s cubic-bezier(0.4, 0, 1, 1) forwards;
+}
+
+@keyframes pageLeave {
+    0% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+        filter: blur(0);
+    }
+    100% {
+        opacity: 0;
+        transform: translateY(-20px) scale(0.99);
+        filter: blur(2px);
+    }
+}
+
+/* Entering new page */
+.page-entering {
+    animation: pageEnter 0.5s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+@keyframes pageEnter {
+    0% {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Body overlay during transition */
+.page-transitioning::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: var(--white);
+    z-index: 9999;
+    opacity: 0;
+    animation: transitionOverlay 0.4s cubic-bezier(0.4, 0, 1, 1) forwards;
+    pointer-events: none;
+}
+
+@keyframes transitionOverlay {
+    0% { opacity: 0; }
+    100% { opacity: 1; }
+}
+
+/* ── View Transitions API (Chrome 111+) ── */
+
+@view-transition {
+    navigation: auto;
+}
+
+::view-transition-old(root) {
+    animation: 350ms cubic-bezier(0.4, 0, 1, 1) both vtFadeOut;
+}
+
+::view-transition-new(root) {
+    animation: 400ms cubic-bezier(0, 0, 0.2, 1) 100ms both vtFadeIn;
+}
+
+@keyframes vtFadeOut {
+    0% {
+        opacity: 1;
+        transform: scale(1);
+        filter: blur(0);
+    }
+    100% {
+        opacity: 0;
+        transform: scale(0.98);
+        filter: blur(3px);
+    }
+}
+
+@keyframes vtFadeIn {
+    0% {
+        opacity: 0;
+        transform: scale(1.02);
+        filter: blur(3px);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1);
+        filter: blur(0);
+    }
+}
+
+/* ── Ripple Effect ── */
+
+.ripple-effect {
+    position: absolute;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.35);
+    transform: scale(0);
+    animation: rippleExpand 0.6s ease-out forwards;
+    pointer-events: none;
+    z-index: 10;
+}
+
+@keyframes rippleExpand {
+    0% {
+        transform: scale(0);
+        opacity: 1;
+    }
+    100% {
+        transform: scale(4);
+        opacity: 0;
+    }
+}
+
+/* Darker ripple for light buttons */
+.btn-outline .ripple-effect,
+.btn-secondary .ripple-effect {
+    background: rgba(14, 27, 77, 0.12);
+}
+
+/* ── Enhanced Hover Micro-Animations ── */
+
+/* Nav link hover glow */
+.nav-link {
+    transition: color 0.3s ease, text-shadow 0.3s ease;
+}
+
+.nav-link:hover {
+    text-shadow: 0 0 12px rgba(14, 27, 77, 0.08);
+}
+
+/* Button press effect */
+.btn:active,
+.icon-btn:active {
+    transform: scale(0.96) !important;
+    transition-duration: 0.1s !important;
+}
+
+/* Benefit icon hover pulse */
+.benefit-card:hover .benefit-icon {
+    animation: iconPulse 0.5s ease;
+}
+
+@keyframes iconPulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.12); }
+    100% { transform: scale(1.06); }
+}
+
+/* Blog card image zoom on hover */
+.blog-card:hover .blog-image img {
+    transform: scale(1.05);
+    transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.blog-image img {
+    transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Read more arrow slide */
+.read-more i {
+    transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.read-more:hover i {
+    transform: translateX(5px);
+}
+
+/* Logo hover */
+.logo:hover .logo-img {
+    transform: scale(1.03);
+    transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.logo-img {
+    transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Social links hover */
+.social-links a {
+    transition: transform 0.3s ease, color 0.3s ease, background 0.3s ease;
+}
+
+.social-links a:hover {
+    transform: translateY(-3px) scale(1.1);
+}
+
+/* Footer link hover underline animation */
+.footer-section a {
+    position: relative;
+}
+
+.footer-section a::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    width: 0;
+    height: 1px;
+    background: var(--secondary-color);
+    transition: width 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.footer-section a:hover::after {
+    width: 100%;
+}
+
+/* Search overlay smooth entrance */
+.search-overlay.active {
+    animation: searchOverlayIn 0.35s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+@keyframes searchOverlayIn {
+    0% {
+        opacity: 0;
+        backdrop-filter: blur(0);
+    }
+    100% {
+        opacity: 1;
+        backdrop-filter: blur(8px);
+    }
+}
+
+.search-overlay.active .search-container {
+    animation: searchBoxIn 0.4s cubic-bezier(0.22, 1, 0.36, 1) 0.05s forwards;
+    opacity: 0;
+}
+
+@keyframes searchBoxIn {
+    0% {
+        opacity: 0;
+        transform: translateY(-20px) scale(0.98);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+/* Hero content entrance on page load */
+.hero-content {
+    animation: heroEntrance 0.8s cubic-bezier(0.22, 1, 0.36, 1) 0.1s both;
+}
+
+@keyframes heroEntrance {
+    0% {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.hero-title {
+    animation: heroTextIn 0.8s cubic-bezier(0.22, 1, 0.36, 1) 0.15s both;
+}
+
+.hero-subtitle {
+    animation: heroTextIn 0.8s cubic-bezier(0.22, 1, 0.36, 1) 0.25s both;
+}
+
+.hero-content .btn {
+    animation: heroTextIn 0.8s cubic-bezier(0.22, 1, 0.36, 1) 0.35s both;
+}
+
+@keyframes heroTextIn {
+    0% {
+        opacity: 0;
+        transform: translateY(20px);
+        filter: blur(4px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+        filter: blur(0);
+    }
+}
+
+/* ── Accessibility: Reduced Motion ── */
+
+@media (prefers-reduced-motion: reduce) {
+    .sr-ready {
+        opacity: 1 !important;
+        transform: none !important;
+    }
+
+    .sr-revealed {
+        transition: none !important;
+    }
+
+    .page-leaving,
+    .page-entering {
+        animation: none !important;
+    }
+
+    .page-transitioning::after {
+        animation: none !important;
+    }
+
+    .ripple-effect {
+        display: none !important;
+    }
+
+    .hero-content,
+    .hero-title,
+    .hero-subtitle,
+    .hero-content .btn {
+        animation: none !important;
+        opacity: 1 !important;
+        transform: none !important;
+        filter: none !important;
+    }
+
+    ::view-transition-old(root),
+    ::view-transition-new(root) {
+        animation: none !important;
+    }
+
+    .benefit-card:hover .benefit-icon {
+        animation: none !important;
+    }
+
+    * {
+        transition-duration: 0.01ms !important;
+        animation-duration: 0.01ms !important;
+    }
+}
+
