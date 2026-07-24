@@ -409,7 +409,7 @@ window.klaroConfig = {
                 
                 <ul class="nav-menu" id="navMenu">
                     <li><a href="/livros" class="nav-link">Livros</a></li>
-                    <li><a href="/servicos" class="nav-link">Serviços</a></li>
+                    <!-- <li><a href="/servicos" class="nav-link">Serviços</a></li> -->
                     <li><a href="/sobre" class="nav-link">Sobre</a></li>
                     <li><a href="/blog" class="nav-link active">Blog</a></li>
                     <li><a href="/apoio" class="nav-link">Apoio</a></li>
@@ -419,6 +419,7 @@ window.klaroConfig = {
                     <button class="icon-btn search-btn" id="searchBtn">
                         <i class="fas fa-search"></i>
                     </button>
+                    <!-- Carrinho e Conta desativados no modo estático
                     <button class="icon-btn cart-btn" id="cartBtn">
                         <i class="fas fa-shopping-cart"></i>
                         <span class="cart-count" id="cartCount">0</span>
@@ -426,6 +427,7 @@ window.klaroConfig = {
                     <button class="icon-btn user-btn" id="userBtn">
                         <i class="fas fa-user"></i>
                     </button>
+                    -->
                     <button class="hamburger" id="hamburger">
                         <span></span>
                         <span></span>
@@ -447,91 +449,17 @@ window.klaroConfig = {
         </div>
     </div>
 
-    <!-- Cart Sidebar -->
+    <!-- Cart Sidebar (Desativado)
     <div class="cart-sidebar" id="cartSidebar">
-        <div class="cart-header">
-            <h3>Carrinho de Compras</h3>
-            <button class="close-cart" id="closeCart">
-                <i class="fas fa-times"></i>
-            </button>
-        </div>
-        <div class="cart-items" id="cartItems"></div>
-        <div class="cart-footer">
-            <div class="cart-total">
-                <span>Total:</span>
-                <span id="cartTotal">0,00€</span>
-            </div>
-            <button class="btn btn-primary btn-checkout">Finalizar Compra</button>
-        </div>
+        ...
     </div>
+    -->
 
-    <!-- User Sidebar -->
+    <!-- User Sidebar (Desativado)
     <div class="user-sidebar" id="userSidebar">
-        <div class="user-header">
-            <h3>Conta</h3>
-            <button class="close-user" id="closeUser">
-                <i class="fas fa-times"></i>
-            </button>
-        </div>
-        <div class="user-content" id="userContent">
-            <div class="auth-form" id="loginForm">
-                <h4>Iniciar Sessão</h4>
-                <form id="loginFormElement">
-                    <div class="form-group">
-                        <input type="email" placeholder="Email" required>
-                    </div>
-                    <div class="form-group">
-                        <input type="password" placeholder="Password" required>
-                    </div>
-                    <button type="submit" class="btn btn-primary">Entrar</button>
-                </form>
-                <div class="auth-divider">
-                    <span>ou</span>
-                </div>
-                <button type="button" class="btn btn-google" id="googleSignInBtn">
-                    <i class="fab fa-google"></i>
-                    Continuar com Google
-                </button>
-                <p class="auth-toggle">Não tem conta? <a href="#" id="showRegister">Criar conta</a></p>
-            </div>
-            <div class="auth-form hidden" id="registerForm">
-                <h4>Criar Conta</h4>
-                <form id="registerFormElement">
-                    <div class="form-group">
-                        <input type="text" placeholder="Nome" maxlength="50" required>
-                    </div>
-                    <div class="form-group">
-                        <input type="email" placeholder="Email" required>
-                    </div>
-                    <div class="form-group">
-                        <input type="password" placeholder="Password" required>
-                    </div>
-                    <button type="submit" class="btn btn-primary">Registar</button>
-                </form>
-                <div class="auth-divider">
-                    <span>ou</span>
-                </div>
-                <button type="button" class="btn btn-google" id="googleSignUpBtn">
-                    <i class="fab fa-google"></i>
-                    Registar com Google
-                </button>
-                <p class="auth-toggle">Já tem conta? <a href="#" id="showLogin">Iniciar sessão</a></p>
-            </div>
-            <div class="user-profile hidden" id="userProfile">
-                <div class="profile-info">
-                    <div class="profile-avatar">
-                        <i class="fas fa-user"></i>
-                    </div>
-                    <h4 id="userName"></h4>
-                    <p id="userEmail"></p>
-                </div>
-                <div class="profile-actions">
-                    <a href="/conta" class="btn btn-outline">Ver Minha Conta</a>
-                    <button class="btn btn-secondary" id="logoutBtn">Terminar Sessão</button>
-                </div>
-            </div>
-        </div>
+        ...
     </div>
+    -->
 
     <!-- Main Content -->
     <main class="site-container">

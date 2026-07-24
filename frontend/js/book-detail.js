@@ -277,16 +277,11 @@ function displayBookDetail() {
             </div>
             
             <div class="book-detail-actions">
-                <div class="quantity-selector">
-                    <button class="quantity-decrease"><i class="fas fa-minus"></i></button>
-                    <span id="quantityDisplay">1</span>
-                    <button class="quantity-increase"><i class="fas fa-plus"></i></button>
-                </div>
                 <div class="action-buttons">
-                    <button class="btn btn-primary btn-large btn-add-to-cart">
-                        <i class="fas fa-shopping-cart"></i>
-                        Adicionar ao Carrinho
-                    </button>
+                    <a href="${currentBook.buyUrl || (currentBook.isbn ? `https://www.amazon.com/dp/${currentBook.isbn.replace(/[^a-zA-Z0-9]/g, '')}` : '#')}" target="_blank" rel="noopener noreferrer" class="btn btn-primary btn-large btn-buy-now">
+                        <i class="fas fa-shopping-bag"></i>
+                        Comprar Agora
+                    </a>
                     <button class="btn btn-secondary btn-large btn-preview">
                         <i class="fas fa-book-open"></i>
                         Ler Amostra
@@ -310,30 +305,22 @@ function displayBookDetail() {
                         <span>Envio grátis para todas as encomendas</span>
                     </div>
                     <div class="feature-item">
-                        <i class="fas fa-undo"></i>
-                        <span>Devolução grátis até 14 dias</span>
-                    </div>
-                    <div class="feature-item">
                         <i class="fas fa-shield-alt"></i>
-                        <span>Pagamento seguro</span>
+                        <span>Compra direta e segura</span>
                     </div>
                 </div>
             </div>
         </div>
     `;
 
-  // Use DOMPurify if available, otherwise use innerHTML directly (data is from our own API)
+  // Use DOMPurify if available, otherwise use innerHTML directly
   bookDetail.innerHTML =
     typeof DOMPurify !== "undefined"
       ? DOMPurify.sanitize(bookDetailHTML)
       : bookDetailHTML;
 
-  console.log("✅ HTML rendered, attaching event listeners...");
-
   // Attach event listeners after setting innerHTML
   attachBookDetailEvents();
-
-  console.log("✅ Event listeners attached, loading content...");
 
   // Load book content (video + gallery)
   loadBookContent();
@@ -341,24 +328,6 @@ function displayBookDetail() {
 
 // Attach event listeners to book detail elements
 function attachBookDetailEvents() {
-  // Quantity selector buttons
-  const decreaseBtn = document.querySelector(".quantity-decrease");
-  const increaseBtn = document.querySelector(".quantity-increase");
-
-  if (decreaseBtn) {
-    decreaseBtn.addEventListener("click", () => updateQuantity(-1));
-  }
-
-  if (increaseBtn) {
-    increaseBtn.addEventListener("click", () => updateQuantity(1));
-  }
-
-  // Add to cart button
-  const addToCartBtn = document.querySelector(".btn-add-to-cart");
-  if (addToCartBtn) {
-    addToCartBtn.addEventListener("click", addToCart);
-  }
-
   // Preview button
   const previewBtn = document.querySelector(".btn-preview");
   if (previewBtn) {

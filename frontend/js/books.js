@@ -4,7 +4,7 @@
 
 let allBooks = []; // All books from API
 let currentBooks = [];
-let currentView = 'grid';
+let currentView = 'list';
 let isLoading = false;
 
 // Helper: slugify a string for option values
@@ -71,29 +71,15 @@ async function initBooksPage() {
     applyURLFilters();
 }
 
-// Load books from API
+// Load books from static API
 async function loadBooks() {
     const booksGrid = document.getElementById('booksGrid');
     if (!booksGrid) return;
     
-    // Check if data is prefetched
-    if (window.pageCache && window.pageCache['books']) {
-        console.log('📚 Using prefetched books data');
-        allBooks = transformBooks(window.pageCache['books']);
-        currentBooks = [...allBooks];
-        populateCategoryFilter();
-        displayBooks(currentBooks);
-        delete window.pageCache['books'];
-        isLoading = false;
-        return;
-    }
-    
-    // Show loading skeleton
     isLoading = true;
     showLoadingSkeleton(booksGrid);
     
     try {
-        // Fetch books from API only - no fallback to static data
         const booksFromApi = await api.getBooks();
         allBooks = transformBooks(booksFromApi);
         currentBooks = [...allBooks];
@@ -101,14 +87,10 @@ async function loadBooks() {
         displayBooks(currentBooks);
     } catch (error) {
         console.error('Error loading books:', error);
-        // Show error message - NO fallback to static data
-        booksGrid.innerHTML = `
-            <div style="grid-column: 1/-1; text-align: center; padding: 60px 20px;">
-                <i class="fas fa-exclamation-triangle" style="font-size: 4rem; color: var(--border-color); margin-bottom: 20px;"></i>
-                <p style="color: var(--text-gray); font-size: 1.2rem;">Erro ao carregar livros. Verifique  a sua conexão à internet</p>
-                <button onclick="loadBooks()" class="btn btn-primary" style="margin-top: 20px;">Tentar Novamente</button>
-            </div>
-        `;
+        allBooks = window.booksData || [];
+        currentBooks = [...allBooks];
+        populateCategoryFilter();
+        displayBooks(currentBooks);
     } finally {
         isLoading = false;
     }
@@ -116,7 +98,7 @@ async function loadBooks() {
 
 // Show loading skeleton
 function showLoadingSkeleton(container) {
-    const skeletonCards = Array(8).fill('').map(() => `
+    const skeletonCards = Array(4).fill('').map(() => `
         <div class="book-card skeleton">
             <div class="book-image skeleton-image"></div>
             <div class="book-info">
@@ -136,6 +118,8 @@ function displayBooks(books) {
     const booksGrid = document.getElementById('booksGrid');
     if (!booksGrid) return;
     
+    booksGrid.classList.add('list-view');
+
     if (books.length === 0) {
         booksGrid.innerHTML = `
             <div style="grid-column: 1/-1; text-align: center; padding: 60px 20px;">
@@ -147,15 +131,12 @@ function displayBooks(books) {
     }
     
     booksGrid.innerHTML = books.map(book => {
-        // Handle both API format (category as object) and static data format (category as string)
         const categoryName = typeof book.category === 'object' ? (book.category?.name || 'Geral') : (book.category || 'Geral');
-        // Handle image field (API uses coverImage/coverUrl, static uses image)
         const imageUrl = book.image || book.coverImage || book.coverUrl || null;
-        // FIXED: Only show promo badge if promo field is explicitly true
         const isPromo = book.promo === true;
-        // FIXED: Only show oldPrice if promo is true AND oldPrice exists
         const oldPrice = isPromo ? (book.oldPrice || book.originalPrice || null) : null;
         const bookUrl = book.slug ? `/livro/${book.slug}` : `/livro/${book.id}`;
+        const buyUrl = book.buyUrl || (book.isbn ? `https://www.amazon.com/dp/${book.isbn.replace(/[^a-zA-Z0-9]/g, '')}` : '#');
         
         return `
         <div class="book-card" data-href="${bookUrl}" data-book-id="${book.id}" data-aos="slide-up" data-aos-stagger-group="books">
@@ -172,9 +153,9 @@ function displayBooks(books) {
                         ${parseFloat(book.price).toFixed(2)}€
                         ${oldPrice ? `<span class="book-price-old">${parseFloat(oldPrice).toFixed(2)}€</span>` : ''}
                     </div>
-                    <button class="add-to-cart-btn" data-book='${JSON.stringify(book).replace(/'/g, "&#39;")}'>
-                        <i class="fas fa-shopping-cart"></i>
-                    </button>
+                    <a href="${buyUrl}" target="_blank" rel="noopener noreferrer" class="btn btn-primary buy-btn" onclick="event.stopPropagation();">
+                        Comprar
+                    </a>
                 </div>
             </div>
         </div>
@@ -198,23 +179,12 @@ function attachBookCardEvents(container) {
     
     // Add click listener to container (event delegation)
     newContainer.addEventListener('click', function(e) {
-        // Check if clicked on add-to-cart button
-        const cartBtn = e.target.closest('.add-to-cart-btn');
-        if (cartBtn) {
-            e.preventDefault();
-            e.stopPropagation();
-            try {
-                const bookData = JSON.parse(cartBtn.dataset.book.replace(/&#39;/g, "'"));
-                if (window.cart) {
-                    window.cart.addItem(bookData);
-                }
-            } catch (err) {
-                console.error('Error adding to cart:', err);
-            }
+        const buyBtn = e.target.closest('.buy-btn');
+        if (buyBtn) {
+            // Let the buy link navigate directly
             return;
         }
         
-        // Check if clicked on book card
         const bookCard = e.target.closest('.book-card');
         if (bookCard && bookCard.dataset.href) {
             e.preventDefault();
@@ -227,7 +197,6 @@ function attachBookCardEvents(container) {
 function attachFilters() {
     const categoryFilter = document.getElementById('categoryFilter');
     const sortFilter = document.getElementById('sortFilter');
-    const viewBtns = document.querySelectorAll('.view-btn');
     
     if (categoryFilter) {
         categoryFilter.addEventListener('change', (e) => {
@@ -240,15 +209,6 @@ function attachFilters() {
             sortBooks(e.target.value);
         });
     }
-    
-    viewBtns.forEach(btn => {
-        btn.addEventListener('click', () => {
-            viewBtns.forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            const view = btn.dataset.view;
-            toggleView(view);
-        });
-    });
 }
 
 // Filter books by category
@@ -292,18 +252,13 @@ function sortBooks(sortBy) {
     displayBooks(sorted);
 }
 
-// Toggle view (grid/list)
-function toggleView(view) {
+// Toggle view (always list view)
+function toggleView(view = 'list') {
     const booksGrid = document.getElementById('booksGrid');
     if (!booksGrid) return;
     
-    currentView = view;
-    
-    if (view === 'list') {
-        booksGrid.classList.add('list-view');
-    } else {
-        booksGrid.classList.remove('list-view');
-    }
+    currentView = 'list';
+    booksGrid.classList.add('list-view');
 }
 
 // Apply filters from URL parameters

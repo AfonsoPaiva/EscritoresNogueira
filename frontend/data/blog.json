@@ -1,0 +1,34 @@
+[
+  {
+    "author": "Família Nogueira",
+    "category_id": null,
+    "category_name": "Notícias",
+    "content": "<div class=\"post-content\"> <p> Somos os <strong>Escritores Nogueira</strong>, uma família unida pela paixão pela escrita e pelo amor às histórias. Durante gerações, a arte de contar histórias tem sido transmitida entre nós, criando um legado literário que agora queremos partilhar com o mundo. </p> <p> A nossa jornada começou há muitos anos, quando o patriarca da família pegou na caneta e deu vida às suas primeiras palavras. Desde então, cada membro da família Nogueira tem contribuído com a sua voz única, o seu estilo particular e a sua perspetiva sobre o mundo. </p> <h2>Uma Tradição de Excelência Literária</h2> <p> Ao longo dos anos, desenvolvemos uma abordagem única à criação literária, combinando técnicas tradicionais com inovação contemporânea. Cada livro que criamos é tratado como uma obra de arte, cuidadosamente elaborada para tocar o coração dos leitores. </p> <p> A nossa experiência abrange diversos géneros literários: desde romances que exploram as profundezas da alma humana, até contos que capturam momentos efémeros da vida quotidiana, passando por obras de não-ficção que informam e inspiram. </p> <h2>O Nosso Compromisso Consigo</h2> <p> Aceitamos a criação de livros, sejam simples ou complexos. Acreditamos que cada história merece ser contada, cada ideia merece ser explorada, e cada voz merece ser ouvida. Não importa se está a dar os seus primeiros passos no mundo da escrita ou se já é um autor experiente à procura de colaboração — estamos aqui para transformar as suas palavras em realidade. </p> <h3>Os Nossos Serviços</h3> <ul> <li><strong>Criação de Obras Originais:</strong> Desenvolvemos livros desde a conceção inicial até à versão final.</li> <li><strong>Co-Autoria:</strong> Colaboramos consigo para dar vida às suas ideias.</li> <li><strong>Revisão e Edição:</strong> Polimos o seu manuscrito até atingir a perfeição.</li> <li><strong>Consultoria Literária:</strong> Orientamos autores em todas as fases do processo criativo.</li> </ul> <h2>Juntos, Criamos Histórias Memoráveis</h2> <p> Na família Nogueira, acreditamos que a escrita é mais do que uma profissão — é uma vocação, uma forma de deixar a nossa marca no mundo e de conectar pessoas através das páginas de um livro. Cada projeto que abraçamos é tratado com dedicação, respeito e o compromisso de entregar excelência. </p> <p> Convidamo-lo a fazer parte desta tradição literária. Seja qual for o seu projeto, por mais simples que pareça, estamos prontos para o ajudar a concretizá-lo. Porque acreditamos que todas as histórias merecem ser contadas, e todas as vozes merecem ser celebradas. </p> <p class=\"cta-text\"> <strong>Entre em contacto connosco e vamos juntos criar algo extraordinário.</strong> </p> </div>",
+    "created_at": "2026-01-07T17:40:49.307792",
+    "excerpt": "seja muito bem vindo a esta família",
+    "featured": true,
+    "featured_image": "https://cdn.pixabay.com/photo/2016/11/29/02/56/blonde-1866951_1280.jpg",
+    "id": 468,
+    "published": true,
+    "slug": "bem-vindo",
+    "title": "Bem-vindos aos Escritores Nogueira",
+    "updated_at": "2026-01-10T17:49:36.550256",
+    "view_count": 0
+  },
+  {
+    "author": "Escritores Nogueira",
+    "category_id": null,
+    "category_name": "Anúncio",
+    "content": "<div class=\"post-content\"> <h1>Leva a Filosofia para a Tua Vida: O Novo Livro da Escritores Nogueira</h1> <p>Este livro é um convite a uma viagem interior guiada pela sabedoria dos grandes filósofos. Muitas vezes, a filosofia é vista apenas como uma disciplina académica, mas aqui ela é apresentada como uma ferramenta essencial e prática para o quotidiano.</p> <p>Através de histórias, parábolas e reflexões, a obra mostra como podemos aplicar o pensamento crítico ao dia a dia, ajudando-nos a compreender melhor quem somos, a lidar com os problemas e a cultivar relações mais saudáveis.</p> <h2>Sabedoria Antiga para Problemas Modernos</h2> <p>Do autoconhecimento inspirado em Sócrates e Marco Aurélio, às lições de Nietzsche, Aristóteles, Kant ou Viktor Frankl, cada capítulo abre portas a uma reflexão acessível e transformadora.</p> <p>Para tornar a leitura leve e profunda, o livro utiliza diversos recursos narrativos:</p> <ul> <li>Parábolas Sufi;</li> <li>Metáforas orientais;</li> <li>Histórias reais que acompanham os ensinamentos.</li> </ul> <h2>Uma Verdadeira Arte de Viver</h2> <p>Neste livro, a filosofia revela-se como uma \"arte de viver\". O objetivo é oferecer ferramentas para pensar, sentir e agir com mais consciência, ajudando o leitor em várias frentes:</p> <ul> <li>Enfrentar o stresse, a inveja e a solidão;</li> <li>Valorizar a amizade e o amor;</li> <li>Aceitar a finitude da vida;</li> <li>Repensar a relação com o trabalho e a felicidade.</li> </ul> <h2>Transforma a Tua Vida</h2> <p>Mais do que respostas prontas, \"Leva a Filosofia para a Tua Vida\" oferece um caminho para quem procura clareza, serenidade e inspiração.</p> <div class=\"area-do-botao\" style=\"text-align: center; margin: 40px 0;\"> <a href=\"/livro/leva-a-filosofia-para-a-tua-vida\" class=\"btn btn-primary\" style=\"padding: 15px 30px; font-weight: bold; font-size: 18px;\">COMPRAR LIVRO AGORA</a> </div> </div>",
+    "created_at": "2026-02-05T09:40:30.452775",
+    "excerpt": "Descobre como transformar a sabedoria dos grandes filósofos em ferramentas práticas para viveres com mais clareza, serenidade e propósito.",
+    "featured": true,
+    "featured_image": "https://i.postimg.cc/DZnH4064/line.png",
+    "id": 535,
+    "published": true,
+    "slug": "como-transformar-filosofia-arte-de-viver",
+    "title": "Como Transformar a Filosofia numa Arte de Viver: Clareza e Propósito",
+    "updated_at": "2026-02-18T20:36:59.26281",
+    "view_count": 0
+  }
+]

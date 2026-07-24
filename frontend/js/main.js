@@ -725,14 +725,11 @@ function displayFeaturedBooks(books, container) {
     const bookUrl = (book) => book.slug ? `/livro/${book.slug}` : `/livro/${book.id}`;
     
     const booksHTML = books.map(book => {
-        // Handle both API format (category as object) and static data format (category as string)
         const categoryName = typeof book.category === 'object' ? (book.category?.name || 'Geral') : (book.category || 'Geral');
-        // Handle image field (API uses coverImage/coverUrl, static uses image)
         const imageUrl = book.image || book.coverImage || book.coverUrl || null;
-        // FIXED: Only show promo badge if promo field is explicitly true
         const isPromo = book.promo === true;
-        // FIXED: Only show oldPrice if promo is true AND oldPrice exists
         const oldPrice = isPromo ? (book.oldPrice || book.originalPrice || null) : null;
+        const buyUrl = book.buyUrl || (book.isbn ? `https://www.amazon.com/dp/${book.isbn.replace(/[^a-zA-Z0-9]/g, '')}` : '#');
         
         return `
         <div class="swiper-slide">
@@ -750,9 +747,9 @@ function displayFeaturedBooks(books, container) {
                             ${parseFloat(book.price).toFixed(2)}€
                             ${oldPrice ? `<span class="book-price-old">${parseFloat(oldPrice).toFixed(2)}€</span>` : ''}
                         </div>
-                        <button class="add-to-cart-btn" data-book='${JSON.stringify(book).replace(/'/g, "&#39;")}'>
-                            <i class="fas fa-shopping-cart"></i>
-                        </button>
+                        <a href="${buyUrl}" target="_blank" rel="noopener noreferrer" class="btn btn-primary buy-btn" onclick="event.stopPropagation();">
+                            Comprar
+                        </a>
                     </div>
                 </div>
             </div>
