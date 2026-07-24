@@ -9,7 +9,7 @@ const CONTA_API_URL = window.API_BASE || 'http://localhost:8080/api';
 async function initContaPage() {
     // Wait for auth system to be ready
     if (!window.auth) {
-        console.error('❌ Auth system not available');
+        // console.error('❌ Auth system not available');
         window.location.href = '/';
         return;
     }
@@ -19,7 +19,7 @@ async function initContaPage() {
 
     // Check if user is logged in using global auth instance
     if (!window.auth.isLoggedIn()) {
-        console.log('❌ User not logged in, redirecting...');
+        // console.log('❌ User not logged in, redirecting...');
         window.location.href = '/';
         return;
     }

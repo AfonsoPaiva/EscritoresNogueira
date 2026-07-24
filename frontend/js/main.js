@@ -92,11 +92,9 @@ async function loadRecaptchaConfig() {
             const config = await response.json();
             window.recaptchaSiteKey = config.siteKey;
             loadRecaptchaScript();
-        } else {
-            console.warn('Failed to load reCAPTCHA config');
         }
     } catch (error) {
-        console.error('Error loading reCAPTCHA config:', error);
+        // Backend disabled; ignore reCAPTCHA config fetch error
     }
 }
 
@@ -572,34 +570,26 @@ function initSearch() {
 function initPage() {
     const path = window.location.pathname;
 
-    if (path.includes('index.html') || path.endsWith('/') || path === '' || path.endsWith('/index')) {
-        // Call async function properly
-        loadFeaturedBooks().catch(err => console.error('Error in loadFeaturedBooks:', err));
-        loadLatestBlogPosts().catch(err => console.error('Error in loadLatestBlogPosts:', err));
-    } else if (path.includes('livros.html') || path.endsWith('/livros')) {
-        // Code from books.js
+    if (document.getElementById('featuredBooks')) {
+        loadFeaturedBooks().catch(() => {});
+    }
+    if (document.getElementById('latestBlogPosts')) {
+        loadLatestBlogPosts().catch(() => {});
+    }
+
+    if (path.includes('livros.html') || path.endsWith('/livros')) {
         loadBooks();
         attachFilters();
         applyURLFilters();
-    } else if ((path.includes('livro.html') || path.includes('/livro')) && !path.includes('livros')) {
-        // Book detail page - handled by book-detail.js
-        // Do NOT redirect here - let book-detail.js handle it
     } else if (path.includes('blog.html') || path.endsWith('/blog')) {
-        // Code from blog.js
         loadBlogPosts();
     } else if (path.includes('artigo.html') || path.includes('/artigo')) {
-    // Article detail page: delegate to article.js (slug-only)
-    try {
-        if (typeof initArticlePage === 'function') {
-            initArticlePage();
-        } else {
-            window.location.href = '/blog';
-        }
-    } catch (e) {
-        console.error('Error initializing article page:', e);
-        window.location.href = '/blog';
+        try {
+            if (typeof initArticlePage === 'function') {
+                initArticlePage();
+            }
+        } catch (e) {}
     }
-}
 }
 
 async function loadFeaturedBooks() {
@@ -621,21 +611,18 @@ async function loadFeaturedBooks() {
     `).join('');
 
     try {
-        // Check if data is prefetched
         let booksFromApi;
         if (window.pageCache && window.pageCache['featured']) {
-            console.log('🏠 Using prefetched featured books data');
             booksFromApi = window.pageCache['featured'];
             delete window.pageCache['featured'];
         } else {
-            // Fetch books from API - same approach as books.js
             booksFromApi = await api.getBooks();
         }
 
         // Filter featured books, or take first 8 if none are featured
-        let featuredBooks = booksFromApi.filter(b => b.featured).slice(0, 8);
+        let featuredBooks = (booksFromApi || []).filter(b => b.featured).slice(0, 8);
         if (featuredBooks.length === 0) {
-            featuredBooks = booksFromApi.slice(0, 8);
+            featuredBooks = (booksFromApi || []).slice(0, 8);
         }
         if (featuredBooks.length === 0) {
             featuredBooksContainer.innerHTML = `
@@ -652,12 +639,11 @@ async function loadFeaturedBooks() {
         displayFeaturedBooks(featuredBooks, featuredBooksContainer);
         
     } catch (error) {
-        console.error('❌ Erro ao carregar livros:', error);
         featuredBooksContainer.innerHTML = `
             <div class="swiper-slide" style="width: 100%; display: flex; justify-content: center; align-items: center;">
                 <div style="text-align: center; padding: 40px 20px; color: var(--text-gray);">
                     <i class="fas fa-exclamation-circle" style="font-size: 2rem; margin-bottom: 10px; display: block;"></i>
-                    <p>Erro ao carregar livros. Verifique a sua conexão à internet.</p>
+                    <p>Erro ao carregar livros.</p>
                     <button onclick="loadFeaturedBooks()" class="btn btn-secondary" style="margin-top: 15px;">Tentar Novamente</button>
                 </div>
             </div>
@@ -670,7 +656,7 @@ function displayFeaturedBooks(books, container) {
     
     const booksHTML = books.map(book => {
         const categoryName = typeof book.category === 'object' ? (book.category?.name || 'Geral') : (book.category || 'Geral');
-        const imageUrl = book.image || book.coverImage || book.coverUrl || null;
+        const imageUrl = book.image || book.coverImage || book.cover_image || book.coverUrl || null;
         const isPromo = book.promo === true;
         const oldPrice = isPromo ? (book.oldPrice || book.originalPrice || null) : null;
         const buyUrl = book.buyUrl || (book.isbn ? `https://www.amazon.com/dp/${book.isbn.replace(/[^a-zA-Z0-9]/g, '')}` : '#');
@@ -679,7 +665,7 @@ function displayFeaturedBooks(books, container) {
         <div class="swiper-slide">
             <div class="book-card" data-href="${bookUrl(book)}" data-book-id="${book.id}">
                 <div class="book-image">
-                    ${imageUrl ? `<img src="${imageUrl}" alt="${book.title}" width="280" height="350" loading="lazy">` : '<i class="fas fa-book"></i>'}
+                    ${imageUrl ? `<img src="${imageUrl}" alt="${book.title}" width="280" height="350" loading="lazy" decoding="async">` : '<i class="fas fa-book"></i>'}
                     ${isPromo ? '<div class="book-badge">Promoção</div>' : ''}
                 </div>
                 <div class="book-info">

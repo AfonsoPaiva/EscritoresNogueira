@@ -20,8 +20,8 @@ function renderBookCard(book, options = {}) {
     
     // Handle both API format (category as object) and static data format (category as string)
     const categoryName = typeof book.category === 'object' ? (book.category?.name || 'Geral') : (book.category || 'Geral');
-    // Handle image field (API uses coverImage/coverUrl, static uses image)
-    const imageUrl = book.image || book.coverImage || book.coverUrl || null;
+    // Handle image field (API uses coverImage/coverUrl, static uses image or cover_image)
+    const imageUrl = book.image || book.coverImage || book.cover_image || book.coverUrl || null;
     // FIXED: Only show promo badge if promo field is explicitly true
     const isPromo = book.promo === true;
     // FIXED: Only show oldPrice if promo is true AND oldPrice exists

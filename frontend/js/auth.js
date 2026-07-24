@@ -66,13 +66,10 @@ class AuthSystem {
             if (response.ok) {
                 const config = await response.json();
                 window.recaptchaSiteKey = config.siteKey;
-                console.log('🔒 reCAPTCHA config loaded');
                 this.loadRecaptchaScript();
-            } else {
-                console.warn('Failed to load reCAPTCHA config');
             }
         } catch (error) {
-            console.error('Error loading reCAPTCHA config:', error);
+            // Backend disabled; ignore reCAPTCHA config fetch
         }
     }
 
@@ -384,14 +381,11 @@ class AuthSystem {
                     email: data.email,
                     photoUrl: data.photoUrl
                 };
-                console.log('✅ Session loaded from backend');
             } else {
-                console.log('🔒 Session invalid or expired');
                 this.clearSession();
             }
         } catch (error) {
-            console.error('❌ Error loading session from backend:', error);
-            // Don't clear session on network error - might be temporary
+            // Backend is disabled; ignore session load errors
         }
 
         this.sessionLoaded = true;
