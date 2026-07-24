@@ -1,6 +1,6 @@
 // ==================================
 // SMOOTH ANIMATIONS SYSTEM
-// Scroll-reveal, page transitions, micro-interactions
+// Scroll-reveal, Swup page transitions, micro-interactions
 // ==================================
 
 (function () {
@@ -10,7 +10,6 @@
     const REVEAL_THRESHOLD = 0.12;       // How much element must be visible
     const REVEAL_ROOT_MARGIN = '0px 0px -40px 0px';
     const STAGGER_DELAY = 80;            // ms between sibling reveals
-    const TRANSITION_DURATION = 400;     // ms for page transitions
 
     // ── 1. SCROLL REVEAL via IntersectionObserver ──
 
@@ -47,7 +46,6 @@
 
     function initScrollReveal() {
         if (typeof IntersectionObserver === 'undefined') {
-            // Fallback: show everything immediately
             revealAll();
             return;
         }
@@ -56,7 +54,6 @@
             entries.forEach(entry => {
                 if (entry.isIntersecting) {
                     const el = entry.target;
-                    // Apply stagger delay for sibling elements
                     const delay = el.dataset.srDelay || 0;
                     if (delay > 0) {
                         setTimeout(() => el.classList.add(REVEAL_CLASS), delay);
@@ -71,24 +68,19 @@
             rootMargin: REVEAL_ROOT_MARGIN
         });
 
-        // Query all revealable elements
         const els = document.querySelectorAll(REVEAL_SELECTORS.join(','));
 
         // Group elements by parent for stagger
         const parentGroups = new Map();
         els.forEach(el => {
-            // Don't re-process already revealed elements
             if (el.classList.contains(REVEAL_CLASS)) return;
 
-            // Mark as ready (sets initial hidden state via CSS)
             el.classList.add(REVEAL_READY_CLASS);
 
-            // Determine animation direction
             if (!el.dataset.srDirection) {
                 el.dataset.srDirection = getDefaultDirection(el);
             }
 
-            // Group siblings for stagger
             const parent = el.parentElement;
             if (parent) {
                 if (!parentGroups.has(parent)) {
@@ -107,7 +99,6 @@
             }
         });
 
-        // Observe all elements
         els.forEach(el => {
             if (el.classList.contains(REVEAL_READY_CLASS)) {
                 observer.observe(el);
@@ -116,7 +107,6 @@
     }
 
     function getDefaultDirection(el) {
-        // Assign subtle animation direction based on element type
         if (el.classList.contains('hero-content')) return 'up';
         if (el.classList.contains('benefit-card') ||
             el.classList.contains('blog-card') ||
@@ -131,7 +121,6 @@
         return 'up';
     }
 
-    // Fallback: instantly reveal everything
     function revealAll() {
         if (typeof document === 'undefined') return;
         const els = document.querySelectorAll(
@@ -147,96 +136,140 @@
         });
     }
 
+    // Reset scroll reveal state (for Swup page transitions)
+    function resetScrollReveal() {
+        // Remove sr- classes so elements can be re-revealed on the new page
+        document.querySelectorAll('.sr-ready, .sr-revealed').forEach(el => {
+            el.classList.remove(REVEAL_READY_CLASS, REVEAL_CLASS);
+            delete el.dataset.srDelay;
+            delete el.dataset.srDirection;
+        });
+    }
 
-    // ── 2. PAGE TRANSITION SYSTEM ──
 
-    function initPageTransitions() {
-        // Intercept internal navigation links
-        document.addEventListener('click', (e) => {
-            const link = e.target.closest('a[href]');
-            if (!link) return;
+    // ── 2. SWUP PAGE TRANSITIONS ──
 
-            const href = link.getAttribute('href');
-            if (!href) return;
+    let swupInstance = null;
 
-            // Skip external links, hash links, new-tab links, javascript: links
-            if (href.startsWith('http') ||
-                href.startsWith('//') ||
-                href.startsWith('#') ||
-                href.startsWith('mailto:') ||
-                href.startsWith('tel:') ||
-                href.startsWith('javascript:') ||
-                link.target === '_blank' ||
-                link.hasAttribute('download') ||
-                e.ctrlKey || e.metaKey || e.shiftKey) {
-                return;
+    function initSwup() {
+        if (typeof Swup === 'undefined') {
+            console.warn('Swup not loaded — page transitions disabled');
+            return;
+        }
+
+        // Collect plugins
+        const plugins = [];
+
+        // Overlay theme (slide cover animation)
+        if (typeof SwupOverlayTheme !== 'undefined') {
+            plugins.push(new SwupOverlayTheme({
+                direction: 'to-right'
+            }));
+        }
+
+        // Head plugin (updates title, meta, stylesheets)
+        if (typeof SwupHeadPlugin !== 'undefined') {
+            plugins.push(new SwupHeadPlugin({
+                persistAssets: true,      // Don't remove existing scripts/styles
+                awaitAssets: true         // Wait for new stylesheets to load
+            }));
+        }
+
+        // Scripts plugin (re-runs inline/page-specific scripts)
+        if (typeof SwupScriptsPlugin !== 'undefined') {
+            plugins.push(new SwupScriptsPlugin({
+                head: false,              // Don't touch head scripts
+                body: true,               // Re-evaluate body scripts
+                optin: false              // Run all scripts unless [data-swup-ignore]
+            }));
+        }
+
+        // Scroll plugin (smooth scroll + scroll to top)
+        if (typeof SwupScrollPlugin !== 'undefined') {
+            plugins.push(new SwupScrollPlugin({
+                doScrollingRightAway: false,
+                animateScroll: {
+                    betweenPages: true,
+                    samePageWithHash: true,
+                    samePage: true,
+                }
+            }));
+        }
+
+        // Preload plugin (preload on hover for faster nav)
+        if (typeof SwupPreloadPlugin !== 'undefined') {
+            plugins.push(new SwupPreloadPlugin());
+        }
+
+        swupInstance = new Swup({
+            containers: ['#swup'],
+            animationSelector: '[class*="swup-transition-"]',
+            plugins: plugins,
+            cache: true,
+            // Links that Swup should ignore
+            linkSelector: 'a[href^="' + window.location.origin + '"]:not([data-no-swup]):not([target="_blank"]):not([href*="mailto:"]):not([href*="tel:"]):not([href$=".pdf"]):not([href$=".zip"]):not([download]), a[href^="/"]:not([data-no-swup]):not([target="_blank"]):not([href*="mailto:"]):not([href*="tel:"]):not([href$=".pdf"]):not([href$=".zip"]):not([download])'
+        });
+
+        // After new content is rendered, re-initialize everything
+        swupInstance.hooks.on('content:replace', () => {
+            // Reset and re-run scroll reveal for new content
+            resetScrollReveal();
+            initScrollReveal();
+
+            // Re-initialize micro-interactions for new DOM
+            initMicroInteractions();
+
+            // Re-initialize parallax for new elements
+            initParallax();
+
+            // Re-initialize smooth scroll for new anchors
+            initSmoothScroll();
+
+            // Re-run the app initialization from main.js
+            if (typeof initApp === 'function') {
+                try { initApp(); } catch (e) { console.warn('initApp error after Swup transition:', e); }
             }
 
-            // This is an internal navigation — apply transition
-            e.preventDefault();
+            // Re-run page-specific init
+            if (typeof initPage === 'function') {
+                try { initPage(); } catch (e) { console.warn('initPage error after Swup transition:', e); }
+            }
 
-            navigateWithTransition(href);
+            // Re-run animations globals
+            if (typeof runAnimations === 'function') {
+                try { runAnimations(); } catch (e) {}
+            }
+
+            // Update active nav link
+            if (typeof updateActiveNavLink === 'function') {
+                try { updateActiveNavLink(); } catch (e) {}
+            }
+
+            // Initialize swipers for new page
+            if (typeof initAllSwipers === 'function') {
+                setTimeout(() => {
+                    try { initAllSwipers(); } catch (e) {}
+                }, 150);
+            }
         });
 
-        // Handle browser back/forward
-        window.addEventListener('popstate', () => {
-            animatePageIn();
-        });
-    }
-
-    function navigateWithTransition(href) {
-        // Use View Transitions API if available (Chrome 111+)
-        if (document.startViewTransition) {
-            document.startViewTransition(() => {
-                window.location.href = href;
-            });
-            return;
-        }
-
-        // CSS fallback transition
-        const main = document.querySelector('main') || document.querySelector('.site-container');
-        if (!main) {
-            window.location.href = href;
-            return;
-        }
-
-        // Animate out
-        main.classList.add('page-leaving');
-        document.body.classList.add('page-transitioning');
-
-        setTimeout(() => {
-            window.location.href = href;
-        }, TRANSITION_DURATION);
-    }
-
-    function animatePageIn() {
-        const main = document.querySelector('main') || document.querySelector('.site-container');
-        if (!main) return;
-
-        main.classList.add('page-entering');
-        document.body.classList.remove('page-transitioning');
-
-        // Remove the class after animation completes
-        main.addEventListener('animationend', () => {
-            main.classList.remove('page-entering');
-        }, { once: true });
-
-        // Safety fallback to remove class
-        setTimeout(() => {
-            main.classList.remove('page-entering');
-        }, TRANSITION_DURATION + 100);
+        // Expose swup instance globally
+        window.swup = swupInstance;
     }
 
 
     // ── 3. MICRO-INTERACTIONS ──
 
     function initMicroInteractions() {
-        // Button ripple effect
-        document.addEventListener('click', (e) => {
-            const btn = e.target.closest('.btn, .btn-primary, .btn-secondary, .btn-outline, .btn-large, .icon-btn');
-            if (!btn) return;
-            createRipple(e, btn);
-        });
+        // Button ripple effect (event delegation — only attach once)
+        if (!window._rippleAttached) {
+            document.addEventListener('click', (e) => {
+                const btn = e.target.closest('.btn, .btn-primary, .btn-secondary, .btn-outline, .btn-large, .icon-btn');
+                if (!btn) return;
+                createRipple(e, btn);
+            });
+            window._rippleAttached = true;
+        }
 
         // Card tilt effect on hover (subtle)
         initCardTilt();
@@ -249,7 +282,6 @@
     }
 
     function createRipple(event, element) {
-        // Don't add ripple to elements that shouldn't have it
         if (element.classList.contains('no-ripple')) return;
 
         const ripple = document.createElement('span');
@@ -275,6 +307,10 @@
         const cards = document.querySelectorAll('.benefit-card, .blog-card, .support-card');
 
         cards.forEach(card => {
+            // Avoid attaching multiple listeners
+            if (card._tiltAttached) return;
+            card._tiltAttached = true;
+
             card.addEventListener('mousemove', (e) => {
                 const rect = card.getBoundingClientRect();
                 const x = e.clientX - rect.left;
@@ -299,6 +335,9 @@
         const magneticEls = document.querySelectorAll('.icon-btn');
 
         magneticEls.forEach(el => {
+            if (el._magneticAttached) return;
+            el._magneticAttached = true;
+
             el.addEventListener('mousemove', (e) => {
                 const rect = el.getBoundingClientRect();
                 const x = e.clientX - rect.left - rect.width / 2;
@@ -336,7 +375,7 @@
 
         function update(now) {
             const progress = Math.min((now - start) / duration, 1);
-            const eased = 1 - Math.pow(1 - progress, 3); // ease-out cubic
+            const eased = 1 - Math.pow(1 - progress, 3);
             el.textContent = Math.round(target * eased);
             if (progress < 1) {
                 requestAnimationFrame(update);
@@ -378,8 +417,10 @@
     // ── 5. SMOOTH SCROLL ENHANCEMENTS ──
 
     function initSmoothScroll() {
-        // Enhance anchor links with smooth offset
         document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            if (anchor._smoothScrollAttached) return;
+            anchor._smoothScrollAttached = true;
+
             anchor.addEventListener('click', function (e) {
                 const href = this.getAttribute('href');
                 if (!href || href === '#' || href.length <= 1) return;
@@ -400,18 +441,90 @@
     }
 
 
+    // ── PERSISTENT OBSERVER for dynamically added content ──
+
+    let persistentObserver = null;
+
+    function createPersistentObserver() {
+        if (persistentObserver) return persistentObserver;
+        if (typeof IntersectionObserver === 'undefined') return null;
+
+        persistentObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const el = entry.target;
+                    const delay = parseInt(el.dataset.srDelay, 10) || 0;
+                    if (delay > 0) {
+                        setTimeout(() => el.classList.add(REVEAL_CLASS), delay);
+                    } else {
+                        el.classList.add(REVEAL_CLASS);
+                    }
+                    persistentObserver.unobserve(el);
+                }
+            });
+        }, {
+            threshold: REVEAL_THRESHOLD,
+            rootMargin: REVEAL_ROOT_MARGIN
+        });
+
+        return persistentObserver;
+    }
+
+    function observeNewElements(root) {
+        const obs = createPersistentObserver();
+        if (!obs) return;
+
+        const els = (root || document).querySelectorAll(REVEAL_SELECTORS.join(','));
+        els.forEach(el => {
+            if (el.classList.contains(REVEAL_CLASS) || el.classList.contains(REVEAL_READY_CLASS)) return;
+
+            el.classList.add(REVEAL_READY_CLASS);
+            if (!el.dataset.srDirection) {
+                el.dataset.srDirection = getDefaultDirection(el);
+            }
+            obs.observe(el);
+        });
+    }
+
+    // Watch for dynamically added content (books, blog posts loaded via API)
+    function initMutationWatcher() {
+        if (typeof MutationObserver === 'undefined') return;
+
+        const watcher = new MutationObserver((mutations) => {
+            let hasNewNodes = false;
+            for (const mutation of mutations) {
+                if (mutation.addedNodes.length > 0) {
+                    hasNewNodes = true;
+                    break;
+                }
+            }
+            if (hasNewNodes) {
+                clearTimeout(watcher._timer);
+                watcher._timer = setTimeout(() => observeNewElements(), 100);
+            }
+        });
+
+        watcher.observe(document.body, {
+            childList: true,
+            subtree: true
+        });
+    }
+
+
     // ── INITIALIZATION ──
 
     function init() {
-        // Page entrance animation
-        animatePageIn();
-
         // Core systems
         initScrollReveal();
-        initPageTransitions();
         initMicroInteractions();
         initParallax();
         initSmoothScroll();
+
+        // Watch for dynamically added elements
+        initMutationWatcher();
+
+        // Initialize Swup page transitions (after everything else)
+        initSwup();
     }
 
     // Start when DOM is ready
@@ -434,9 +547,19 @@
 
     window.animateElements = function (selector) {
         if (selector && typeof document !== 'undefined') {
+            const obs = createPersistentObserver();
             document.querySelectorAll(selector).forEach(el => {
+                if (el.classList.contains(REVEAL_CLASS)) return;
+
                 el.classList.add(REVEAL_READY_CLASS);
-                el.classList.add(REVEAL_CLASS);
+                if (!el.dataset.srDirection) {
+                    el.dataset.srDirection = 'up';
+                }
+                if (obs) {
+                    obs.observe(el);
+                } else {
+                    el.classList.add(REVEAL_CLASS);
+                }
             });
         }
     };
