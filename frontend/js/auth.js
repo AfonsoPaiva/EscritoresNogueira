@@ -111,8 +111,7 @@ class AuthSystem {
 
         // Handle Firebase initialization errors
         window.addEventListener('firebaseError', (event) => {
-            console.error('👤 Firebase initialization failed:', event.detail);
-            this.showNotification('Erro ao inicializar autenticação. Tente recarregar a página.', 'error');
+            // Silenced for static mode without backend
         });
     }
 

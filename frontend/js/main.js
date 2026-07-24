@@ -498,12 +498,6 @@ function initSearch() {
                 searchOverlay.classList.remove('active');
                 searchOverlay.style.display = 'none';
             }
-        });
-    }
-                searchOverlay.classList.remove('active');
-                setTimeout(() => searchOverlay.style.display = 'none', 550);
-            }
-
             if (searchInput) searchInput.value = '';
             if (searchResults) searchResults.innerHTML = '';
         });
