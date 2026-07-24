@@ -567,7 +567,7 @@ function initPage() {
     if (document.getElementById('featuredBooks')) {
         loadFeaturedBooks().catch(() => {});
     }
-    if (document.getElementById('latestBlogPosts')) {
+    if (document.getElementById('latestPosts') || document.getElementById('latestBlogPosts')) {
         loadLatestBlogPosts().catch(() => {});
     }
 
@@ -732,7 +732,7 @@ function displayFeaturedBooks(books, container) {
 
 // Load latest blog posts for homepage
 async function loadLatestBlogPosts() {
-    const latestPostsContainer = document.getElementById('latestPosts');
+    const latestPostsContainer = document.getElementById('latestPosts') || document.getElementById('latestBlogPosts');
     if (!latestPostsContainer) return;
 
     // Show loading skeleton
