@@ -238,7 +238,7 @@ function displayBookDetail() {
   const bookDetailHTML = `
         <div class="book-detail-image" data-aos="fade-right">
             <div class="book-detail-image-wrapper">
-                ${imageUrl ? `<img src="${imageUrl}" alt="${currentBook.title}" class="book-detail-main-image" width="420" height="560" loading="lazy">` : '<i class="fas fa-book"></i>'}
+                ${imageUrl ? `<img src="${imageUrl}" alt="${currentBook.title}" class="book-detail-main-image" width="420" height="560" loading="eager" decoding="async">` : '<i class="fas fa-book"></i>'}
                 ${isPromo ? '<div class="book-badge promo-badge">Promoção</div>' : ""}
             </div>
         </div>
@@ -515,6 +515,7 @@ function loadBookGallery() {
                   src="${imageUrl}" 
                   alt="${altText}" 
                   loading="lazy"
+                  decoding="async"
                   class="gallery-image"
                   style="width: 100%; height: auto; object-fit: cover;"
                 >

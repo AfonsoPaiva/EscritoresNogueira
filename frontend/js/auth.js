@@ -179,9 +179,6 @@ class AuthSystem {
                 console.log('👤 User button clicado');
                 this.toggleUserPanel();
             });
-            console.log('✅ Event listener adicionado ao userBtn');
-        } else {
-            console.error('❌ userBtn não encontrado!');
         }
 
         // Fixed user button

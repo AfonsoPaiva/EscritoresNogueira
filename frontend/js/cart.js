@@ -32,9 +32,6 @@ class ShoppingCart {
                 console.log('🛒 Cart button clicado');
                 this.toggleCart();
             });
-            console.log('✅ Event listener adicionado ao cartBtn');
-        } else {
-            console.error('❌ cartBtn não encontrado!');
         }
 
         if (closeCart) {

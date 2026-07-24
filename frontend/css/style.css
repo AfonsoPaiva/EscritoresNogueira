@@ -284,7 +284,8 @@ ul {
   display: flex;
   align-items: center;
   gap: 15px;
-  margin-left: 20px;
+  margin-left: auto;
+  justify-self: end;
 }
 
 .icon-btn {

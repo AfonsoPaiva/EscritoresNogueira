@@ -30,7 +30,7 @@ function renderBookCard(book, options = {}) {
     return `
         <${wrapper} class="${wrapperClass}" data-href="${bookUrl}" data-book-id="${book.id}"${aosAttr}>
             <div class="book-image">
-                ${imageUrl ? `<img src="${imageUrl}" alt="${book.title}" width="280" height="350" loading="lazy">` : '<i class="fas fa-book"></i>'}
+                ${imageUrl ? `<img src="${imageUrl}" alt="${book.title}" width="280" height="350" loading="lazy" decoding="async">` : '<i class="fas fa-book"></i>'}
                 ${isPromo ? '<div class="book-badge">Promoção</div>' : ''}
             </div>
             <div class="book-info">
@@ -81,7 +81,7 @@ function renderBlogCard(post, options = {}) {
     return `
         <div class="blog-card" onclick="${onClick}"${aosAttr}>
             <div class="blog-image">
-                ${post.image ? `<img src="${post.image}" alt="${post.title}">` : `<i class="fas fa-${imageIcon}"></i>`}
+                ${post.image ? `<img src="${post.image}" alt="${post.title}" loading="lazy" decoding="async">` : `<i class="fas fa-${imageIcon}"></i>`}
             </div>
             <div class="blog-content">
                 <div class="blog-meta">
@@ -186,7 +186,6 @@ function initPageTabs(tabsSelector, contentsSelector, activeClass = 'active', on
     const contents = document.querySelectorAll(contentsSelector);
 
     if (tabs.length === 0 || contents.length === 0) {
-        console.warn('⚠️ Tabs or contents not found:', { tabsSelector, contentsSelector });
         return;
     }
 
@@ -325,12 +324,9 @@ function setLoadingState(show, elementId = null, className = 'loading') {
  */
 function safeGetElement(elementId, context = '') {
     const element = document.getElementById(elementId);
-    
     if (!element) {
-        console.warn(`⚠️ Element not found: #${elementId} ${context}`);
         return null;
     }
-    
     return element;
 }
 

@@ -48,43 +48,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Initialize GSAP
 function initGSAP() {
-    if (typeof gsap !== 'undefined' && typeof ScrollTrigger !== 'undefined') {
-        gsap.registerPlugin(ScrollTrigger);
-        return true;
-    }
     return false;
 }
 
-// Ensure GSAP and ScrollTrigger are available, load from CDN if missing
 function ensureGSAP() {
-    return new Promise((resolve, reject) => {
-        if (initGSAP()) return resolve(true);
-
-        const loadScript = (src) => new Promise((res, rej) => {
-            const s = document.createElement('script');
-            s.src = src;
-            s.async = true;
-            s.onload = res;
-            s.onerror = rej;
-            document.head.appendChild(s);
-        });
-
-        // Load GSAP then ScrollTrigger sequentially
-        loadScript('https://cdn.jsdelivr.net/npm/gsap@3.14.1/dist/gsap.min.js')
-            .then(() => loadScript('https://cdn.jsdelivr.net/npm/gsap@3.14.1/dist/ScrollTrigger.min.js'))
-            .then(() => {
-                try {
-                    if (typeof gsap !== 'undefined' && typeof ScrollTrigger !== 'undefined') {
-                        gsap.registerPlugin(ScrollTrigger);
-                        return resolve(true);
-                    }
-                    return reject(new Error('GSAP or ScrollTrigger not available after load'));
-                } catch (e) {
-                    return reject(e);
-                }
-            })
-            .catch(err => reject(err));
-    });
+    return Promise.resolve(false);
 }
 
 // Ensure Swiper library is available (load from CDN if missing)
@@ -455,11 +423,7 @@ function initHeaderScroll() {
             if (scrollTop > lastScrollTop && scrollTop > 100) {
                 // Scrolling down - hide header and show fixed buttons
                 if (!isHeaderHidden) {
-                    gsap.to(header, {
-                        y: '-100%',
-                        duration: 0.3,
-                        ease: 'power2.out'
-                    });
+                    header.style.transform = 'translateY(-100%)';
                     if (fixedButtons) {
                         fixedButtons.classList.add('show');
                     }
@@ -468,11 +432,7 @@ function initHeaderScroll() {
             } else {
                 // Scrolling up - show header and hide fixed buttons
                 if (isHeaderHidden) {
-                    gsap.to(header, {
-                        y: '0%',
-                        duration: 0.3,
-                        ease: 'power2.out'
-                    });
+                    header.style.transform = 'translateY(0)';
                     if (fixedButtons) {
                         fixedButtons.classList.remove('show');
                     }
@@ -489,7 +449,7 @@ function initHeaderScroll() {
         if (!shouldShowFixedButtons() && fixedButtons) {
             fixedButtons.classList.remove('show');
             if (isHeaderHidden) {
-                gsap.to(header, { y: '0%', duration: 0.3, ease: 'power2.out' });
+                header.style.transform = 'translateY(0)';
                 isHeaderHidden = false;
             }
         }
@@ -523,18 +483,10 @@ function initSearch() {
     const searchContainer = searchOverlay ? searchOverlay.querySelector('.search-container') : null;
     if (searchBtn) {
         searchBtn.addEventListener('click', async () => {
-            try { searchOverlay.style.display = ''; } catch(e){}
-            // Show overlay immediately so background is visible
-            searchOverlay.classList.add('active');
-
-            // If GSAP is available, animate the overlay sliding down from top
-            if (typeof gsap !== 'undefined') {
-                gsap.set(searchOverlay, { y: '-100%' });
-                gsap.to(searchOverlay, {
-                    y: '0%',
-                    duration: 0.5,
-                    ease: 'power2.out'
-                });
+            if (searchOverlay) {
+                searchOverlay.style.display = 'block';
+                searchOverlay.style.transform = 'none';
+                searchOverlay.classList.add('active');
             }
 
             setTimeout(() => searchInput && searchInput.focus(), 120);
@@ -544,20 +496,12 @@ function initSearch() {
 
     if (closeSearch) {
         closeSearch.addEventListener('click', () => {
-            // Animate overlay sliding up and then hide
-            const hideOverlay = () => {
+            if (searchOverlay) {
                 searchOverlay.classList.remove('active');
-                try { searchOverlay.style.display = 'none'; } catch(e){}
-            };
-
-            if (typeof gsap !== 'undefined') {
-                gsap.to(searchOverlay, {
-                    y: '-100%',
-                    duration: 0.4,
-                    ease: 'power2.in',
-                    onComplete: hideOverlay
-                });
-            } else {
+                searchOverlay.style.display = 'none';
+            }
+        });
+    }
                 searchOverlay.classList.remove('active');
                 setTimeout(() => searchOverlay.style.display = 'none', 550);
             }
